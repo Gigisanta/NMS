@@ -1,0 +1,318 @@
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { motion, AnimatePresence } from 'framer-motion'
+import { 
+  CreditCard,
+  CheckCircle2,
+  AlertTriangle,
+  Clock,
+  Filter,
+  Loader2
+} from 'lucide-react'
+import { formatFullName, getPaymentStatusConfig, formatMonthYear, getCurrentMonth, getCurrentYear } from '@/lib/utils'
+import { GroupBadge } from './group-badge'
+
+interface Group {
+  id: string
+  name: string
+  color: string
+}
+
+interface Subscription {
+  id: string
+  clientId: string
+  month: number
+  year: number
+  status: string
+  classesTotal: number
+  classesUsed: number
+  amount: number | null
+  client: {
+    id: string
+    nombre: string
+    apellido: string
+    telefono: string
+    grupo: Group | null
+  }
+}
+
+export function PaymentsView() {
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+  const [loading, setLoading] = useState(true)
+  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth())
+  const [selectedYear, setSelectedYear] = useState(getCurrentYear())
+  const [updating, setUpdating] = useState<string | null>(null)
+
+  const fetchSubscriptions = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      params.set('month', selectedMonth.toString())
+      params.set('year', selectedYear.toString())
+
+      const response = await fetch(`/api/subscriptions?${params}`)
+      const result = await response.json()
+      if (result.success) {
+        setSubscriptions(result.data)
+      }
+    } catch (error) {
+      console.error('Error fetching subscriptions:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [selectedMonth, selectedYear])
+
+  useEffect(() => {
+    fetchSubscriptions()
+  }, [fetchSubscriptions])
+
+  const handleStatusChange = async (subscriptionId: string, newStatus: string) => {
+    setUpdating(subscriptionId)
+    try {
+      const response = await fetch(`/api/subscriptions/${subscriptionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        setSubscriptions(prev => 
+          prev.map(s => s.id === subscriptionId ? { ...s, status: newStatus } : s)
+        )
+      }
+    } catch (error) {
+      console.error('Error updating subscription:', error)
+    } finally {
+      setUpdating(null)
+    }
+  }
+
+  const filteredSubscriptions = statusFilter
+    ? subscriptions.filter(s => s.status === statusFilter)
+    : subscriptions
+
+  const stats = {
+    total: subscriptions.length,
+    alDia: subscriptions.filter(s => s.status === 'AL_DIA').length,
+    pendiente: subscriptions.filter(s => s.status === 'PENDIENTE').length,
+    deudor: subscriptions.filter(s => s.status === 'DEUDOR').length,
+  }
+
+  const months = Array.from({ length: 12 }, (_, i) => i + 1)
+  const years = [selectedYear - 1, selectedYear, selectedYear + 1]
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Pagos y Suscripciones</h1>
+          <p className="text-slate-500">
+            Gestión de estados de pago
+          </p>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: 'Total', value: stats.total, icon: CreditCard, bg: 'bg-slate-100', color: 'text-slate-600' },
+          { label: 'Al Día', value: stats.alDia, icon: CheckCircle2, bg: 'bg-emerald-100', color: 'text-emerald-600' },
+          { label: 'Pendientes', value: stats.pendiente, icon: Clock, bg: 'bg-amber-100', color: 'text-amber-600' },
+          { label: 'Deudores', value: stats.deudor, icon: AlertTriangle, bg: 'bg-red-100', color: 'text-red-600' },
+        ].map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 ${stat.bg} rounded-lg`}>
+                    <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                  </div>
+                  <div>
+                    <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                    <p className="text-xs text-slate-500">{stat.label}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-slate-400" />
+              <span className="text-sm font-medium">Filtros:</span>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {[
+                { value: '', label: 'Todos' },
+                { value: 'AL_DIA', label: 'Al Día', activeClass: 'bg-emerald-600' },
+                { value: 'PENDIENTE', label: 'Pendiente', activeClass: 'bg-amber-600' },
+                { value: 'DEUDOR', label: 'Deudor', activeClass: 'bg-red-600' },
+              ].map((filter) => (
+                <Button
+                  key={filter.value}
+                  variant={statusFilter === filter.value ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setStatusFilter(filter.value)}
+                  className={statusFilter === filter.value ? filter.activeClass : ''}
+                >
+                  {filter.label}
+                </Button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 ml-auto">
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                className="h-9 px-3 rounded-md border border-slate-200 bg-white text-sm"
+              >
+                {months.map(m => (
+                  <option key={m} value={m}>
+                    {formatMonthYear(m, selectedYear).split(' ')[0]}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                className="h-9 px-3 rounded-md border border-slate-200 bg-white text-sm"
+              >
+                {years.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Subscriptions Table */}
+      <Card className="border-0 shadow-lg bg-white/80 backdrop-blur overflow-hidden">
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
+            </div>
+          ) : filteredSubscriptions.length === 0 ? (
+            <div className="flex flex-col items-center py-12 text-slate-500">
+              <CreditCard className="w-12 h-12 mb-4 text-slate-300" />
+              <p className="text-lg font-medium">No hay suscripciones</p>
+              <p className="text-sm">No se encontraron registros para el período seleccionado</p>
+            </div>
+          ) : (
+            <ScrollArea className="h-[calc(100vh-450px)] min-h-[400px]">
+              <Table>
+                <TableHeader className="sticky top-0 bg-slate-50/95 backdrop-blur z-10">
+                  <TableRow>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Grupo</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Clases</TableHead>
+                    <TableHead>Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <AnimatePresence>
+                    {filteredSubscriptions.map((sub, index) => {
+                      const statusConfig = getPaymentStatusConfig(sub.status)
+                      return (
+                        <motion.tr
+                          key={sub.id}
+                          className="hover:bg-slate-50/50 transition-colors"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.03 }}
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10 bg-gradient-to-br from-cyan-500 to-sky-600 ring-2 ring-white shadow-md">
+                                <AvatarFallback className="text-white text-sm">
+                                  {sub.client.nombre[0]}{sub.client.apellido[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  {formatFullName(sub.client.nombre, sub.client.apellido)}
+                                </p>
+                                <p className="text-xs text-slate-500">{sub.client.telefono}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <GroupBadge group={sub.client.grupo} size="sm" />
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`${statusConfig.color} border transition-transform hover:scale-105`}>
+                              <span className={`w-2 h-2 rounded-full ${statusConfig.dotColor} mr-1.5`} />
+                              {statusConfig.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm font-medium">
+                              {sub.classesUsed}/{sub.classesTotal}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              {[
+                                { status: 'AL_DIA', icon: CheckCircle2, color: 'text-emerald-600 hover:bg-emerald-50' },
+                                { status: 'PENDIENTE', icon: Clock, color: 'text-amber-600 hover:bg-amber-50' },
+                                { status: 'DEUDOR', icon: AlertTriangle, color: 'text-red-600 hover:bg-red-50' },
+                              ].map(({ status, icon: Icon, color }) => (
+                                <Button
+                                  key={status}
+                                  size="sm"
+                                  variant="outline"
+                                  className={`h-8 text-xs ${color}`}
+                                  onClick={() => handleStatusChange(sub.id, status)}
+                                  disabled={updating === sub.id || sub.status === status}
+                                >
+                                  {updating === sub.id ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <Icon className="w-3 h-3 mr-1" />
+                                  )}
+                                  {status === 'AL_DIA' ? 'Al Día' : status === 'PENDIENTE' ? 'Pendiente' : 'Deudor'}
+                                </Button>
+                              ))}
+                            </div>
+                          </TableCell>
+                        </motion.tr>
+                      )
+                    })}
+                  </AnimatePresence>
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
