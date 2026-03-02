@@ -225,12 +225,13 @@ export function UserManagement() {
   }
 
   const getEmployeeRoleLabel = (role: string | null) => {
-    switch (role) {
-      case 'ADMINISTRATIVO': return 'Administrativo'
-      case 'PROFESOR': return 'Profesor'
-      case 'LIMPIEZA': return 'Limpieza'
-      default: return 'Sin rol'
+    if (!role) return 'Sin rol'
+    const knownRoles: Record<string, string> = {
+      'ADMINISTRATIVO': 'Administrativo',
+      'PROFESOR': 'Profesor',
+      'LIMPIEZA': 'Limpieza'
     }
+    return knownRoles[role] || role
   }
 
   const filteredUsers = users.filter(user => {
@@ -325,19 +326,11 @@ export function UserManagement() {
                   {formData.role === 'EMPLEADO' && (
                     <div className="space-y-2">
                       <Label>Tipo de Empleado</Label>
-                      <Select
+                      <Input
                         value={formData.employeeRole}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, employeeRole: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="PROFESOR">Profesor</SelectItem>
-                          <SelectItem value="ADMINISTRATIVO">Administrativo</SelectItem>
-                          <SelectItem value="LIMPIEZA">Limpieza</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        onChange={(e) => setFormData(prev => ({ ...prev, employeeRole: e.target.value }))}
+                        placeholder="Ej: Profesor, Administrativo..."
+                      />
                     </div>
                   )}
                 </div>
