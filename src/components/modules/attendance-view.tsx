@@ -19,6 +19,7 @@ import {
 import { formatFullName, formatTime, getPaymentStatusConfig, formatDate } from '@/lib/utils'
 import { useAppStore } from '@/store'
 import { GroupBadge } from './group-badge'
+import { GroupTabs } from './group-tabs'
 
 interface Group {
   id: string
@@ -216,7 +217,7 @@ export function AttendanceView() {
   // Local state
   const [clients, setClients] = useState<Client[]>([])
   const [todayAttendance, setTodayAttendance] = useState<AttendanceRecord[]>([])
-  const [selectedGrupo, setSelectedGrupo] = useState<string>('')
+  const [selectedGrupo, setSelectedGrupo] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [markingAttendance, setMarkingAttendance] = useState<string | null>(null)
   const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, { classesUsed: number }>>({})
@@ -308,6 +309,8 @@ export function AttendanceView() {
           },
         }, ...prev])
 
+        // Success sound or haptic feedback could be added here
+
         // Refresh data to get updated subscription
         fetchData()
       } else {
@@ -372,40 +375,13 @@ export function AttendanceView() {
         </div>
       </div>
 
-      {/* Group Filter */}
-      {storeGroups.length > 0 && (
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4 overflow-x-auto pb-2">
-              <span className="flex items-center gap-2 text-sm font-medium text-slate-700 shrink-0">
-                <Filter className="w-4 h-4" />
-                Filtrar por grupo:
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  variant={selectedGrupo === '' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedGrupo('')}
-                  className={selectedGrupo === '' ? 'bg-gradient-to-r from-cyan-500 to-sky-600' : ''}
-                >
-                  Todos
-                </Button>
-                {storeGroups.map(group => (
-                  <Button
-                    key={group.id}
-                    variant={selectedGrupo === group.id ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setSelectedGrupo(group.id)}
-                    style={selectedGrupo === group.id ? { backgroundColor: group.color } : {}}
-                    className={selectedGrupo === group.id ? 'text-white' : ''}
-                  >
-                    {group.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Group Tabs */}
+      {storeGroups && storeGroups.length > 0 && (
+        <GroupTabs
+          groups={storeGroups}
+          selectedId={selectedGrupo}
+          onChange={setSelectedGrupo}
+        />
       )}
 
       {/* Clients Grid */}

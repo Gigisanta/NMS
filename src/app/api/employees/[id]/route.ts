@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { hashPassword } from '@/lib/auth-utils'
-import { EmployeeRole } from '@prisma/client'
 
 // GET /api/employees/[id] - Get single employee
 export async function GET(
@@ -116,13 +115,6 @@ export async function PUT(
     if (hourlyRate !== undefined) updateData.hourlyRate = hourlyRate ? parseFloat(hourlyRate) : null
     
     if (employeeRole !== undefined) {
-      const validRoles: EmployeeRole[] = ['ADMINISTRATIVO', 'PROFESOR', 'LIMPIEZA']
-      if (!validRoles.includes(employeeRole)) {
-        return NextResponse.json(
-          { success: false, error: 'Rol de empleado inválido' },
-          { status: 400 }
-        )
-      }
       updateData.employeeRole = employeeRole
     }
 
@@ -174,7 +166,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/employees/[id] - Delete/deactivate employee
+// DELETE /api/employees/[id] - Hard delete employee
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -206,20 +198,14 @@ export async function DELETE(
       )
     }
 
-    // Soft delete (deactivate) instead of hard delete
-    const employee = await db.user.update({
+    // Hard delete
+    await db.user.delete({
       where: { id },
-      data: { active: false },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
     })
 
     return NextResponse.json({
       success: true,
-      message: `Empleado ${employee.name} desactivado correctamente`,
+      message: `Empleado eliminado correctamente`,
     })
   } catch (error) {
     console.error('Error deleting employee:', error)

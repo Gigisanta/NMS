@@ -12,6 +12,8 @@ const DashboardView = lazy(() => import('@/components/modules/dashboard-view').t
 const ClientsView = lazy(() => import('@/components/modules/clients-view').then(m => ({ default: m.ClientsView })))
 const AttendanceView = lazy(() => import('@/components/modules/attendance-view').then(m => ({ default: m.AttendanceView })))
 const PaymentsView = lazy(() => import('@/components/modules/payments-view').then(m => ({ default: m.PaymentsView })))
+const BillingView = lazy(() => import('@/components/modules/billing-view').then(m => ({ default: m.BillingView })))
+const CalendarView = lazy(() => import('@/components/modules/calendar-view').then(m => ({ default: m.CalendarView })))
 const SettingsView = lazy(() => import('@/components/modules/settings-view').then(m => ({ default: m.SettingsView })))
 const EmployeesView = lazy(() => import('@/components/modules/employees-view').then(m => ({ default: m.EmployeesView })))
 
@@ -79,6 +81,10 @@ function Home() {
         return <AttendanceView />
       case 'pagos':
         return <PaymentsView />
+      case 'facturacion':
+        return <BillingView />
+      case 'calendario':
+        return <CalendarView />
       case 'empleados':
         // Only EMPLEADORA can access employees view
         if (session?.user?.role === 'EMPLEADORA') {

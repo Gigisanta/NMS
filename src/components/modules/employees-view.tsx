@@ -55,14 +55,12 @@ import { useDebounce } from '@/hooks/use-optimized'
 import { toast } from 'sonner'
 
 // Types
-type EmployeeRole = 'ADMINISTRATIVO' | 'PROFESOR' | 'LIMPIEZA'
-
 interface Employee {
   id: string
   name: string | null
   email: string
   role: string
-  employeeRole: EmployeeRole | null
+  employeeRole: string | null
   hourlyRate: number | null
   phone: string | null
   active: boolean
@@ -77,7 +75,7 @@ interface EmployeeFormData {
   name: string
   email: string
   password: string
-  employeeRole: EmployeeRole
+  employeeRole: string
   hourlyRate: string
   phone: string
 }
@@ -91,8 +89,8 @@ const initialFormData: EmployeeFormData = {
   phone: '',
 }
 
-// Role config
-const roleConfig: Record<EmployeeRole, { label: string; color: string; icon: typeof Briefcase }> = {
+// Default role config for known roles
+const roleConfig: Record<string, { label: string; color: string; icon: typeof Briefcase }> = {
   ADMINISTRATIVO: { label: 'Administrativo', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: Briefcase },
   PROFESOR: { label: 'Profesor', color: 'bg-purple-100 text-purple-800 border-purple-200', icon: Users },
   LIMPIEZA: { label: 'Limpieza', color: 'bg-green-100 text-green-800 border-green-200', icon: UserCheck },
@@ -110,7 +108,7 @@ const EmployeeCard = memo(function EmployeeCard({
   onDelete: (employee: Employee) => void
   onToggleActive: (employee: Employee) => void
 }) {
-  const roleInfo = employee.employeeRole ? roleConfig[employee.employeeRole] : null
+  const roleInfo = employee.employeeRole ? (roleConfig[employee.employeeRole] || { label: employee.employeeRole, color: 'bg-slate-100 text-slate-800 border-slate-200', icon: Briefcase }) : null
   const RoleIcon = roleInfo?.icon || Users
   
   const initials = useMemo(() => {
@@ -339,36 +337,13 @@ const EmployeeFormDialog = memo(function EmployeeFormDialog({
 
             <div className="grid gap-2">
               <Label htmlFor="employeeRole">Rol de trabajo *</Label>
-              <Select
+              <Input
+                id="employeeRole"
                 value={formData.employeeRole}
-                onValueChange={(value: EmployeeRole) => 
-                  setFormData({ ...formData, employeeRole: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar rol" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ADMINISTRATIVO">
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="w-4 h-4" />
-                      Administrativo
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="PROFESOR">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Profesor
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="LIMPIEZA">
-                    <div className="flex items-center gap-2">
-                      <UserCheck className="w-4 h-4" />
-                      Limpieza
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                onChange={(e) => setFormData({ ...formData, employeeRole: e.target.value })}
+                placeholder="Ej: Profesor, Administrativo, Mantenimiento..."
+                required
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -474,7 +449,7 @@ export function EmployeesView() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
-  const [roleFilter, setRoleFilter] = useState<EmployeeRole | 'all'>('all')
+  const [roleFilter, setRoleFilter] = useState<string | 'all'>('all')
   const [showActiveOnly, setShowActiveOnly] = useState(true)
   
   // Dialogs
@@ -507,6 +482,12 @@ export function EmployeesView() {
   useEffect(() => {
     fetchEmployees()
   }, [fetchEmployees])
+
+  // All unique roles for filtering
+  const uniqueRoles = useMemo(() => {
+    const roles = new Set(employees.map(e => e.employeeRole).filter(Boolean))
+    return Array.from(roles) as string[]
+  }, [employees])
 
   // Filtered employees
   const filteredEmployees = useMemo(() => {
@@ -750,7 +731,7 @@ export function EmployeesView() {
             <div className="flex gap-2">
               <Select
                 value={roleFilter}
-                onValueChange={(value) => setRoleFilter(value as EmployeeRole | 'all')}
+                onValueChange={(value) => setRoleFilter(value)}
               >
                 <SelectTrigger className="w-[180px]">
                   <Filter className="w-4 h-4 mr-2" />
@@ -758,9 +739,11 @@ export function EmployeesView() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos los roles</SelectItem>
-                  <SelectItem value="ADMINISTRATIVO">Administrativo</SelectItem>
-                  <SelectItem value="PROFESOR">Profesor</SelectItem>
-                  <SelectItem value="LIMPIEZA">Limpieza</SelectItem>
+                  {uniqueRoles.map(role => (
+                    <SelectItem key={role} value={role}>
+                      {roleConfig[role]?.label || role}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Button

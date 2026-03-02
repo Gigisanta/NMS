@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { hashPassword } from '@/lib/auth-utils'
-import { Role, EmployeeRole } from '@prisma/client'
+import { Role } from '@prisma/client'
 
 // GET /api/employees - List all employees
 export async function GET(request: NextRequest) {
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams
-    const role = searchParams.get('role') as EmployeeRole | null
+    const role = searchParams.get('role')
     const active = searchParams.get('active')
 
     const where: any = {}
@@ -101,14 +101,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate employee role
-    const validRoles: EmployeeRole[] = ['ADMINISTRATIVO', 'PROFESOR', 'LIMPIEZA']
-    if (!validRoles.includes(employeeRole)) {
-      return NextResponse.json(
-        { success: false, error: 'Rol de empleado inválido' },
-        { status: 400 }
-      )
-    }
 
     // Check if email already exists
     const existingUser = await db.user.findUnique({

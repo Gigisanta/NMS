@@ -12,10 +12,11 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { ClientForm } from './client-form'
 import { GroupSelector } from './group-selector'
 import { ClientProfile } from './client-profile'
+import { GroupTabs } from './group-tabs'
 import { formatFullName, formatPhone, getPaymentStatusConfig } from '@/lib/utils'
 import { useDebounce } from '@/hooks/use-optimized'
 import { useAppStore } from '@/store'
-import { Plus, Search, Loader2, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Search, Loader2, Clock, ChevronLeft, ChevronRight, AlertCircle, Send } from 'lucide-react'
 
 import type { Client } from '@/types'
 
@@ -34,6 +35,12 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
   const statusConfig = getPaymentStatusConfig(
     client.currentSubscription?.status || 'PENDIENTE'
   )
+
+  const isLate = useMemo(() => {
+    const today = new Date()
+    const day = today.getDate()
+    return day > 10 && (client.currentSubscription?.status === 'PENDIENTE' || !client.currentSubscription)
+  }, [client.currentSubscription])
 
   const initials = `${client.nombre?.[0] || ''}${client.apellido?.[0] || ''}`
 
@@ -67,19 +74,44 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
         />
       </TableCell>
       <TableCell>
-        <Badge variant="outline" className={`font-normal text-xs ${statusConfig.color || ''}`}>
-          {statusConfig.label}
-        </Badge>
+        <div className="flex flex-col gap-1">
+          <Badge variant="outline" className={`font-normal text-xs w-fit ${statusConfig.color || ''}`}>
+            {statusConfig.label}
+          </Badge>
+          {isLate && (
+            <Badge variant="destructive" className="text-[10px] py-0 h-4 w-fit animate-pulse">
+              <AlertCircle className="w-2 h-2 mr-1" />
+              Pago Atrasado
+            </Badge>
+          )}
+        </div>
       </TableCell>
       <TableCell className="text-right">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={(e) => { e.stopPropagation(); onDelete(client.id); }}
-          disabled={deletingId}
-        >
-          {deletingId ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Eliminar'}
-        </Button>
+        <div className="flex justify-end gap-2">
+          {isLate && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs text-amber-600 border-amber-200 hover:bg-amber-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(`https://wa.me/${client.telefono.replace(/\D/g, '')}?text=Hola%20${client.nombre},%20te%20recordamos%20que%20el%20pago%20de%20la%20cuota%20está%20pendiente.%20¡Muchas%20gracias!`, '_blank');
+              }}
+            >
+              <Send className="w-3 h-3 mr-1" />
+              Recordar
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
+            onClick={(e) => { e.stopPropagation(); onDelete(client.id); }}
+            disabled={deletingId}
+          >
+            {deletingId ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Eliminar'}
+          </Button>
+        </div>
       </TableCell>
     </motion.tr>
   )
@@ -222,6 +254,15 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
         </CardHeader>
 
         <CardContent>
+          <GroupTabs
+            groups={memoizedGroups}
+            selectedId={grupoFilter}
+            onChange={(val) => {
+              setGrupoFilter(val)
+              setPage(1)
+            }}
+          />
+
           <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -233,18 +274,6 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
                   setPage(1)
                 }}
                 className="pl-9"
-              />
-            </div>
-
-            <div className="w-full md:w-64">
-              <GroupSelector
-                value={grupoFilter}
-                onChange={(val) => {
-                  setGrupoFilter(val)
-                  setPage(1)
-                }}
-                groups={memoizedGroups}
-                placeholder="Todos los grupos"
               />
             </div>
             

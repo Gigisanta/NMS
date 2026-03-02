@@ -16,13 +16,6 @@ enum Role {
   EMPLEADO   // Staff - Limited access
 }
 
-// Employee job roles (for staff categorization)
-enum EmployeeRole {
-  ADMINISTRATIVO // Administrative staff
-  PROFESOR       // Swimming instructor
-  LIMPIEZA       // Cleaning staff
-}
-
 // Tabla de Usuarios (Authentication)
 model User {
   id           String       @id @default(cuid())
@@ -30,7 +23,7 @@ model User {
   email        String       @unique
   password     String
   role         Role         @default(EMPLEADO)
-  employeeRole EmployeeRole? // Only for EMPLEADO role
+  employeeRole String?      // Changed from enum to String for free-form roles
   hourlyRate   Float?       // Hourly wage for employees
   phone        String?
   active       Boolean      @default(true)
@@ -153,6 +146,8 @@ model Subscription {
   month          Int
   year           Int
   status         String   @default("PENDIENTE")
+  paymentMethod  String?  // EFECTIVO, TRANSFERENCIA, MERCADO_PAGO
+  isBilled       Boolean  @default(false) // Whether it was processed for ARCA
   classesTotal   Int      @default(4)
   classesUsed    Int      @default(0)
   amount         Float?
@@ -224,6 +219,22 @@ model Attendance {
   client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@map("attendances")
+}
+
+// Tabla de Calendario (Eventos Globales)
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  start       DateTime
+  end         DateTime?
+  allDay      Boolean  @default(false)
+  color       String?  @default("#3b82f6")
+  userId      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("calendar_events")
 }
 
 // Tabla de Configuración del Sistema

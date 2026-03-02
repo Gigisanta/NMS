@@ -9,19 +9,16 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { status, classesTotal, classesUsed, amount } = body
+    const { status, classesTotal, classesUsed, amount, paymentMethod, isBilled } = body
 
-    const updateData: {
-      status?: string
-      classesTotal?: number
-      classesUsed?: number
-      amount?: number | null
-    } = {}
+    const updateData: any = {}
 
     if (status) updateData.status = status
     if (typeof classesTotal === 'number') updateData.classesTotal = classesTotal
     if (typeof classesUsed === 'number') updateData.classesUsed = classesUsed
     if (typeof amount === 'number' || amount === null) updateData.amount = amount
+    if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod
+    if (typeof isBilled === 'boolean') updateData.isBilled = isBilled
 
     const subscription = await db.subscription.update({
       where: { id },

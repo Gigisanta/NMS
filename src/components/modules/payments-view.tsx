@@ -21,10 +21,14 @@ import {
   AlertTriangle,
   Clock,
   Filter,
-  Loader2
+  Loader2,
+  AlertCircle,
+  Send
 } from 'lucide-react'
 import { formatFullName, getPaymentStatusConfig, formatMonthYear, getCurrentMonth, getCurrentYear } from '@/lib/utils'
 import { GroupBadge } from './group-badge'
+import { GroupTabs } from './group-tabs'
+import { useAppStore } from '@/store'
 
 interface Group {
   id: string
@@ -56,7 +60,10 @@ export function PaymentsView() {
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth())
   const [selectedYear, setSelectedYear] = useState(getCurrentYear())
+  const [selectedGrupo, setSelectedGrupo] = useState<string | null>(null)
   const [updating, setUpdating] = useState<string | null>(null)
+
+  const storeGroups = useAppStore((state) => (state as any).groups)
 
   const fetchSubscriptions = useCallback(async () => {
     setLoading(true)
@@ -81,19 +88,22 @@ export function PaymentsView() {
     fetchSubscriptions()
   }, [fetchSubscriptions])
 
-  const handleStatusChange = async (subscriptionId: string, newStatus: string) => {
+  const handleStatusChange = async (subscriptionId: string, newStatus: string, paymentMethod?: string) => {
     setUpdating(subscriptionId)
     try {
       const response = await fetch(`/api/subscriptions/${subscriptionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({
+          status: newStatus,
+          ...(paymentMethod ? { paymentMethod } : {})
+        }),
       })
 
       const result = await response.json()
       if (result.success) {
         setSubscriptions(prev => 
-          prev.map(s => s.id === subscriptionId ? { ...s, status: newStatus } : s)
+          prev.map(s => s.id === subscriptionId ? { ...s, status: newStatus, paymentMethod: paymentMethod || s.paymentMethod } : s)
         )
       }
     } catch (error) {
@@ -103,9 +113,11 @@ export function PaymentsView() {
     }
   }
 
-  const filteredSubscriptions = statusFilter
-    ? subscriptions.filter(s => s.status === statusFilter)
-    : subscriptions
+  const filteredSubscriptions = subscriptions.filter(s => {
+    const matchesStatus = !statusFilter || s.status === statusFilter
+    const matchesGroup = !selectedGrupo || s.client.grupo?.id === selectedGrupo
+    return matchesStatus && matchesGroup
+  })
 
   const stats = {
     total: subscriptions.length,
@@ -159,6 +171,15 @@ export function PaymentsView() {
           </motion.div>
         ))}
       </div>
+
+      {/* Group Tabs */}
+      {storeGroups && storeGroups.length > 0 && (
+        <GroupTabs
+          groups={storeGroups}
+          selectedId={selectedGrupo}
+          onChange={setSelectedGrupo}
+        />
+      )}
 
       {/* Filters */}
       <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
@@ -250,7 +271,16 @@ export function PaymentsView() {
                           transition={{ delay: index * 0.03 }}
                         >
                           <TableCell>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 relative">
+                              {(() => {
+                                const today = new Date()
+                                const isLate = today.getDate() > 10 && sub.status === 'PENDIENTE'
+                                return isLate && (
+                                  <div className="absolute -left-2 top-0">
+                                    <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />
+                                  </div>
+                                )
+                              })()}
                               <Avatar className="h-10 w-10 bg-gradient-to-br from-cyan-500 to-sky-600 ring-2 ring-white shadow-md">
                                 <AvatarFallback className="text-white text-sm">
                                   {sub.client.nombre[0]}{sub.client.apellido[0]}
@@ -280,27 +310,56 @@ export function PaymentsView() {
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              {[
-                                { status: 'AL_DIA', icon: CheckCircle2, color: 'text-emerald-600 hover:bg-emerald-50' },
-                                { status: 'PENDIENTE', icon: Clock, color: 'text-amber-600 hover:bg-amber-50' },
-                                { status: 'DEUDOR', icon: AlertTriangle, color: 'text-red-600 hover:bg-red-50' },
-                              ].map(({ status, icon: Icon, color }) => (
-                                <Button
-                                  key={status}
-                                  size="sm"
-                                  variant="outline"
-                                  className={`h-8 text-xs ${color}`}
-                                  onClick={() => handleStatusChange(sub.id, status)}
-                                  disabled={updating === sub.id || sub.status === status}
-                                >
-                                  {updating === sub.id ? (
-                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                  ) : (
-                                    <Icon className="w-3 h-3 mr-1" />
-                                  )}
-                                  {status === 'AL_DIA' ? 'Al Día' : status === 'PENDIENTE' ? 'Pendiente' : 'Deudor'}
-                                </Button>
-                              ))}
+                              {sub.status !== 'AL_DIA' ? (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-8 text-xs text-emerald-600 hover:bg-emerald-50"
+                                    onClick={() => handleStatusChange(sub.id, 'AL_DIA', 'EFECTIVO')}
+                                    disabled={updating === sub.id}
+                                  >
+                                    {updating === sub.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
+                                    Efectivo
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-8 text-xs text-emerald-600 hover:bg-emerald-50"
+                                    onClick={() => handleStatusChange(sub.id, 'AL_DIA', 'TRANSFERENCIA')}
+                                    disabled={updating === sub.id}
+                                  >
+                                    {updating === sub.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
+                                    Transf.
+                                  </Button>
+                                </>
+                              ) : (
+                                <Badge variant="outline" className="h-8 text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
+                                  Pagado ({sub.paymentMethod === 'EFECTIVO' ? 'Efe' : 'Transf'})
+                                </Badge>
+                              )}
+
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className={`h-8 w-8 p-0 ${sub.status === 'PENDIENTE' ? 'text-amber-600 bg-amber-50' : 'text-slate-400'}`}
+                                onClick={() => handleStatusChange(sub.id, 'PENDIENTE')}
+                                disabled={updating === sub.id || sub.status === 'PENDIENTE'}
+                                title="Marcar como Pendiente"
+                              >
+                                <Clock className="w-3 h-3" />
+                              </Button>
+
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className={`h-8 w-8 p-0 ${sub.status === 'DEUDOR' ? 'text-red-600 bg-red-50' : 'text-slate-400'}`}
+                                onClick={() => handleStatusChange(sub.id, 'DEUDOR')}
+                                disabled={updating === sub.id || sub.status === 'DEUDOR'}
+                                title="Marcar como Deudor"
+                              >
+                                <AlertTriangle className="w-3 h-3" />
+                              </Button>
                             </div>
                           </TableCell>
                         </motion.tr>

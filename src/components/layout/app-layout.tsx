@@ -10,6 +10,8 @@ import {
   ClipboardCheck, 
   CreditCard, 
   Settings,
+  Receipt,
+  CalendarDays,
   Menu,
   Waves as WavesIcon,
   UserCog,
@@ -33,8 +35,10 @@ const navigation = [
   { id: 'clientes', name: 'Clientes', icon: Users, shortcut: '2' },
   { id: 'asistencias', name: 'Asistencias', icon: ClipboardCheck, shortcut: '3' },
   { id: 'pagos', name: 'Pagos', icon: CreditCard, shortcut: '4' },
-  { id: 'empleados', name: 'Empleados', icon: UserCog, adminOnly: true, shortcut: '5' },
-  { id: 'configuracion', name: 'Configuración', icon: Settings, adminOnly: true, shortcut: '6' },
+  { id: 'facturacion', name: 'Facturación', icon: Receipt, shortcut: '5' },
+  { id: 'calendario', name: 'Calendario', icon: CalendarDays, shortcut: '6' },
+  { id: 'empleados', name: 'Empleados', icon: UserCog, adminOnly: true, shortcut: '7' },
+  { id: 'configuracion', name: 'Configuración', icon: Settings, adminOnly: true, shortcut: '8' },
 ]
 
 export function AppLayout({ children, currentView, onViewChange, onNewClient }: AppLayoutProps) {

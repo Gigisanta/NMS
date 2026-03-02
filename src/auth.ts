@@ -3,7 +3,6 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
-import type { EmployeeRole } from '@prisma/client'
 import type { NextAuthOptions } from 'next-auth'
 import type { DefaultSession } from 'next-auth'
 import { getServerSession } from 'next-auth'
@@ -16,7 +15,7 @@ declare module 'next-auth' {
       name: string | null
       email: string
       role: 'EMPLEADORA' | 'EMPLEADO'
-      employeeRole?: EmployeeRole
+      employeeRole?: string
       image?: string | null
     } & DefaultSession['user']
   }
@@ -26,7 +25,7 @@ declare module 'next-auth' {
     name: string | null
     email: string
     role: 'EMPLEADORA' | 'EMPLEADO'
-    employeeRole?: EmployeeRole
+    employeeRole?: string
     image?: string | null
   }
 }
@@ -37,7 +36,7 @@ declare module 'next-auth/jwt' {
     name: string | null
     email: string
     role: 'EMPLEADORA' | 'EMPLEADO'
-    employeeRole?: EmployeeRole
+    employeeRole?: string
     image?: string | null
   }
 }
