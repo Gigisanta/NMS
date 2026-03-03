@@ -109,15 +109,24 @@ export function TimeClockWidget() {
 
   const fetchStatus = useCallback(async () => {
     try {
-      const response = await fetch('/api/time-entries?active=true')
-      const result = await response.json()
+      // BOLT OPTIMIZATION: Use Promise.all to fetch active status and monthly entries concurrently
+      // Reduces loading time by roughly 50% by avoiding a sequential network waterfall.
+      const [statusRes, monthRes] = await Promise.all([
+        fetch('/api/time-entries?active=true'),
+        fetch(`/api/time-entries?month=${new Date().getMonth() + 1}&year=${new Date().getFullYear()}`)
+      ])
+
+      const [statusResult, monthResult] = await Promise.all([
+        statusRes.json(),
+        monthRes.json()
+      ])
       
-      if (result.success) {
+      if (statusResult.success) {
         // Calculate today's hours
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         
-        const todayEntries = result.data.filter((e: TimeEntry) => 
+        const todayEntries = statusResult.data.filter((e: TimeEntry) =>
           new Date(e.clockIn) >= today
         )
         
@@ -129,10 +138,6 @@ export function TimeClockWidget() {
           }
         })
 
-        // Get current month hours
-        const monthResponse = await fetch(`/api/time-entries?month=${new Date().getMonth() + 1}&year=${new Date().getFullYear()}`)
-        const monthResult = await monthResponse.json()
-        
         let monthHours = 0
         if (monthResult.success) {
           monthResult.data.forEach((e: TimeEntry) => {
@@ -144,8 +149,8 @@ export function TimeClockWidget() {
         }
 
         setStatus({
-          isWorking: result.data.length > 0 && !result.data[0].clockOut,
-          currentEntry: result.data[0] || null,
+          isWorking: statusResult.data.length > 0 && !statusResult.data[0].clockOut,
+          currentEntry: statusResult.data[0] || null,
           todayEntries,
           todayHours,
           monthHours,
