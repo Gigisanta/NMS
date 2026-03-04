@@ -1,4 +1,4 @@
-import { PrismaClient, Role, EmployeeRole } from '@prisma/client'
+import { PrismaClient, Role } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -99,8 +99,7 @@ async function main() {
         email: 'tomas@nms.com',
         password: hashedPasswordTomas,
         role: Role.EMPLEADO,
-        employeeRole: EmployeeRole.PROFESOR,
-        hourlyRate: 1500,
+        employeeRole: 'PROFESOR',
         phone: '+5491112345678',
         active: true,
       },
@@ -119,8 +118,7 @@ async function main() {
         email: 'carlos@nms.com',
         password: hashedPasswordCarlos,
         role: Role.EMPLEADO,
-        employeeRole: EmployeeRole.ADMINISTRATIVO,
-        hourlyRate: 1200,
+        employeeRole: 'ADMINISTRATIVO',
         phone: '+5491198765432',
         active: true,
       },
@@ -139,8 +137,7 @@ async function main() {
         email: 'maria@nms.com',
         password: hashedPasswordMaria,
         role: Role.EMPLEADO,
-        employeeRole: EmployeeRole.LIMPIEZA,
-        hourlyRate: 1000,
+        employeeRole: 'LIMPIEZA',
         phone: '+5491156781234',
         active: true,
       },

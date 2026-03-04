@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
+import type { TimeEntry } from '@prisma/client'
 
+// GET
 // GET /api/time-entries - Get time entries
 export async function GET(request: NextRequest) {
   try {
@@ -19,6 +21,68 @@ export async function GET(request: NextRequest) {
     const month = searchParams.get('month')
     const year = searchParams.get('year')
 
+    const summary = searchParams.get('summary') === 'true'
+
+    // Optimization: Summary mode for the TimeClockWidget
+    if (summary) {
+      // For summary mode, we ALWAYS need a specific user (defaults to current session user)
+      const targetUserId = (session.user.role === 'EMPLEADORA' && userId)
+        ? userId
+        : session.user.id
+
+      const now = new Date()
+      const currentMonth = now.getMonth() + 1
+      const currentYear = now.getFullYear()
+      const todayStart = new Date(now)
+      todayStart.setHours(0, 0, 0, 0)
+
+      const monthStart = new Date(currentYear, currentMonth - 1, 1)
+      const monthEnd = new Date(currentYear, currentMonth, 0, 23, 59, 59)
+
+      // Fetch active entry and current month entries in parallel
+      const [activeEntry, monthEntries] = await Promise.all([
+        db.timeEntry.findFirst({
+          where: { userId: targetUserId, clockOut: null },
+          orderBy: { clockIn: 'desc' }
+        }),
+        db.timeEntry.findMany({
+          where: {
+            userId: targetUserId,
+            clockIn: { gte: monthStart, lte: monthEnd }
+          },
+          orderBy: { clockIn: 'desc' }
+        })
+      ])
+
+      // Calculate stats from month entries
+      let monthHours = 0
+      let todayHours = 0
+      const todayEntries: any[] = []
+
+      for (const entry of monthEntries) {
+        const isTodayEntry = entry.clockIn >= todayStart
+        if (isTodayEntry) todayEntries.push(entry)
+
+        if (entry.clockOut) {
+          const hours = (entry.clockOut.getTime() - entry.clockIn.getTime()) / (1000 * 60 * 60)
+          monthHours += hours
+          if (isTodayEntry) todayHours += hours
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          activeEntry,
+          todayEntries,
+          todayHours: Math.round(todayHours * 100) / 100,
+          monthHours: Math.round(monthHours * 100) / 100,
+        }
+      })
+    }
+
+    // Standard list mode
+
     // Build where clause
     const where: any = {}
 
@@ -34,7 +98,7 @@ export async function GET(request: NextRequest) {
       where.clockOut = null
     }
 
-    // Filter by month/year
+    // Filter by specific month/year if provided
     if (month && year) {
       const m = parseInt(month)
       const y = parseInt(year)

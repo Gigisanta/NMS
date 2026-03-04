@@ -309,8 +309,6 @@ export function AttendanceView() {
           },
         }, ...prev])
 
-        // Success sound or haptic feedback could be added here
-
         // Refresh data to get updated subscription
         fetchData()
       } else {
@@ -333,10 +331,19 @@ export function AttendanceView() {
     }
   }, [optimisticUpdates, fetchData])
 
-  // Memoized computed values
-  const getClientAttendanceToday = useCallback((clientId: string) => {
-    return todayAttendance.filter(a => a.clientId === clientId).length
+  // BOLT OPTIMIZATION: Convert O(N*M) lookup to O(N+M) by pre-calculating counts in a Map.
+  // This prevents filtering the entire todayAttendance array for every client row.
+  const attendanceCountsMap = useMemo(() => {
+    const counts = new Map<string, number>()
+    todayAttendance.forEach(a => {
+      counts.set(a.clientId, (counts.get(a.clientId) || 0) + 1)
+    })
+    return counts
   }, [todayAttendance])
+
+  const getClientAttendanceToday = useCallback((clientId: string) => {
+    return attendanceCountsMap.get(clientId) || 0
+  }, [attendanceCountsMap])
 
   const getClassesUsed = useCallback((client: Client) => {
     return optimisticUpdates[client.id]?.classesUsed ?? client.currentSubscription?.classesUsed ?? 0
