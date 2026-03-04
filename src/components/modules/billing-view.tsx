@@ -116,26 +116,26 @@ export function BillingView() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-           <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                className="h-9 px-3 rounded-md border border-slate-200 bg-white text-sm"
-              >
-                {months.map(m => (
-                  <option key={m} value={m}>
-                    {formatMonthYear(m, selectedYear).split(' ')[0]}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                className="h-9 px-3 rounded-md border border-slate-200 bg-white text-sm"
-              >
-                {years.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+            className="h-9 px-3 rounded-md border border-slate-200 bg-white text-sm"
+          >
+            {months.map(m => (
+              <option key={m} value={m}>
+                {formatMonthYear(m, selectedYear).split(' ')[0]}
+              </option>
+            ))}
+          </select>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+            className="h-9 px-3 rounded-md border border-slate-200 bg-white text-sm"
+          >
+            {years.map(y => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
         </div>
       </div>
 
