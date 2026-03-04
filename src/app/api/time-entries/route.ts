@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
+import type { TimeEntry } from '@prisma/client'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
 
 // GET /api/time-entries - Get time entries
 export async function GET(request: NextRequest) {
@@ -55,7 +58,7 @@ export async function GET(request: NextRequest) {
       // Calculate stats from month entries
       let monthHours = 0
       let todayHours = 0
-      const todayEntries = []
+      const todayEntries: any[] = []
 
       for (const entry of monthEntries) {
         const isTodayEntry = entry.clockIn >= todayStart
