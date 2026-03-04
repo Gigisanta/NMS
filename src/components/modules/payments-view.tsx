@@ -45,6 +45,8 @@ interface Subscription {
   classesTotal: number
   classesUsed: number
   amount: number | null
+  paymentMethod?: string | null
+  isBilled?: boolean
   client: {
     id: string
     nombre: string
