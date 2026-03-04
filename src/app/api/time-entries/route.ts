@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import type { TimeEntry } from '@prisma/client'
-import { auth } from '@/auth'
-import { db } from '@/lib/db'
 
+// GET
 // GET /api/time-entries - Get time entries
 export async function GET(request: NextRequest) {
   try {
