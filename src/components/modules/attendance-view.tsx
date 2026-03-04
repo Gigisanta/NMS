@@ -61,14 +61,14 @@ const ClientAttendanceCard = memo(function ClientAttendanceCard({
   optimisticClassesUsed,
   todayCount,
 }: { 
-  client:: number
+  client: Client
+  index: number
   onMarkAttendance: (client: Client) => void
   isMarking: boolean
   optimisticClassesUsed: number | null
   todayCount: number
 }) {
- Client
-  index  const classesUsed = optimisticClassesUsed ?? client.currentSubscription?.classesUsed ?? 0
+  const classesUsed = optimisticClassesUsed ?? client.currentSubscription?.classesUsed ?? 0
   const classesTotal = client.currentSubscription?.classesTotal ?? 4
   const status = client.currentSubscription?.status ?? 'PENDIENTE'
   const statusConfig = getPaymentStatusConfig(status)
@@ -308,8 +308,6 @@ export function AttendanceView() {
             grupo: client.grupo,
           },
         }, ...prev])
-
-        // Success sound or haptic feedback could be added here
 
         // Refresh data to get updated subscription
         fetchData()
