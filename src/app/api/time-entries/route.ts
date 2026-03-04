@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
+import type { TimeEntry } from '@prisma/client'
 
+// GET
 // GET /api/time-entries - Get time entries
 export async function GET(request: NextRequest) {
   try {
@@ -18,6 +20,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId')
     const month = searchParams.get('month')
     const year = searchParams.get('year')
+
     const summary = searchParams.get('summary') === 'true'
 
     // Optimization: Summary mode for the TimeClockWidget
@@ -54,7 +57,7 @@ export async function GET(request: NextRequest) {
       // Calculate stats from month entries
       let monthHours = 0
       let todayHours = 0
-      const todayEntries = []
+      const todayEntries: any[] = []
 
       for (const entry of monthEntries) {
         const isTodayEntry = entry.clockIn >= todayStart
@@ -79,6 +82,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Standard list mode
+
+    // Build where clause
     const where: any = {}
 
     // EMPLEADORA can see all entries, EMPLEADO only their own
