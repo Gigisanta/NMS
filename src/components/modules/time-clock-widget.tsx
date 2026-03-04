@@ -109,46 +109,19 @@ export function TimeClockWidget() {
 
   const fetchStatus = useCallback(async () => {
     try {
-      const response = await fetch('/api/time-entries?active=true')
+      // Optimization: Fetch consolidated summary from server in a single request
+      const response = await fetch('/api/time-entries?summary=true')
       const result = await response.json()
       
       if (result.success) {
-        // Calculate today's hours
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        
-        const todayEntries = result.data.filter((e: TimeEntry) => 
-          new Date(e.clockIn) >= today
-        )
-        
-        let todayHours = 0
-        todayEntries.forEach((e: TimeEntry) => {
-          if (e.clockOut) {
-            const diff = new Date(e.clockOut).getTime() - new Date(e.clockIn).getTime()
-            todayHours += diff / (1000 * 60 * 60)
-          }
-        })
-
-        // Get current month hours
-        const monthResponse = await fetch(`/api/time-entries?month=${new Date().getMonth() + 1}&year=${new Date().getFullYear()}`)
-        const monthResult = await monthResponse.json()
-        
-        let monthHours = 0
-        if (monthResult.success) {
-          monthResult.data.forEach((e: TimeEntry) => {
-            if (e.clockOut) {
-              const diff = new Date(e.clockOut).getTime() - new Date(e.clockIn).getTime()
-              monthHours += diff / (1000 * 60 * 60)
-            }
-          })
-        }
+        const { activeEntry, todayEntries, todayHours, monthHours } = result.data
 
         setStatus({
-          isWorking: result.data.length > 0 && !result.data[0].clockOut,
-          currentEntry: result.data[0] || null,
-          todayEntries,
-          todayHours,
-          monthHours,
+          isWorking: !!activeEntry,
+          currentEntry: activeEntry || null,
+          todayEntries: todayEntries || [],
+          todayHours: todayHours || 0,
+          monthHours: monthHours || 0,
           employeeRole: null,
         })
       }
