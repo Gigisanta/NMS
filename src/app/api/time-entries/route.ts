@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId')
     const month = searchParams.get('month')
     const year = searchParams.get('year')
+
     const summary = searchParams.get('summary') === 'true'
 
     // Optimization: Summary mode for the TimeClockWidget
@@ -79,6 +80,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Standard list mode
+
+    // Build where clause
     const where: any = {}
 
     // EMPLEADORA can see all entries, EMPLEADO only their own
