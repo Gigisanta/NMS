@@ -13,6 +13,8 @@ vi.mock('@/lib/db', () => ({
       findMany: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+      groupBy: vi.fn(),
+      aggregate: vi.fn(),
     },
     attendance: {
       count: vi.fn(),
@@ -52,11 +54,10 @@ describe('API /dashboard', () => {
   describe('GET /api/dashboard', () => {
     it('should return dashboard statistics', async () => {
       vi.mocked(db.client.count).mockResolvedValue(27)
-      vi.mocked(db.subscription.findMany).mockResolvedValue([
-        { status: 'AL_DIA', amount: 5000 },
-        { status: 'AL_DIA', amount: 5000 },
-        { status: 'PENDIENTE', amount: 5000 },
-        { status: 'DEUDOR', amount: 5000 },
+      vi.mocked(db.subscription.groupBy).mockResolvedValue([
+        { status: 'AL_DIA', _count: { _all: 2 }, _sum: { amount: 10000 } },
+        { status: 'PENDIENTE', _count: { _all: 1 }, _sum: { amount: 5000 } },
+        { status: 'DEUDOR', _count: { _all: 1 }, _sum: { amount: 5000 } },
       ] as any)
       vi.mocked(db.attendance.count).mockResolvedValue(10)
       vi.mocked(db.client.findMany).mockResolvedValue([])
@@ -73,11 +74,9 @@ describe('API /dashboard', () => {
 
     it('should calculate revenue correctly', async () => {
       vi.mocked(db.client.count).mockResolvedValue(10)
-      vi.mocked(db.subscription.findMany).mockResolvedValue([
-        { status: 'AL_DIA', amount: 5000 },
-        { status: 'AL_DIA', amount: 5000 },
-        { status: 'AL_DIA', amount: 5000 },
-        { status: 'PENDIENTE', amount: 5000 },
+      vi.mocked(db.subscription.groupBy).mockResolvedValue([
+        { status: 'AL_DIA', _count: { _all: 3 }, _sum: { amount: 15000 } },
+        { status: 'PENDIENTE', _count: { _all: 1 }, _sum: { amount: 5000 } },
       ] as any)
       vi.mocked(db.attendance.count).mockResolvedValue(5)
       vi.mocked(db.client.findMany).mockResolvedValue([])
@@ -91,12 +90,10 @@ describe('API /dashboard', () => {
 
     it('should count pending and overdue payments', async () => {
       vi.mocked(db.client.count).mockResolvedValue(10)
-      vi.mocked(db.subscription.findMany).mockResolvedValue([
-        { status: 'AL_DIA', amount: 5000 },
-        { status: 'PENDIENTE', amount: 5000 },
-        { status: 'PENDIENTE', amount: 5000 },
-        { status: 'DEUDOR', amount: 5000 },
-        { status: 'DEUDOR', amount: 5000 },
+      vi.mocked(db.subscription.groupBy).mockResolvedValue([
+        { status: 'AL_DIA', _count: { _all: 1 }, _sum: { amount: 5000 } },
+        { status: 'PENDIENTE', _count: { _all: 2 }, _sum: { amount: 10000 } },
+        { status: 'DEUDOR', _count: { _all: 2 }, _sum: { amount: 10000 } },
       ] as any)
       vi.mocked(db.attendance.count).mockResolvedValue(5)
       vi.mocked(db.client.findMany).mockResolvedValue([])
@@ -112,7 +109,7 @@ describe('API /dashboard', () => {
 
     it('should handle empty data', async () => {
       vi.mocked(db.client.count).mockResolvedValue(0)
-      vi.mocked(db.subscription.findMany).mockResolvedValue([])
+      vi.mocked(db.subscription.groupBy).mockResolvedValue([])
       vi.mocked(db.attendance.count).mockResolvedValue(0)
       vi.mocked(db.client.findMany).mockResolvedValue([])
       vi.mocked(db.attendance.findMany).mockResolvedValue([])
