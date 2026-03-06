@@ -100,7 +100,7 @@ export const rolePermissions = {
 export type Permission = keyof typeof rolePermissions.EMPLEADORA
 
 export function hasPermission(role: Role, permission: Permission): boolean {
-  return rolePermissions[role][permission] ?? false
+  return rolePermissions[role]?.[permission] ?? false
 }
 
 // Generate default password for new employees
