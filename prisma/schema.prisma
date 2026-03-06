@@ -158,6 +158,7 @@ model Subscription {
   client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@unique([clientId, month, year])
+  @@index([month, year])
   @@map("subscriptions")
 }
 
@@ -218,6 +219,8 @@ model Attendance {
 
   client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
+  @@index([clientId])
+  @@index([date])
   @@map("attendances")
 }
 
