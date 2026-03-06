@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { hashPassword } from '@/lib/auth-utils'
+import { Prisma } from '@prisma/client'
 
 // GET /api/employees/[id] - Get single employee
 export async function GET(
@@ -107,7 +108,7 @@ export async function PUT(
     }
 
     // Build update data
-    const updateData: any = {}
+    const updateData: Prisma.UserUpdateInput = {}
 
     if (name !== undefined) updateData.name = name
     if (phone !== undefined) updateData.phone = phone || null
