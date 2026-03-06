@@ -16,7 +16,7 @@ export async function GET() {
         // Run all queries in parallel for better performance
         const [
           totalClients,
-          subscriptions,
+          subStats,
           todayAttendances,
           recentClients,
           pendingClients,
@@ -24,14 +24,17 @@ export async function GET() {
           // Total clients count
           db.client.count(),
           
-          // Subscription stats for current month - only select needed fields
-          db.subscription.findMany({
+          // Subscription counts and revenue by status for current month
+          db.subscription.groupBy({
+            by: ['status'],
             where: {
               month: currentMonth,
               year: currentYear,
             },
-            select: {
-              status: true,
+            _count: {
+              _all: true,
+            },
+            _sum: {
               amount: true,
             },
           }),
@@ -96,13 +99,19 @@ export async function GET() {
           }),
         ])
 
-        // Calculate stats from subscriptions (in-memory, fast)
-        const activeClients = subscriptions.length
-        const pendingPayments = subscriptions.filter((s) => s.status === 'PENDIENTE').length
-        const overduePayments = subscriptions.filter((s) => s.status === 'DEUDOR').length
-        const monthRevenue = subscriptions
-          .filter((s) => s.status === 'AL_DIA')
-          .reduce((sum, s) => sum + (s.amount || 0), 0)
+        // Calculate stats from optimized database queries
+        const statusData = subStats.reduce((acc, curr) => {
+          acc[curr.status] = {
+            count: curr._count._all,
+            revenue: curr._sum.amount || 0
+          }
+          return acc
+        }, {} as Record<string, { count: number; revenue: number }>)
+
+        const activeClients = subStats.reduce((sum, curr) => sum + curr._count._all, 0)
+        const pendingPayments = statusData['PENDIENTE']?.count || 0
+        const overduePayments = statusData['DEUDOR']?.count || 0
+        const monthRevenue = statusData['AL_DIA']?.revenue || 0
 
         return {
           stats: {
