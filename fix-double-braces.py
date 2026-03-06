@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """Fix specific line with double closing braces"""
 
-filepath = '/Users/prueba/Desktop/Projects/NMS/src/components/modules/clients-view.tsx'
+filepath = 'src/components/modules/clients-view.tsx'
 
 with open(filepath, 'r') as f:
     lines = f.readlines()
 
-# Fix line 81 (index 80)
-if len(lines) > 80:
-    lines[80] = lines[80].replace('    }    } catch', '    } catch')
-    print(f"Fixed line 81: {lines[80].strip()}")
+# Fix double closing braces around line 81
+if len(lines) > 75:
+    for i in range(75, min(85, len(lines))):
+        if '    }    } catch' in lines[i]:
+            lines[i] = lines[i].replace('    }    } catch', '    } catch')
+            print(f"Fixed line {i+1}: {lines[i].strip()}")
 
 # Fix handleDelete around line 119-121
 if len(lines) > 118:
