@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { cachedFetch, CacheKeys, invalidateCachePattern } from '@/lib/api-utils'
+import { cachedFetch, CacheKeys, invalidateCachePattern, invalidateClientCache } from '@/lib/api-utils'
 
 // GET /api/attendance - Get attendance records
 export async function GET(request: NextRequest) {
@@ -15,8 +15,11 @@ export async function GET(request: NextRequest) {
         CacheKeys.attendanceToday(),
         async () => {
           const now = new Date()
-          const startOfDay = new Date(now.setHours(0, 0, 0, 0))
-          const endOfDay = new Date(now.setHours(23, 59, 59, 999))
+          // BOLT OPTIMIZATION: Avoid mutating the 'now' date object to prevent side effects
+          const startOfDay = new Date(now)
+          startOfDay.setHours(0, 0, 0, 0)
+          const endOfDay = new Date(now)
+          endOfDay.setHours(23, 59, 59, 999)
 
           return db.attendance.findMany({
             where: {
@@ -203,6 +206,8 @@ export async function POST(request: NextRequest) {
     // Invalidate caches
     invalidateCachePattern('attendance')
     invalidateCachePattern('dashboard')
+    // BOLT: Invalidate clients cache as attendance affects class counts
+    invalidateClientCache()
 
     return NextResponse.json({
       success: true,
