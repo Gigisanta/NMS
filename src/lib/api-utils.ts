@@ -12,6 +12,15 @@ interface CacheEntry<T> {
 // Simple in-memory cache
 const cache = new Map<string, CacheEntry<unknown>>()
 
+// Cache key generators
+export const CacheKeys = {
+  groups: () => 'groups:all',
+  clients: (params: Record<string, string>) => `clients:${JSON.stringify(params)}`,
+  client: (id: string) => `client:${id}`,
+  dashboard: () => 'dashboard:stats',
+  attendanceToday: () => `attendance:today`,
+} as const
+
 /**
  * Get data from cache or fetch it
  */
@@ -67,6 +76,17 @@ export function clearCache(): void {
 }
 
 /**
+ * Invalidate all client-related caches
+ * Clears lists, specific details, dashboard and attendance
+ */
+export function invalidateClientCache(): void {
+  invalidateCachePattern('clients')
+  invalidateCachePattern('client:')
+  invalidateCachePattern('dashboard')
+  invalidateCachePattern('attendance')
+}
+
+/**
  * Get cache statistics
  */
 export function getCacheStats(): { size: number; keys: string[] } {
@@ -76,11 +96,3 @@ export function getCacheStats(): { size: number; keys: string[] } {
   }
 }
 
-// Cache key generators
-export const CacheKeys = {
-  groups: () => 'groups:all',
-  clients: (params: Record<string, string>) => `clients:${JSON.stringify(params)}`,
-  client: (id: string) => `client:${id}`,
-  dashboard: () => 'dashboard:stats',
-  attendanceToday: () => `attendance:today`,
-} as const

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { invalidateClientCache } from '@/lib/api-utils'
 
 // PUT /api/subscriptions/[id] - Update subscription
 export async function PUT(
@@ -24,6 +25,8 @@ export async function PUT(
       where: { id },
       data: updateData,
     })
+
+    invalidateClientCache()
 
     return NextResponse.json({
       success: true,

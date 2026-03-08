@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { cachedFetch, CacheKeys, invalidateClientCache } from '@/lib/api-utils'
 
 // GET /api/clients/[id] - Get single client with all details
 export async function GET(
@@ -9,24 +10,30 @@ export async function GET(
   try {
     const { id } = await params
 
-    const client = await db.client.findUnique({
-      where: { id },
-      include: {
-        grupo: true,
-        subscriptions: {
-          orderBy: [{ year: 'desc' }, { month: 'desc' }],
-          take: 12,
-        },
-        invoices: {
-          orderBy: { uploadedAt: 'desc' },
-          take: 10,
-        },
-        attendances: {
-          orderBy: { date: 'desc' },
-          take: 20,
-        },
+    const client = await cachedFetch(
+      CacheKeys.client(id),
+      async () => {
+        return db.client.findUnique({
+          where: { id },
+          include: {
+            grupo: true,
+            subscriptions: {
+              orderBy: [{ year: 'desc' }, { month: 'desc' }],
+              take: 12,
+            },
+            invoices: {
+              orderBy: { uploadedAt: 'desc' },
+              take: 10,
+            },
+            attendances: {
+              orderBy: { date: 'desc' },
+              take: 20,
+            },
+          },
+        })
       },
-    })
+      60 * 1000 // 1 minute cache
+    )
 
     if (!client) {
       return NextResponse.json(
@@ -115,6 +122,8 @@ export async function PUT(
       },
     })
 
+    invalidateClientCache()
+
     return NextResponse.json({
       success: true,
       data: client,
@@ -152,6 +161,8 @@ export async function DELETE(
     await db.client.delete({
       where: { id },
     })
+
+    invalidateClientCache()
 
     return NextResponse.json({
       success: true,
