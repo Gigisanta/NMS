@@ -206,7 +206,6 @@ export async function POST(request: NextRequest) {
     // Invalidate caches
     invalidateCachePattern('attendance')
     invalidateCachePattern('dashboard')
-    // BOLT: Invalidate clients cache as attendance affects class counts
     invalidateClientCache()
 
     return NextResponse.json({

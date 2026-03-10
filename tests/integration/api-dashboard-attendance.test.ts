@@ -36,6 +36,7 @@ vi.mock('@/lib/api-utils', () => ({
   },
   invalidateCache: vi.fn(),
   invalidateCachePattern: vi.fn(),
+  invalidateClientCache: vi.fn(),
 }))
 
 import { db } from '@/lib/db'

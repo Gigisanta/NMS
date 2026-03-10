@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { auth } from '@/auth'
+import { invalidateClientCache } from '@/lib/api-utils'
 import fs from 'fs'
 import path from 'path'
 
@@ -174,6 +175,8 @@ export async function POST(request: NextRequest) {
         },
       },
     })
+
+    invalidateClientCache()
 
     return NextResponse.json({
       success: true,
