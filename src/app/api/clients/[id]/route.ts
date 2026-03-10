@@ -10,6 +10,7 @@ export async function GET(
   try {
     const { id } = await params
 
+    // Use cached fetch for high-traffic detail route (60s cache)
     const client = await cachedFetch(
       CacheKeys.client(id),
       async () => {
@@ -122,10 +123,9 @@ export async function PUT(
       },
     })
 
-    // Invalidate relevant caches
+    // Invalidate caches
     invalidateCachePattern('client')
     invalidateCachePattern('dashboard')
-    invalidateCachePattern('groups')
 
     return NextResponse.json({
       success: true,
@@ -141,7 +141,6 @@ export async function PUT(
 }
 
 // PATCH /api/clients/[id] - Partial update client
-// Performance: Reduces payload size and processing time compared to full PUT
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -150,7 +149,7 @@ export async function PATCH(
     const { id } = await params
     const body = await request.json()
 
-    // Build update data with type safety
+    // Build update data to prevent mass assignment
     const updateData: {
       nombre?: string
       apellido?: string
@@ -171,6 +170,23 @@ export async function PATCH(
     if (body.preferredTime !== undefined) updateData.preferredTime = body.preferredTime
     if (body.notes !== undefined) updateData.notes = body.notes
 
+    // If telefono is being updated, check for duplicates
+    if (updateData.telefono) {
+      const existingClient = await db.client.findFirst({
+        where: {
+          telefono: updateData.telefono,
+          NOT: { id },
+        },
+      })
+
+      if (existingClient) {
+        return NextResponse.json(
+          { success: false, error: 'Ya existe un cliente con este teléfono' },
+          { status: 400 }
+        )
+      }
+    }
+
     const client = await db.client.update({
       where: { id },
       data: updateData,
@@ -179,19 +195,18 @@ export async function PATCH(
       },
     })
 
-    // Invalidate relevant caches
+    // Invalidate caches
     invalidateCachePattern('client')
     invalidateCachePattern('dashboard')
-    invalidateCachePattern('groups')
 
     return NextResponse.json({
       success: true,
       data: client,
     })
   } catch (error) {
-    console.error('Error patching client:', error)
+    console.error('Error partially updating client:', error)
     return NextResponse.json(
-      { success: false, error: 'Error al actualizar cliente' },
+      { success: false, error: 'Error al actualizar parcialmente el cliente' },
       { status: 500 }
     )
   }
@@ -222,10 +237,9 @@ export async function DELETE(
       where: { id },
     })
 
-    // Invalidate relevant caches
+    // Invalidate caches
     invalidateCachePattern('client')
     invalidateCachePattern('dashboard')
-    invalidateCachePattern('groups')
 
     return NextResponse.json({
       success: true,
