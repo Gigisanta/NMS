@@ -40,14 +40,19 @@ export async function GET() {
           }),
           
           // Today's attendances count
-          db.attendance.count({
-            where: {
-              date: {
-                gte: new Date(new Date().setHours(0, 0, 0, 0)),
-                lt: new Date(new Date().setHours(23, 59, 59, 999)),
+          // BOLT OPTIMIZATION: Avoid inline date mutation for clarity and reliability
+          (() => {
+            const start = new Date(); start.setHours(0, 0, 0, 0);
+            const end = new Date(); end.setHours(23, 59, 59, 999);
+            return db.attendance.count({
+              where: {
+                date: {
+                  gte: start,
+                  lt: end,
+                },
               },
-            },
-          }),
+            })
+          })(),
           
           // Recent clients with minimal fields
           db.client.findMany({

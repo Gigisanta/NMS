@@ -60,6 +60,14 @@ export function invalidateCachePattern(pattern: string): void {
 }
 
 /**
+ * Invalidate client-related caches (both list and details)
+ */
+export function invalidateClientCache(): void {
+  invalidateCachePattern('clients:')
+  invalidateCachePattern('client:')
+}
+
+/**
  * Clear all cache
  */
 export function clearCache(): void {
