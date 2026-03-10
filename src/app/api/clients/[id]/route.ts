@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { cachedFetch, CacheKeys, invalidateClientCache } from '@/lib/api-utils'
+import { cachedFetch, CacheKeys, invalidateCachePattern } from '@/lib/api-utils'
 
 // GET /api/clients/[id] - Get single client with all details
 export async function GET(
@@ -10,8 +10,6 @@ export async function GET(
   try {
     const { id } = await params
 
-    // BOLT OPTIMIZATION: Implement server-side caching for client details
-    // Greatly improves performance when navigating between client profiles
     const client = await cachedFetch(
       CacheKeys.client(id),
       async () => {
@@ -34,7 +32,7 @@ export async function GET(
           },
         })
       },
-      60 * 1000 // 1 minute cache for client details
+      60 * 1000 // 1 minute cache
     )
 
     if (!client) {
@@ -124,8 +122,10 @@ export async function PUT(
       },
     })
 
-    // BOLT: Invalidate clients cache on update
-    invalidateClientCache()
+    // Invalidate relevant caches
+    invalidateCachePattern('client')
+    invalidateCachePattern('dashboard')
+    invalidateCachePattern('groups')
 
     return NextResponse.json({
       success: true,
@@ -133,6 +133,63 @@ export async function PUT(
     })
   } catch (error) {
     console.error('Error updating client:', error)
+    return NextResponse.json(
+      { success: false, error: 'Error al actualizar cliente' },
+      { status: 500 }
+    )
+  }
+}
+
+// PATCH /api/clients/[id] - Partial update client
+// Performance: Reduces payload size and processing time compared to full PUT
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const body = await request.json()
+
+    // Build update data with type safety
+    const updateData: {
+      nombre?: string
+      apellido?: string
+      dni?: string | null
+      telefono?: string
+      grupoId?: string | null
+      preferredDays?: string | null
+      preferredTime?: string | null
+      notes?: string | null
+    } = {}
+
+    if (body.nombre !== undefined) updateData.nombre = body.nombre
+    if (body.apellido !== undefined) updateData.apellido = body.apellido
+    if (body.dni !== undefined) updateData.dni = body.dni
+    if (body.telefono !== undefined) updateData.telefono = body.telefono
+    if (body.grupoId !== undefined) updateData.grupoId = body.grupoId
+    if (body.preferredDays !== undefined) updateData.preferredDays = body.preferredDays
+    if (body.preferredTime !== undefined) updateData.preferredTime = body.preferredTime
+    if (body.notes !== undefined) updateData.notes = body.notes
+
+    const client = await db.client.update({
+      where: { id },
+      data: updateData,
+      include: {
+        grupo: true,
+      },
+    })
+
+    // Invalidate relevant caches
+    invalidateCachePattern('client')
+    invalidateCachePattern('dashboard')
+    invalidateCachePattern('groups')
+
+    return NextResponse.json({
+      success: true,
+      data: client,
+    })
+  } catch (error) {
+    console.error('Error patching client:', error)
     return NextResponse.json(
       { success: false, error: 'Error al actualizar cliente' },
       { status: 500 }
@@ -165,8 +222,10 @@ export async function DELETE(
       where: { id },
     })
 
-    // BOLT: Invalidate clients cache on delete
-    invalidateClientCache()
+    // Invalidate relevant caches
+    invalidateCachePattern('client')
+    invalidateCachePattern('dashboard')
+    invalidateCachePattern('groups')
 
     return NextResponse.json({
       success: true,

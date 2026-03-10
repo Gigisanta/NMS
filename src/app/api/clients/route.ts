@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
-import { cachedFetch, CacheKeys, invalidateCachePattern, invalidateClientCache } from '@/lib/api-utils'
+import { cachedFetch, CacheKeys, invalidateCachePattern } from '@/lib/api-utils'
 
 // GET /api/clients - List all clients with pagination and filters
 export async function GET(request: NextRequest) {
@@ -14,22 +14,21 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50) // Cap at 50
     const skip = (page - 1) * limit
 
-    const paramsObj = {
+    const currentMonth = getCurrentMonth()
+    const currentYear = getCurrentYear()
+
+    // Use cached fetch for client list (30 seconds cache)
+    const cacheParams = {
       search,
       grupoId,
-      withSubscription: withSubscription.toString(),
-      page: page.toString(),
-      limit: limit.toString(),
+      withSubscription: String(withSubscription),
+      page: String(page),
+      limit: String(limit)
     }
 
-    // BOLT OPTIMIZATION: Implement server-side caching for client list
-    // Reduces database load and improves response time for paginated lists
-    const resultData = await cachedFetch(
-      CacheKeys.clients(paramsObj),
+    const { total, clientsWithStatus } = await cachedFetch(
+      CacheKeys.clients(cacheParams),
       async () => {
-        const currentMonth = getCurrentMonth()
-        const currentYear = getCurrentYear()
-
         // Build where clause efficiently
         const where = {
           AND: [
@@ -48,7 +47,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Run count and findMany in parallel
-        const [total, clients] = await Promise.all([
+        const [totalCount, clientsList] = await Promise.all([
           db.client.count({ where }),
           db.client.findMany({
             where,
@@ -95,7 +94,7 @@ export async function GET(request: NextRequest) {
         ])
 
         // Transform data to include current subscription status
-        const clientsWithStatus = clients.map((client) => {
+        const transformed = clientsList.map((client) => {
           const subscriptions = (client as { subscriptions?: { status: string; classesUsed: number; classesTotal: number }[] }).subscriptions || []
           const currentSub = subscriptions[0]
 
@@ -115,22 +114,20 @@ export async function GET(request: NextRequest) {
           }
         })
 
-        return {
-          data: clientsWithStatus,
-          pagination: {
-            page,
-            limit,
-            total,
-            totalPages: Math.ceil(total / limit),
-          },
-        }
+        return { total: totalCount, clientsWithStatus: transformed }
       },
-      30 * 1000 // 30 seconds cache for client list
+      30 * 1000 // 30 seconds cache
     )
 
     return NextResponse.json({
       success: true,
-      ...resultData,
+      data: clientsWithStatus,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
     })
   } catch (error) {
     console.error('Error fetching clients:', error)
@@ -234,7 +231,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Invalidate relevant caches
-    invalidateClientCache()
+    invalidateCachePattern('clients')
     invalidateCachePattern('dashboard')
     invalidateCachePattern('groups')
 
