@@ -50,3 +50,7 @@ server.log
 # Skills directory
 /skills/*.db
 *.db-journal
+
+# Database
+db/*.db
+prisma/db/*.db

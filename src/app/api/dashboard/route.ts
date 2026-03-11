@@ -133,7 +133,7 @@ export async function GET() {
           currentYear,
         }
       },
-      60 * 1000 // 1 minute cache
+      5 * 60 * 1000 // 5 minute cache (Bolt: Optimized from 1m)
     )
 
     return NextResponse.json({

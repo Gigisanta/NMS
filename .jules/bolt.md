@@ -15,3 +15,7 @@
 ## 2025-05-15 - Centralized Server-Side Caching with Invalidation
 **Learning:** Implementing a per-route `cachedFetch` strategy with a centralized `CacheKeys` generator simplifies cache management. However, cache invalidation must be granular yet comprehensive; using a pattern-based invalidator like `invalidateCachePattern('client')` is essential for routes that affect both list and detail views (e.g., updating a client profile).
 **Action:** When adding caching to related routes, ensure a consistent key prefix and use pattern invalidation in all mutating handlers (POST, PUT, PATCH, DELETE).
+
+## 2026-03-05 - Database Indexing and Git Safety
+**Learning:** High-traffic dashboard queries that filter by multiple criteria (e.g., month, year, status) benefit significantly from composite indexes. Also, when running local migrations, ensure that the resulting binary database files are excluded via .gitignore to prevent repo bloat and blocking review feedback.
+**Action:** Always check the Prisma schema for missing indexes on filter/sort fields and verify .gitignore coverage for local DB artifacts.
