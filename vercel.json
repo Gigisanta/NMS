@@ -1,6 +1,6 @@
 {
-  "buildCommand": "npm run build:standalone",
-  "outputDirectory": ".next/standalone",
+  "buildCommand": "npx prisma generate && npm run build:standalone",
+  "outputDirectory": ".next",
   "installCommand": "npm install",
   "framework": "nextjs"
 }

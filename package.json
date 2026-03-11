@@ -23,7 +23,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:all": "bun run test:run && bun run test:e2e",
-    "test:ci": "vitest run --coverage --reporter=json && playwright test --reporter=html"
+    "test:ci": "vitest run --coverage --reporter=json && playwright test --reporter=html",
+    "vercel-build": "prisma generate && npm run build:standalone"
   },
   "prisma": {
     "seed": "bun run prisma/seed.ts"
