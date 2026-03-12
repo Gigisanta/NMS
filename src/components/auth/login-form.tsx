@@ -35,6 +35,8 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
         redirect: false,
       })
 
+      console.log('Login result:', result)
+
       if (result?.error) {
         setError('Credenciales inválidas. Verifica tu email y contraseña.')
       } else {
