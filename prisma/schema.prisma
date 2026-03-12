@@ -1,0 +1,371 @@
+// Natatory Management System (NMS) - Database Schema
+// Adapted for SQLite with Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User roles (access control)
+enum Role {
+  EMPLEADORA // Admin/Owner - Full access
+  EMPLEADO   // Staff - Limited access
+}
+
+// Tabla de Usuarios (Authentication)
+model User {
+  id           String       @id @default(cuid())
+  name         String?
+  email        String       @unique
+  password     String
+  role         Role         @default(EMPLEADO)
+  employeeRole String?      // Changed from enum to String for free-form roles
+  hourlyRate   Float?       // Hourly wage for employees
+  phone        String?
+  active       Boolean      @default(true)
+  image        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // NextAuth relations
+  accounts     Account[]
+  sessions     Session[]
+  
+  // Time entries (clock in/out)
+  timeEntries  TimeEntry[]
+
+  @@map("users")
+}
+
+// NextAuth Account model
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// NextAuth Session model
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// NextAuth VerificationToken model
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Tabla de Fichaje (Time Entries)
+model TimeEntry {
+  id         String   @id @default(cuid())
+  userId     String
+  clockIn    DateTime // Hora de entrada
+  clockOut   DateTime? // Hora de salida (null si está trabajando)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([clockIn])
+  @@map("time_entries")
+}
+
+// Tabla de Grupos (etiquetas reutilizables)
+model Group {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  color       String   @default("#06b6d4")
+  description String?
+  schedule    String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clients     Client[]
+
+  @@map("groups")
+}
+
+// Tabla Clientes
+model Client {
+  id              String   @id @default(cuid())
+  nombre          String
+  apellido        String
+  dni             String?
+  telefono        String   @unique
+  grupoId         String?
+  preferredDays   String?
+  preferredTime   String?
+  notes           String?
+  monthlyAmount   Float?   // Monto mensual personalizado del cliente
+  registrationPaid Boolean  @default(false) // Si pagó la inscripción
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  grupo          Group?          @relation(fields: [grupoId], references: [id], onDelete: SetNull)
+  subscriptions  Subscription[]
+  invoices       Invoice[]
+  attendances    Attendance[]
+
+  @@index([grupoId])
+  @@index([apellido, nombre])
+  @@map("clients")
+}
+
+// Tabla Suscripciones
+model Subscription {
+  id             String   @id @default(cuid())
+  clientId       String
+  month          Int
+  year           Int
+  status         String   @default("PENDIENTE")
+  paymentMethod  String?  // EFECTIVO, TRANSFERENCIA, MERCADO_PAGO
+  isBilled       Boolean  @default(false) // Whether it was processed for ARCA
+  classesTotal   Int      @default(4)
+  classesUsed    Int      @default(0)
+  amount         Float?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, month, year])
+  @@index([month, year])
+  @@map("subscriptions")
+}
+
+// Tabla Facturas
+model Invoice {
+  id           String   @id @default(cuid())
+  clientId     String
+  
+  // File information
+  fileName     String   @default("unknown") // Original file name
+  filePath     String   @default("/uploads/placeholder") // Storage path
+  fileSize     Int?     // File size in bytes
+  mimeType     String   @default("application/pdf") // File MIME type
+  
+  // Legacy field (deprecated - kept for migration)
+  imageUrl     String?  // Deprecated: use filePath instead
+  
+  // Invoice metadata
+  invoiceNumber String? // Número de factura/comprobante
+  amount       Float?   // Monto de la factura
+  currency     String   @default("ARS")
+  issueDate    DateTime? // Fecha de emisión
+  dueDate      DateTime? // Fecha de vencimiento
+  
+  // Categorization
+  type         String   @default("PAYMENT") // PAYMENT, RECEIPT, INVOICE, OTHER
+  category     String?  // Categoría adicional
+  description  String?  // Descripción o notas
+  
+  // Status
+  verified     Boolean  @default(false)
+  status       String   @default("PENDING") // PENDING, VERIFIED, REJECTED
+  
+  // Source tracking
+  source       String   @default("MANUAL") // MANUAL, API, WEBHOOK, WHATSAPP
+  externalRef  String?  // Referencia externa para automatización
+  
+  // Timestamps
+  uploadedAt   DateTime @default(now())
+  updatedAt    DateTime @default(now())
+  uploadedBy   String?  // User ID who uploaded
+
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([issueDate])
+  @@index([status])
+  @@map("invoices")
+}
+
+// Tabla Asistencias
+model Attendance {
+  id          String   @id @default(cuid())
+  clientId    String
+  date        DateTime @default(now())
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([date])
+  @@map("attendances")
+}
+
+// Tabla de Calendario (Eventos Globales)
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  start       DateTime
+  end         DateTime?
+  allDay      Boolean  @default(false)
+  color       String?  @default("#3b82f6")
+  userId      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("calendar_events")
+}
+
+// Tabla de Configuración del Sistema
+model Settings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   // JSON string para valores complejos
+  category    String   @default("general") // general, payment, notifications, business
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@map("settings")
+}
+
+// Tabla de Precios/Planes
+model PricingPlan {
+  id          String   @id @default(cuid())
+  name        String   // Nombre del plan (Ej: "Mensual 4 clases")
+  classes     Int      // Cantidad de clases
+  price       Float    // Precio
+  currency    String   @default("ARS")
+  description String?
+  active      Boolean  @default(true)
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("pricing_plans")
+}
+
+// Tabla de Notificaciones
+model Notification {
+  id          String   @id @default(cuid())
+  type        String   // payment_due, payment_overdue, new_client, class_reminder
+  title       String
+  message     String
+  data        String?  // JSON con datos adicionales
+  read        Boolean  @default(false)
+  userId      String?  // Si es null, es notificación global
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+  @@map("notifications")
+}
+
+// Tabla de Actividad/Auditoría
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String   // create, update, delete, login, etc.
+  entity      String   // client, payment, user, invoice, etc.
+  entityId    String?
+  userId      String?
+  details     String?  // JSON con detalles de la acción
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  @@index([entity])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
+// Configuración de WhatsApp
+model WhatsAppConfig {
+  id                    String   @id @default(cuid())
+  accessToken           String?  // Token de acceso de WhatsApp Business API
+  phoneNumberId         String?  // ID del número de teléfono
+  verifyToken           String?  // Token de verificación del webhook
+  businessAccountId     String?  // ID de la cuenta de negocio
+  webhookUrl            String?  // URL del webhook
+  isActive              Boolean  @default(false)
+  autoReplyEnabled      Boolean  @default(true)
+  autoDownloadMedia     Boolean  @default(true)
+  autoMatchClients      Boolean  @default(true)
+  autoUpdatePayment     Boolean  @default(true)
+  welcomeMessage        String?  // Mensaje de bienvenida
+  successMessage        String?  // Mensaje de confirmación de pago
+  notFoundMessage       String?  // Mensaje cuando no se encuentra el cliente
+  errorMessage          String?  // Mensaje de error
+  updatedAt             DateTime @updatedAt
+
+  @@map("whatsapp_config")
+}
+
+// Mensajes recibidos por WhatsApp
+model WhatsAppMessage {
+  id              String   @id @default(cuid())
+  messageId       String   @unique // ID del mensaje de WhatsApp
+  fromPhone       String   // Número de teléfono del remitente
+  fromName        String?  // Nombre del contacto
+  messageType     String   // text, image, document, etc.
+  content         String?  // Texto del mensaje o descripción
+  mediaId         String?  // ID del archivo multimedia
+  mediaUrl        String?  // URL del archivo descargado
+  mediaMimeType   String?  // Tipo MIME del archivo
+  mediaFilename   String?  // Nombre del archivo
+  localFilePath   String?  // Ruta local del archivo descargado
+  matchedClientId String?  // ID del cliente matcheado
+  matchedBy       String?  // phone, name, manual
+  invoiceId       String?  // ID de la factura creada
+  subscriptionId  String?  // ID de la suscripción actualizada
+  status          String   @default("received") // received, processed, error, ignored
+  responseSent    Boolean  @default(false)
+  errorMessage    String?
+  processedAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([fromPhone])
+  @@index([status])
+  @@index([createdAt])
+  @@map("whatsapp_messages")
+}
+
+// Clientes de WhatsApp (para matcheo manual)
+model WhatsAppClient {
+  id              String   @id @default(cuid())
+  phone           String   @unique
+  name            String?
+  clientId        String?  // Referencia al cliente del sistema
+  autoMatched     Boolean  @default(false)
+  lastMessageAt   DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("whatsapp_clients")
+}
