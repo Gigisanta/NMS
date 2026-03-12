@@ -8,7 +8,7 @@ const publicPaths = ['/login', '/register', '/api/auth', '/favicon.ico', '/_next
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
-  // Allow public paths
+  // Allow public paths FIRST
   if (publicPaths.some(path => pathname.startsWith(path))) {
     return NextResponse.next()
   }
