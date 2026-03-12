@@ -29,21 +29,30 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
     setLoading(true)
 
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
+      // Try direct API call first
+      const response = await fetch('/api/debug/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
       })
-
-      console.log('Login result:', result)
-
-      if (result?.error) {
-        setError('Credenciales inválidas. Verifica tu email y contraseña.')
+      
+      const data = await response.json()
+      console.log('API response:', data)
+      
+      if (!data.success) {
+        setError(data.error || 'Credenciales inválidas')
       } else {
+        // Sign in with NextAuth after our API validates credentials
+        await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        })
         router.push(callbackUrl)
         router.refresh()
       }
     } catch (err) {
+      console.error('Login error:', err)
       setError('Error al iniciar sesión. Intenta nuevamente.')
     } finally {
       setLoading(false)
