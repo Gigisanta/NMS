@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, LogIn, AlertCircle } from 'lucide-react'
+import { Loader2, LogIn, AlertCircle, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 
 interface LoginFormProps {
@@ -21,6 +21,7 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,10 +29,10 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
     setLoading(true)
 
     try {
-      // Try direct API call first
       const response = await fetch('/api/debug/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password })
       })
       
@@ -43,13 +44,16 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
         return
       }
       
-      // Login successful - redirect
-      router.push(callbackUrl || '/')
-      router.refresh()
+      setSuccess(true)
+      setLoading(false)
+      
+      // Small delay to show success state
+      setTimeout(() => {
+        window.location.href = callbackUrl || '/'
+      }, 500)
     } catch (err) {
       console.error('Login error:', err)
       setError('Error al iniciar sesión. Intenta nuevamente.')
-    } finally {
       setLoading(false)
     }
   }
@@ -69,6 +73,15 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {success && (
+            <Alert className="bg-emerald-50 border-emerald-200">
+              <CheckCircle className="h-4 w-4 text-emerald-600" />
+              <AlertDescription className="text-emerald-700">
+                Login exitoso. Redirigiendo...
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
