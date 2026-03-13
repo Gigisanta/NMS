@@ -8,9 +8,14 @@ const secret = new TextEncoder().encode(
 
 const publicPaths = ['/login', '/register', '/api/auth', '/favicon.ico', '/_next', '/api/debug']
 
-async function getTokenFromCookie(request: NextRequest): Promise<any | null> {
-  const cookieName = 'next-auth.session-token'
-  const token = request.cookies.get(cookieName)?.value
+async function getTokenFromRequest(request: NextRequest): Promise<any | null> {
+  // First try cookie
+  const cookieToken = request.cookies.get('next-auth.session-token')?.value
+  
+  // Then try header (from localStorage)
+  const headerToken = request.headers.get('x-auth-token')
+  
+  const token = cookieToken || headerToken
   
   if (!token) {
     return null
@@ -40,7 +45,7 @@ export async function middleware(request: NextRequest) {
   }
   
   try {
-    const token = await getTokenFromCookie(request)
+    const token = await getTokenFromRequest(request)
     
     if (!token) {
       if (pathname.startsWith('/api/')) {

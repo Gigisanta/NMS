@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
-import { SignJWT, jwtVerify } from 'jose'
+import { SignJWT } from 'jose'
 
 const prisma = new PrismaClient()
 
@@ -33,7 +33,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Contraseña incorrecta' }, { status: 401 })
     }
     
-    // Create JWT token directly
     const token = await new SignJWT({
       id: user.id,
       email: user.email,
@@ -47,21 +46,11 @@ export async function POST(request: Request) {
       .setSubject(user.id)
       .sign(secret)
     
-    const response = NextResponse.json({
+    return NextResponse.json({
       success: true,
+      token,
       user: { id: user.id, email: user.email, name: user.name, role: user.role }
     })
-    
-    // Set the session cookie
-    response.cookies.set('next-auth.session-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-    })
-    
-    return response
   } catch (error) {
     console.error('[LOGIN ERROR]:', error)
     return NextResponse.json({ error: String(error) }, { status: 500 })

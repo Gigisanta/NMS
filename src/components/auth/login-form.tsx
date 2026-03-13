@@ -44,6 +44,9 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
         return
       }
       
+      // Store token in localStorage
+      localStorage.setItem('auth_token', data.token)
+      
       setSuccess(true)
       setLoading(false)
       
