@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -37,20 +36,16 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
       })
       
       const data = await response.json()
-      console.log('API response:', data)
       
       if (!data.success) {
         setError(data.error || 'Credenciales inválidas')
-      } else {
-        // Sign in with NextAuth after our API validates credentials
-        await signIn('credentials', {
-          email,
-          password,
-          redirect: false,
-        })
-        router.push(callbackUrl)
-        router.refresh()
+        setLoading(false)
+        return
       }
+      
+      // Login successful - redirect
+      router.push(callbackUrl || '/')
+      router.refresh()
     } catch (err) {
       console.error('Login error:', err)
       setError('Error al iniciar sesión. Intenta nuevamente.')
