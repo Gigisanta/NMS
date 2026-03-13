@@ -12,7 +12,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "border px-6 py-6 transition-all duration-300",
+        "border px-6 py-6 rounded-3xl transition-all duration-300",
         className
       )}
       style={{
@@ -107,7 +107,7 @@ function CardHover({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "border px-6 py-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer",
+        "border px-6 py-6 rounded-3xl transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer",
         className
       )}
       style={{
@@ -125,7 +125,7 @@ function CardSurface({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "border px-6 py-6 transition-all duration-300",
+        "border px-6 py-6 rounded-3xl transition-all duration-300",
         className
       )}
       style={{
@@ -144,7 +144,7 @@ function CardGradient({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "border px-6 py-6 transition-all duration-300 hover:shadow-lg",
+        "border px-6 py-6 rounded-3xl transition-all duration-300 hover:shadow-lg",
         className
       )}
       style={{

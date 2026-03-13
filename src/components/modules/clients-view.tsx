@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, memo } from 'react'
-import { motion } from 'framer-motion'
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -46,11 +46,8 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
   const initials = `${client.nombre?.[0] || ''}${client.apellido?.[0] || ''}`
 
   return (
-    <motion.tr
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: index * 0.05, duration: 0.2 }}
-      className="cursor-pointer transition-colors"
+    <tr
+      className="cursor-pointer transition-colors animate-fade-in"
       style={{ background: 'rgba(0, 168, 232, 0.02)' }}
       onClick={() => onClientClick(client)}
     >
@@ -130,7 +127,7 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
           </Button>
         </div>
       </TableCell>
-    </motion.tr>
+    </tr>
   )
 })
 ClientTableRow.displayName = 'ClientTableRow'

@@ -1,13 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, LogIn, AlertCircle, CheckCircle } from 'lucide-react'
+import { Loader2, LogIn, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 
 interface LoginFormProps {
@@ -21,70 +22,45 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setLoading(true)
 
-    try {
-      const response = await fetch('/api/debug/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email, password })
-      })
-      
-      const data = await response.json()
-      
-      if (!data.success) {
-        setError(data.error || 'Credenciales inválidas')
-        setLoading(false)
-        return
-      }
-      
-      // Store token in localStorage
-      localStorage.setItem('auth_token', data.token)
-      
-      setSuccess(true)
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    })
+
+    if (result?.error) {
+      setError(result.error || 'Credenciales inválidas')
       setLoading(false)
-      
-      // Small delay to show success state
-      setTimeout(() => {
-        window.location.href = callbackUrl || '/'
-      }, 500)
-    } catch (err) {
-      console.error('Login error:', err)
-      setError('Error al iniciar sesión. Intenta nuevamente.')
-      setLoading(false)
+      return
     }
+
+    window.location.href = callbackUrl || '/'
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-xl border-0">
-      <CardHeader className="text-center pb-2">
-        <div className="mx-auto w-16 h-16 bg-gradient-to-br from-cyan-500 to-sky-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
-          <span className="text-white text-2xl font-bold">NMS</span>
+    <Card className="w-full max-w-md mx-auto shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 bg-white text-slate-900 relative overflow-hidden">
+      {/* Subtle top accent bar for that Google-esque premium flair */}
+      <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#00A8E8] to-[#005691]" />
+      
+      <CardHeader className="text-center pb-2 pt-8">
+        <div className="mx-auto w-16 h-16 bg-[#F0F8FF] rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-[#005691]/10">
+          <span className="text-[#005691] text-2xl font-bold tracking-tight">NMS</span>
         </div>
-        <CardTitle className="text-xl font-bold text-slate-900">
+        <CardTitle className="text-2xl font-bold text-slate-900 tracking-tight">
           Bienvenido
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-slate-500 text-base mt-2">
           Sistema de Gestión de Natatorio
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {success && (
-            <Alert className="bg-emerald-50 border-emerald-200">
-              <CheckCircle className="h-4 w-4 text-emerald-600" />
-              <AlertDescription className="text-emerald-700">
-                Login exitoso. Redirigiendo...
-              </AlertDescription>
-            </Alert>
-          )}
-          
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
@@ -93,7 +69,7 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-slate-700 font-semibold">Email</Label>
             <Input
               id="email"
               type="email"
@@ -102,12 +78,12 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              className="h-11"
+              className="h-12 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#00A8E8] focus-visible:border-[#00A8E8] shadow-sm text-base"
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
+            <Label htmlFor="password" className="text-slate-700 font-semibold">Contraseña</Label>
             <Input
               id="password"
               type="password"
@@ -116,13 +92,13 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              className="h-11"
+              className="h-12 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#00A8E8] focus-visible:border-[#00A8E8] shadow-sm text-base"
             />
           </div>
           
           <Button
             type="submit"
-            className="w-full h-11 gap-2 bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700 shadow-lg shadow-cyan-500/25"
+            className="w-full h-12 gap-2 bg-[#005691] hover:bg-[#0078B0] shadow-md hover:shadow-lg text-white font-medium text-base rounded-full transition-all duration-300 mt-2"
             disabled={loading}
           >
             {loading ? (
@@ -138,11 +114,11 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
             )}
           </Button>
           
-          <div className="text-center text-sm pt-2">
+          <div className="text-center text-sm pt-4">
             <span className="text-slate-500">¿No tienes cuenta? </span>
             <Link 
               href="/register" 
-              className="text-cyan-600 hover:text-cyan-700 font-medium"
+              className="text-[#005691] hover:text-[#00A8E8] font-semibold transition-colors"
             >
               Registrarse
             </Link>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, memo } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -22,6 +22,7 @@ import { UserMenu } from '@/components/auth/user-menu'
 import { useSession } from 'next-auth/react'
 import { CommandPalette, CommandPaletteTrigger } from '@/components/ui/command-palette'
 import { useNMSShortcuts } from '@/hooks/use-keyboard-shortcuts'
+import { useViewPreloader } from '@/hooks/use-view-preloader'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -82,6 +83,14 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const { data: session } = useSession()
+  const { handleMouseEnter, handleMouseLeave } = useViewPreloader()
+
+  // Memoize date label — recalculates only once per day
+  const dateLabel = useMemo(() => new Date().toLocaleDateString('es-AR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }), [])
 
   // Filter navigation based on role
   const filteredNavigation = useMemo(() => navigation.filter(item => {
@@ -155,10 +164,13 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
       )}
 
       {/* Sidebar - Oro Azul Premium */}
-      <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:translate-x-0",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
+      <aside
+        style={{ willChange: 'transform' }}
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
         {/* Imagen de fondo profesional */}
         <div 
           className="absolute inset-0 -z-10 pointer-events-none"
@@ -245,6 +257,8 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
                       onViewChange(item.id)
                       setSidebarOpen(false)
                     }}
+                    onMouseEnter={() => handleMouseEnter(item.id)}
+                    onMouseLeave={() => handleMouseLeave(item.id)}
                     className={cn(
                       "w-full flex items-center gap-3.5 px-4 py-3 text-sm font-medium transition-all duration-300 animate-fade-slide-up",
                     )}
@@ -353,11 +367,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
                   className="hidden md:block text-sm font-medium"
                   style={{ color: '#4A5568' }}
                 >
-                  {new Date().toLocaleDateString('es-AR', { 
-                    weekday: 'long', 
-                    day: 'numeric',
-                    month: 'long'
-                  })}
+                  {dateLabel}
                 </span>
                 <UserMenu />
               </div>
@@ -366,18 +376,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
         </header>
 
         {/* Page content with fade animation */}
-        <main className="p-6 lg:p-8 min-h-[calc(100vh-6rem)] animate-fade-slide-up relative">
-          {/* Imagen de fondo sutil */}
-          <div 
-            className="absolute inset-0 -z-10 pointer-events-none"
-            style={{
-              backgroundImage: 'url(/sidebar-bg.jfif)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              opacity: 0.06,
-            }}
-          />
+        <main className="p-6 lg:p-8 min-h-[calc(100vh-6rem)] animate-fade-slide-up">
           {children}
         </main>
       </div>

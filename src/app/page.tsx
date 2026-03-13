@@ -53,6 +53,18 @@ function Home() {
     }
   }, [status, router])
 
+  // Preload most used views in background after dashboard loads
+  useEffect(() => {
+    if (status === 'authenticated') {
+      const timer = setTimeout(() => {
+        import('@/components/modules/clients-view')
+        import('@/components/modules/payments-view')
+        import('@/components/modules/attendance-view')
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [status])
+
   // Loading state while checking authentication
   if (status === 'loading') {
     return (

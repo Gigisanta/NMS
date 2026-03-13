@@ -173,10 +173,14 @@ export async function GET() {
       60 * 1000 // 1 minute cache
     )
 
-    return NextResponse.json({
-      success: true,
-      data,
-    })
+    return NextResponse.json(
+      { success: true, data },
+      {
+        headers: {
+          'Cache-Control': 'private, max-age=60, stale-while-revalidate=30',
+        },
+      }
+    )
   } catch (error) {
     console.error('Error fetching dashboard:', error)
     return NextResponse.json(

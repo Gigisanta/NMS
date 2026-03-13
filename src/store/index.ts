@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create, type StateCreator } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 
 // Types
@@ -97,72 +97,70 @@ const initialState = {
   dashboardLastFetch: 0,
 }
 
-// Create Store
-export const useAppStore = create<AppState>()(
-  devtools(
-    persist(
-      (set) => ({
-        ...initialState,
-        
-        // UI Actions
-        setCurrentView: (view) => set({ currentView: view }),
-        setSidebarOpen: (open) => set({ sidebarOpen: open }),
-        
-        // Data Setters
-        setClients: (clients) => set({ 
-          clients, 
-          clientsLastFetch: Date.now(),
-          clientsLoading: false 
-        }),
-        setGroups: (groups) => set({ 
-          groups,
-          groupsLastFetch: Date.now(),
-          groupsLoading: false 
-        }),
-        setDashboardStats: (stats) => set({ 
-          dashboardStats: stats,
-          dashboardLastFetch: Date.now(),
-          dashboardLoading: false 
-        }),
-        
-        // Loading Setters
-        setClientsLoading: (loading) => set({ clientsLoading: loading }),
-        setGroupsLoading: (loading) => set({ groupsLoading: loading }),
-        setDashboardLoading: (loading) => set({ dashboardLoading: loading }),
-        
-        // Optimistic Updates
-        updateClientOptimistic: (id, updates) => set((state) => ({
-          clients: state.clients.map((c) => 
-            c.id === id ? { ...c, ...updates } : c
-          ),
-        })),
-        
-        removeClientOptimistic: (id) => set((state) => ({
-          clients: state.clients.filter((c) => c.id !== id),
-        })),
-        
-        addClientOptimistic: (client) => set((state) => ({
-          clients: [...state.clients, client],
-        })),
-        
-        // Invalidate Cache
-        invalidateClients: () => set({ clientsLastFetch: 0 }),
-        invalidateGroups: () => set({ groupsLastFetch: 0 }),
-        invalidateDashboard: () => set({ dashboardLastFetch: 0 }),
-        
-        // Reset
-        reset: () => set(initialState),
-      }),
-      {
-        name: 'nms-storage',
-        partialize: (state) => ({
-          currentView: state.currentView,
-          sidebarOpen: state.sidebarOpen,
-        }),
-      }
-    )
-  )
-)
+// State creator function — properly typed for Zustand middleware compatibility
+const storeCreator: StateCreator<AppState> = (set) => ({
+  ...initialState,
+
+  // UI Actions
+  setCurrentView: (view) => set({ currentView: view }),
+  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+
+  // Data Setters
+  setClients: (clients) => set({
+    clients,
+    clientsLastFetch: Date.now(),
+    clientsLoading: false,
+  }),
+  setGroups: (groups) => set({
+    groups,
+    groupsLastFetch: Date.now(),
+    groupsLoading: false,
+  }),
+  setDashboardStats: (stats) => set({
+    dashboardStats: stats,
+    dashboardLastFetch: Date.now(),
+    dashboardLoading: false,
+  }),
+
+  // Loading Setters
+  setClientsLoading: (loading) => set({ clientsLoading: loading }),
+  setGroupsLoading: (loading) => set({ groupsLoading: loading }),
+  setDashboardLoading: (loading) => set({ dashboardLoading: loading }),
+
+  // Optimistic Updates
+  updateClientOptimistic: (id, updates) => set((state) => ({
+    clients: state.clients.map((c) => c.id === id ? { ...c, ...updates } : c),
+  })),
+  removeClientOptimistic: (id) => set((state) => ({
+    clients: state.clients.filter((c) => c.id !== id),
+  })),
+  addClientOptimistic: (client) => set((state) => ({
+    clients: [...state.clients, client],
+  })),
+
+  // Invalidate Cache
+  invalidateClients: () => set({ clientsLastFetch: 0 }),
+  invalidateGroups: () => set({ groupsLastFetch: 0 }),
+  invalidateDashboard: () => set({ dashboardLastFetch: 0 }),
+
+  // Reset
+  reset: () => set(initialState),
+})
+
+// Persist wrapper (always on)
+const persistedCreator = persist(storeCreator, {
+  name: 'nms-storage',
+  partialize: (state) => ({
+    currentView: state.currentView,
+    sidebarOpen: state.sidebarOpen,
+  }),
+})
+
+// Create Store — devtools only in development to avoid serialization overhead in production
+export const useAppStore =
+  process.env.NODE_ENV === 'development'
+    ? create<AppState>()(devtools(persistedCreator, { name: 'NMS Store' }))
+    : create<AppState>()(persistedCreator)
 
 // Selectors (for optimized re-renders)
 export const useCurrentView = () => useAppStore((state) => state.currentView)
