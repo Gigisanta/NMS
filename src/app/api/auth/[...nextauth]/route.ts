@@ -66,7 +66,7 @@ const handler = NextAuth({
     }),
   ],
   session: { strategy: 'jwt' },
-  secret: 'nms-secret-key-change-in-production-2024',
+  secret: process.env.NEXTAUTH_SECRET,
   debug: true,
 })
 
