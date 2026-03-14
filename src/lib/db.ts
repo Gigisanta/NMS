@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 
 // Singleton pattern for Prisma Client
+// Optimized for serverless environments (Vercel)
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
