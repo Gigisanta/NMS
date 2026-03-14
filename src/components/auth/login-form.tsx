@@ -34,8 +34,16 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
       redirect: false,
     })
 
+    console.log('Login result:', result)
+    
     if (result?.error) {
       setError(result.error || 'Credenciales inválidas')
+      setLoading(false)
+      return
+    }
+
+    if (!result?.ok) {
+      setError('Error al iniciar sesión')
       setLoading(false)
       return
     }
