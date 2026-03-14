@@ -66,7 +66,7 @@ const handler = NextAuth({
     }),
   ],
   session: { strategy: 'jwt' },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || process.env.NEXTAUTH_URL + '-secret-fallback',
   debug: true,
 })
 
