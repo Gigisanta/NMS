@@ -174,20 +174,8 @@ export const authOptions: NextAuthOptions = {
     },
   },
   debug: process.env.NODE_ENV === 'development',
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-key-2024',
   useSecureCookies: process.env.NODE_ENV === 'production',
-  cookies: {
-    sessionToken: {
-      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'production' ? '.nms-two.vercel.app' : undefined,
-      },
-    },
-  },
 }
 
 // Auth function for API routes - MUST be defined before default export
