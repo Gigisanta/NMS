@@ -31,6 +31,80 @@ Sistema de gestión integral para natatorios/piscinas que incluye:
 | Vitest | 4.x | Tests unitarios/integración |
 | Playwright | 1.x | Tests E2E |
 
+## 🚀 Deployment
+
+### Variables de Entorno
+
+**Desarrollo (.env):**
+```env
+DATABASE_URL="postgres://9850fa571566b432b2d5486a1f230745dafa941f83aaa0880eb5b541b67a61d9:sk_4Uausia5JafVxcMAxg-YS@db.prisma.io:5432/postgres?sslmode=require"
+NEXTAUTH_SECRET="dev-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
+NODE_ENV="development"
+```
+
+**Producción (Vercel):**
+```env
+DATABASE_URL="postgres://username:password@db.prisma.io:5432/postgres?sslmode=require"
+NEXTAUTH_SECRET="nms-production-secret-key-2024"
+NEXTAUTH_URL="https://nms-two.vercel.app"
+NODE_ENV="production"
+```
+
+### Despliegue a Producción
+
+1. **Hacer cambios en código local**
+2. **Ejecutar seed en producción:**
+   ```bash
+   DATABASE_URL="postgres://..." bun run db:seed
+   ```
+3. **Commit y push a GitHub:**
+   ```bash
+   git add -A
+   git commit -m "feat: description"
+   git push origin main
+   ```
+4. **Vercel hace deployment automáticamente**
+
+## 🔐 Middleware de Autenticación
+
+El archivo `src/middleware.ts` protege todas las rutas verificando cookies de sesión.
+
+### Cookies Soportadas
+
+NextAuth usa diferentes cookies según el entorno:
+
+```typescript
+const NEXT_AUTH_COOKIE_NAMES = [
+  'next-auth.token',
+  'next-auth.session-token',
+  '__Secure-next-auth.token',
+  '__Secure-next-auth.session-token',
+]
+```
+
+**Importante:** Always check all cookie variants because:
+- Desarrollo (HTTP): `next-auth.token`
+- Producción (HTTPS): `__Secure-next-auth.token`
+
+### Rutas Públicas
+
+```typescript
+const publicPaths = [
+  '/login',
+  '/register', 
+  '/api/auth',
+  '/favicon.ico',
+  '/_next',
+  '/api/debug',
+  '/_next/static',
+  '/_next/image',
+  '/public',
+  '/uploads',
+  '/images',
+]
+```
+
 ## 🏗️ Estructura del Proyecto
 
 ```

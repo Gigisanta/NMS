@@ -3,6 +3,17 @@ import type { NextRequest } from 'next/server'
 
 const publicPaths = ['/login', '/register', '/api/auth', '/favicon.ico', '/_next', '/api/debug', '/_next/static', '/_next/image', '/public', '/uploads', '/images']
 
+const NEXT_AUTH_COOKIE_NAMES = [
+  'next-auth.token',
+  'next-auth.session-token',
+  '__Secure-next-auth.token',
+  '__Secure-next-auth.session-token',
+]
+
+function hasValidSession(request: NextRequest): boolean {
+  return NEXT_AUTH_COOKIE_NAMES.some(name => request.cookies.has(name))
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
@@ -14,14 +25,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
   
-  // Check for NextAuth session cookies (works with both HTTP and HTTPS)
-  const hasSessionCookie = 
-    request.cookies.has('next-auth.token') || 
-    request.cookies.has('next-auth.session-token') ||
-    request.cookies.has('__Secure-next-auth.session-token') ||
-    request.cookies.has('__Secure-next-auth.token')
-  
-  if (!hasSessionCookie) {
+  if (!hasValidSession(request)) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json(
         { success: false, error: 'No autenticado' },
