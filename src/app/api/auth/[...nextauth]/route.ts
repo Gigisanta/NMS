@@ -15,35 +15,27 @@ const handler = NextAuth({
       },
       async authorize(credentials) {
         try {
-          console.log('[AUTH] Authorize called with:', credentials?.email)
-          
           if (!credentials?.email || !credentials?.password) {
-            console.log('[AUTH] Missing credentials')
             return null
           }
 
           const email = credentials.email.trim().toLowerCase()
           const password = credentials.password
           
-          console.log('[AUTH] Looking for user:', email)
-          
-          const user = await prisma.user.findUnique({
-            where: { email }
+          const user = await prisma.user.findFirst({
+            where: { 
+              email: {
+                equals: email,
+                mode: 'insensitive'
+              }
+            }
           })
           
-          console.log('[AUTH] User found:', user ? user.email : 'NO', 'active:', user?.active)
-          
-          if (!user) {
-            return null
-          }
-
-          if (!user.active) {
-            console.log('[AUTH] User inactive')
+          if (!user || !user.active) {
             return null
           }
 
           const isValid = await bcrypt.compare(password, user.password)
-          console.log('[AUTH] Password valid:', isValid)
           
           if (!isValid) {
             return null
@@ -56,14 +48,14 @@ const handler = NextAuth({
             role: user.role,
           }
         } catch (error) {
-          console.error('[AUTH] Error in authorize:', error)
+          console.error('[AUTH] Error:', error)
           return null
         }
       },
     }),
   ],
   session: { strategy: 'jwt' },
-  secret: process.env.NEXTAUTH_SECRET || process.env.NEXTAUTH_URL + '-secret-fallback',
+  secret: process.env.NEXTAUTH_SECRET || 'dev-fallback-secret-do-not-use-in-prod',
   debug: true,
 })
 
