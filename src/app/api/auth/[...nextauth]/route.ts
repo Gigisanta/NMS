@@ -14,53 +14,50 @@ const handler = NextAuth({
         password: { label: 'Contraseña', type: 'password' },
       },
       async authorize(credentials) {
-        console.log('[AUTH] Authorize called with:', credentials?.email)
-        
-        if (!credentials?.email || !credentials?.password) {
-          console.log('[AUTH] Missing credentials')
-          return null
-        }
-
-        const email = credentials.email.trim().toLowerCase()
-        const password = credentials.password
-        
-        console.log('[AUTH] Looking for user:', email)
-        
-        const user = await prisma.user.findUnique({
-          where: { email }
-        })
-        
-        console.log('[AUTH] User found:', user ? user.email : 'NO')
-        
-        if (!user) {
-          console.log('[AUTH] User not found, trying without lowercase...')
-          const user2 = await prisma.user.findFirst({
-            where: { email: { contains: email } }
-          })
-          if (user2) {
-            console.log('[AUTH] Found user with contains:', user2.email)
+        try {
+          console.log('[AUTH] Authorize called with:', credentials?.email)
+          
+          if (!credentials?.email || !credentials?.password) {
+            console.log('[AUTH] Missing credentials')
+            return null
           }
-          return null
-        }
 
-        console.log('[AUTH] User active:', user.active)
-        
-        if (!user.active) {
-          return null
-        }
+          const email = credentials.email.trim().toLowerCase()
+          const password = credentials.password
+          
+          console.log('[AUTH] Looking for user:', email)
+          
+          const user = await prisma.user.findUnique({
+            where: { email }
+          })
+          
+          console.log('[AUTH] User found:', user ? user.email : 'NO', 'active:', user?.active)
+          
+          if (!user) {
+            return null
+          }
 
-        const isValid = await bcrypt.compare(password, user.password)
-        console.log('[AUTH] Password valid:', isValid)
-        
-        if (!isValid) {
-          return null
-        }
+          if (!user.active) {
+            console.log('[AUTH] User inactive')
+            return null
+          }
 
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
+          const isValid = await bcrypt.compare(password, user.password)
+          console.log('[AUTH] Password valid:', isValid)
+          
+          if (!isValid) {
+            return null
+          }
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          }
+        } catch (error) {
+          console.error('[AUTH] Error in authorize:', error)
+          return null
         }
       },
     }),
