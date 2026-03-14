@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
   
-  const hasSessionCookie = request.cookies.has('next-auth.session-token')
+  const hasSessionCookie = request.cookies.has('next-auth.token') || request.cookies.has('next-auth.session-token')
   
   if (!hasSessionCookie) {
     if (pathname.startsWith('/api/')) {
