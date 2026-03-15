@@ -21,6 +21,7 @@ export async function GET() {
           recentClients,
           pendingClients,
           groupsWithRevenue,
+          allPaidSubscriptions,
         ] = await Promise.all([
           // Total clients count
           db.client.count(),
@@ -116,29 +117,39 @@ export async function GET() {
               },
             },
           }),
+
+          // BOLT OPTIMIZATION: Fetch all paid subscriptions in one batch to eliminate N+1 query pattern
+          // This replaces individual db.subscription.aggregate calls for each group.
+          db.subscription.findMany({
+            where: {
+              month: currentMonth,
+              year: currentYear,
+              status: 'AL_DIA',
+            },
+            select: {
+              amount: true,
+              client: {
+                select: { grupoId: true },
+              },
+            },
+          }),
         ])
 
-        // Calculate revenue by group
-        const groupRevenue = await Promise.all(
-          groupsWithRevenue.map(async (group) => {
-            const revenueData = await db.subscription.aggregate({
-              where: {
-                client: { grupoId: group.id },
-                month: currentMonth,
-                year: currentYear,
-                status: 'AL_DIA',
-              },
-              _sum: { amount: true },
-            })
-            return {
-              id: group.id,
-              name: group.name,
-              color: group.color,
-              clientCount: group._count.clients,
-              revenue: revenueData._sum.amount || 0,
-            }
-          })
-        )
+        // BOLT OPTIMIZATION: Aggregate revenue by group in-memory
+        // This reduces total dashboard database queries from (6 + N) to 7.
+        const groupRevenueMap = allPaidSubscriptions.reduce((acc, sub) => {
+          const groupId = sub.client.grupoId || 'unassigned'
+          acc[groupId] = (acc[groupId] || 0) + (sub.amount || 0)
+          return acc
+        }, {} as Record<string, number>)
+
+        const groupRevenue = groupsWithRevenue.map((group) => ({
+          id: group.id,
+          name: group.name,
+          color: group.color,
+          clientCount: group._count.clients,
+          revenue: groupRevenueMap[group.id] || 0,
+        }))
 
         // Calculate stats from optimized database queries
         const statusData = subStats.reduce((acc, curr) => {
