@@ -104,6 +104,9 @@ export async function GET() {
           .filter((s) => s.status === 'AL_DIA')
           .reduce((sum, s) => sum + (s.amount || 0), 0)
 
+        const expectedRevenue = subscriptions
+          .reduce((sum, s) => sum + (s.amount || 0), 0)
+
         return {
           stats: {
             totalClients,
@@ -112,6 +115,7 @@ export async function GET() {
             overduePayments,
             todayAttendances,
             monthRevenue,
+            expectedRevenue,
           },
           recentClients,
           pendingClients,

@@ -47,7 +47,7 @@ model Account {
   userId            String
   type              String
   provider          String
-  providerAccountId String
+  providerAccountId  String
   refresh_token     String?
   access_token      String?
   expires_at        Int?
@@ -110,9 +110,15 @@ model Group {
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
+  
+  // Self-relation for hierarchy (parent-child)
+  parentId    String?
+  parent      Group?   @relation("GroupHierarchy", fields: [parentId], references: [id])
+  children    Group[]  @relation("GroupHierarchy")
+  
   clients     Client[]
 
+  @@index([parentId])
   @@map("groups")
 }
 
@@ -199,7 +205,7 @@ model Invoice {
   uploadedAt   DateTime @default(now())
   updatedAt    DateTime @default(now())
   uploadedBy   String?  // User ID who uploaded
-
+  
   client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId])

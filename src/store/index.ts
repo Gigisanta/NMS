@@ -30,6 +30,7 @@ interface DashboardStats {
   overduePayments: number
   todayAttendances: number
   monthRevenue: number
+  expectedRevenue: number
 }
 
 // Store State
