@@ -16,6 +16,9 @@ vi.mock('@/lib/db', () => ({
       groupBy: vi.fn(),
       aggregate: vi.fn(),
     },
+    group: {
+      findMany: vi.fn(),
+    },
     attendance: {
       count: vi.fn(),
       findMany: vi.fn(),
@@ -62,6 +65,8 @@ describe('API /dashboard', () => {
       ] as any)
       vi.mocked(db.attendance.count).mockResolvedValue(10)
       vi.mocked(db.client.findMany).mockResolvedValue([])
+      vi.mocked(db.subscription.findMany).mockResolvedValue([])
+      vi.mocked(db.group.findMany).mockResolvedValue([])
       vi.mocked(db.attendance.findMany).mockResolvedValue([])
 
       const response = await getDashboard()
@@ -81,6 +86,8 @@ describe('API /dashboard', () => {
       ] as any)
       vi.mocked(db.attendance.count).mockResolvedValue(5)
       vi.mocked(db.client.findMany).mockResolvedValue([])
+      vi.mocked(db.subscription.findMany).mockResolvedValue([])
+      vi.mocked(db.group.findMany).mockResolvedValue([])
       vi.mocked(db.attendance.findMany).mockResolvedValue([])
 
       const response = await getDashboard()
@@ -98,6 +105,8 @@ describe('API /dashboard', () => {
       ] as any)
       vi.mocked(db.attendance.count).mockResolvedValue(5)
       vi.mocked(db.client.findMany).mockResolvedValue([])
+      vi.mocked(db.subscription.findMany).mockResolvedValue([])
+      vi.mocked(db.group.findMany).mockResolvedValue([])
       vi.mocked(db.attendance.findMany).mockResolvedValue([])
 
       const response = await getDashboard()
@@ -113,6 +122,8 @@ describe('API /dashboard', () => {
       vi.mocked(db.subscription.groupBy).mockResolvedValue([])
       vi.mocked(db.attendance.count).mockResolvedValue(0)
       vi.mocked(db.client.findMany).mockResolvedValue([])
+      vi.mocked(db.subscription.findMany).mockResolvedValue([])
+      vi.mocked(db.group.findMany).mockResolvedValue([])
       vi.mocked(db.attendance.findMany).mockResolvedValue([])
 
       const response = await getDashboard()
