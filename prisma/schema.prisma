@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -124,17 +124,19 @@ model Group {
 
 // Tabla Clientes
 model Client {
-  id             String   @id @default(cuid())
-  nombre         String
-  apellido       String
-  dni            String?
-  telefono       String   @unique
-  grupoId        String?
-  preferredDays  String?
-  preferredTime  String?
-  notes          String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default(cuid())
+  nombre          String
+  apellido        String
+  dni             String?
+  telefono        String   @unique
+  grupoId         String?
+  preferredDays   String?
+  preferredTime   String?
+  notes           String?
+  monthlyAmount   Float?   // Monto mensual personalizado del cliente
+  registrationPaid Boolean  @default(false) // Si pagó la inscripción
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   grupo          Group?          @relation(fields: [grupoId], references: [id], onDelete: SetNull)
   subscriptions  Subscription[]
@@ -142,6 +144,7 @@ model Client {
   attendances    Attendance[]
 
   @@index([grupoId])
+  @@index([apellido, nombre])
   @@map("clients")
 }
 
@@ -164,6 +167,7 @@ model Subscription {
   client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@unique([clientId, month, year])
+  @@index([month, year])
   @@map("subscriptions")
 }
 
@@ -224,6 +228,8 @@ model Attendance {
 
   client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
+  @@index([clientId])
+  @@index([date])
   @@map("attendances")
 }
 

@@ -25,12 +25,16 @@ export function GroupBadge({ group, className, size = 'md', onClick, interactive
     return (
       <span 
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-full font-medium border',
-          'bg-slate-100 text-slate-500 border-slate-200',
-          sizeClasses[size],
-          interactive && 'cursor-pointer hover:bg-slate-200 transition-colors',
+          'inline-flex items-center gap-1.5 font-medium border',
+          'text-xs px-2.5 py-1',
+          interactive && 'cursor-pointer transition-all hover:scale-105',
           className
         )}
+        style={{ 
+          background: 'rgba(0, 168, 232, 0.08)', 
+          color: '#86868b',
+          borderColor: 'rgba(0, 168, 232, 0.2)',
+        }}
         onClick={onClick}
       >
         Sin grupo
@@ -41,7 +45,7 @@ export function GroupBadge({ group, className, size = 'md', onClick, interactive
   return (
     <span 
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full font-medium border transition-all',
+        'inline-flex items-center gap-1.5 font-medium border transition-all',
         sizeClasses[size],
         interactive && 'cursor-pointer hover:shadow-md hover:scale-105',
         className
@@ -54,7 +58,7 @@ export function GroupBadge({ group, className, size = 'md', onClick, interactive
       onClick={onClick}
     >
       <span 
-        className="w-2 h-2 rounded-full"
+        className="w-2 h-2"
         style={{ backgroundColor: group.color }}
       />
       {group.name}

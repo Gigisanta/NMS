@@ -30,6 +30,8 @@ export interface Client {
   preferredDays: string | null
   preferredTime: string | null
   notes?: string | null
+  monthlyAmount?: number | null
+  registrationPaid?: boolean
   createdAt: Date
   updatedAt: Date
 }

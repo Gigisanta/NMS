@@ -36,10 +36,14 @@ export async function GET() {
       2 * 60 * 1000 // 2 minutes cache
     )
 
-    return NextResponse.json({
-      success: true,
-      data: groups
-    })
+    return NextResponse.json(
+      { success: true, data: groups },
+      {
+        headers: {
+          'Cache-Control': 'private, max-age=120, stale-while-revalidate=60',
+        },
+      }
+    )
   } catch (error) {
     console.error('Error fetching groups:', error)
     return NextResponse.json(

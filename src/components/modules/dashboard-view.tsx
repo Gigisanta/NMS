@@ -56,6 +56,15 @@ interface DashboardData {
   pendingClients: PendingClient[]
   currentMonth: number
   currentYear: number
+  groupRevenue: GroupRevenue[]
+}
+
+interface GroupRevenue {
+  id: string
+  name: string
+  color: string
+  clientCount: number
+  revenue: number
 }
 
 interface DashboardViewProps {
@@ -75,14 +84,14 @@ const StatCard = memo(function StatCard({
   trend?: string
 }) {
   return (
-    <div className="bg-white rounded-lg p-4 border border-slate-200/60">
+    <div className="bg-white p-4 border border-slate-200/60">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{title}</p>
           <p className="text-2xl font-semibold text-slate-900 mt-1">{value}</p>
           {trend && <p className="text-xs text-slate-400 mt-0.5">{trend}</p>}
         </div>
-        <div className="p-2 bg-slate-50 rounded-lg">
+        <div className="p-2 bg-slate-50">
           <Icon className="w-4 h-4 text-slate-400" />
         </div>
       </div>
@@ -105,7 +114,7 @@ const ClientItem = memo(function ClientItem({ client, showStatus, status }: {
 
   return (
     <div className="flex items-center gap-3 py-2">
-      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+      <div className="w-8 h-8 bg-slate-100 flex items-center justify-center flex-shrink-0">
         <span className="text-xs font-medium text-slate-500">{initials}</span>
       </div>
       <div className="flex-1 min-w-0">
@@ -332,6 +341,27 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                   />
                 </div>
               </div>
+              {data?.groupRevenue && data.groupRevenue.length > 0 && (
+                <div className="mt-4 pt-3 border-t">
+                  <p className="text-xs font-medium text-slate-500 mb-2">Por Grupo</p>
+                  <div className="space-y-2">
+                    {data.groupRevenue.map((group) => (
+                      <div key={group.id} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: group.color }}
+                          />
+                          <span style={{ color: group.color }}>{group.name}</span>
+                        </div>
+                        <span className="font-medium text-slate-700">
+                          {formatCurrency(group.revenue)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

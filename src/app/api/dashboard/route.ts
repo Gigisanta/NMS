@@ -16,35 +16,44 @@ export async function GET() {
         // Run all queries in parallel for better performance
         const [
           totalClients,
-          subscriptions,
+          subStats,
           todayAttendances,
           recentClients,
           pendingClients,
+          groupsWithRevenue,
         ] = await Promise.all([
           // Total clients count
           db.client.count(),
           
-          // Subscription stats for current month - only select needed fields
-          db.subscription.findMany({
+          // Subscription counts and revenue by status for current month
+          db.subscription.groupBy({
+            by: ['status'],
             where: {
               month: currentMonth,
               year: currentYear,
             },
-            select: {
-              status: true,
+            _count: {
+              _all: true,
+            },
+            _sum: {
               amount: true,
             },
           }),
           
           // Today's attendances count
-          db.attendance.count({
-            where: {
-              date: {
-                gte: new Date(new Date().setHours(0, 0, 0, 0)),
-                lt: new Date(new Date().setHours(23, 59, 59, 999)),
+          // BOLT OPTIMIZATION: Avoid inline date mutation for clarity and reliability
+          (() => {
+            const start = new Date(); start.setHours(0, 0, 0, 0);
+            const end = new Date(); end.setHours(23, 59, 59, 999);
+            return db.attendance.count({
+              where: {
+                date: {
+                  gte: start,
+                  lt: end,
+                },
               },
-            },
-          }),
+            })
+          })(),
           
           // Recent clients with minimal fields
           db.client.findMany({
@@ -94,15 +103,56 @@ export async function GET() {
             take: 10,
             orderBy: { updatedAt: 'asc' },
           }),
+          
+          // Revenue by group for current month
+          db.group.findMany({
+            where: { active: true },
+            select: {
+              id: true,
+              name: true,
+              color: true,
+              _count: {
+                select: { clients: true },
+              },
+            },
+          }),
         ])
 
-        // Calculate stats from subscriptions (in-memory, fast)
-        const activeClients = subscriptions.length
-        const pendingPayments = subscriptions.filter((s) => s.status === 'PENDIENTE').length
-        const overduePayments = subscriptions.filter((s) => s.status === 'DEUDOR').length
-        const monthRevenue = subscriptions
-          .filter((s) => s.status === 'AL_DIA')
-          .reduce((sum, s) => sum + (s.amount || 0), 0)
+        // Calculate revenue by group
+        const groupRevenue = await Promise.all(
+          groupsWithRevenue.map(async (group) => {
+            const revenueData = await db.subscription.aggregate({
+              where: {
+                client: { grupoId: group.id },
+                month: currentMonth,
+                year: currentYear,
+                status: 'AL_DIA',
+              },
+              _sum: { amount: true },
+            })
+            return {
+              id: group.id,
+              name: group.name,
+              color: group.color,
+              clientCount: group._count.clients,
+              revenue: revenueData._sum.amount || 0,
+            }
+          })
+        )
+
+        // Calculate stats from optimized database queries
+        const statusData = subStats.reduce((acc, curr) => {
+          acc[curr.status] = {
+            count: curr._count._all,
+            revenue: curr._sum.amount || 0
+          }
+          return acc
+        }, {} as Record<string, { count: number; revenue: number }>)
+
+        const activeClients = subStats.reduce((sum, curr) => sum + curr._count._all, 0)
+        const pendingPayments = statusData['PENDIENTE']?.count || 0
+        const overduePayments = statusData['DEUDOR']?.count || 0
+        const monthRevenue = statusData['AL_DIA']?.revenue || 0
 
         const expectedRevenue = subscriptions
           .reduce((sum, s) => sum + (s.amount || 0), 0)
@@ -121,15 +171,20 @@ export async function GET() {
           pendingClients,
           currentMonth,
           currentYear,
+          groupRevenue,
         }
       },
       60 * 1000 // 1 minute cache
     )
 
-    return NextResponse.json({
-      success: true,
-      data,
-    })
+    return NextResponse.json(
+      { success: true, data },
+      {
+        headers: {
+          'Cache-Control': 'private, max-age=60, stale-while-revalidate=30',
+        },
+      }
+    )
   } catch (error) {
     console.error('Error fetching dashboard:', error)
     return NextResponse.json(

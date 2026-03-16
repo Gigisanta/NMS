@@ -30,7 +30,7 @@
 ### Prerrequisitos
 
 - Node.js 18+ o Bun
-- SQLite (incluido)
+- Prisma Postgres (configurado automáticamente)
 - Cuenta de WhatsApp Business (opcional, para webhook)
 
 ### Instalación
@@ -77,7 +77,8 @@ bun run dev
 ### Backend
 | Tecnología | Versión | Propósito |
 |------------|---------|-----------|
-| [Prisma](https://www.prisma.io/) | 6.x | ORM para SQLite |
+| [Prisma](https://www.prisma.io/) | 6.x | ORM para PostgreSQL |
+| [PostgreSQL](https://www.postgresql.org/) | - | Base de datos (Prisma Postgres) |
 | [NextAuth.js](https://next-auth.js.org/) | 4.x | Autenticación |
 | [bcryptjs](https://github.com/dcodeIO/bcrypt.js) | - | Hash de contraseñas |
 

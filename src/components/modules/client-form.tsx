@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Loader2, Check, Calendar, Clock, FileText, User, Phone, Hash } from 'lucide-react'
+import { Loader2, Check, Calendar, Clock, FileText, User, Phone, Hash, DollarSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ScheduleSelector } from './schedule-selector'
 
@@ -27,6 +27,8 @@ interface Client {
   preferredDays: string | null
   preferredTime: string | null
   notes: string | null
+  monthlyAmount: number | null
+  registrationPaid: boolean
 }
 
 interface ClientFormProps {
@@ -51,6 +53,8 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
     preferredTime: client?.preferredTime || '',
     notes: client?.notes || '',
     classesTotal: 4,
+    monthlyAmount: client?.monthlyAmount || null,
+    registrationPaid: client?.registrationPaid || false,
   })
 
   const sections = [
@@ -82,6 +86,8 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
           preferredTime: formData.preferredTime || null,
           notes: formData.notes || null,
           classesTotal: formData.classesTotal,
+          monthlyAmount: formData.monthlyAmount,
+          registrationPaid: formData.registrationPaid,
         }),
       })
 
@@ -109,7 +115,7 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
       )}
 
       {/* Section Tabs */}
-      <div className="flex gap-1 p-1 bg-slate-100 rounded-lg">
+      <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'rgba(0, 168, 232, 0.1)' }}>
         {sections.map((section) => {
           const Icon = section.icon
           return (
@@ -118,11 +124,14 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
               type="button"
               onClick={() => setActiveSection(section.id as typeof activeSection)}
               className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-all',
+                'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-all',
                 activeSection === section.id
-                  ? 'bg-white text-cyan-700 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'shadow-sm text-white'
+                  : 'text-[#4A5568] hover:bg-white/50'
               )}
+              style={activeSection === section.id ? {
+                background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
+              } : {}}
             >
               <Icon className="w-4 h-4" />
               <span className="hidden sm:inline">{section.label}</span>
@@ -146,7 +155,8 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                   onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   placeholder="Juan"
                   required
-                  className="transition-all focus:ring-2 focus:ring-cyan-500/50"
+                  className="transition-all"
+                  style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
                 />
               </div>
               <div className="space-y-2">
@@ -156,14 +166,15 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                   onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
                   placeholder="Pérez"
                   required
-                  className="transition-all focus:ring-2 focus:ring-cyan-500/50"
+                  className="transition-all"
+                  style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                <Phone className="w-3 h-3 text-slate-400" />
+                <Phone className="w-3 h-3" style={{ color: '#00A8E8' }} />
                 Teléfono *
               </Label>
               <Input
@@ -171,23 +182,25 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                 onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                 placeholder="3512345678"
                 required
-                className="transition-all focus:ring-2 focus:ring-cyan-500/50"
+                className="transition-all"
+                style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
               />
-              <p className="text-xs text-slate-500">
+              <p className="text-xs" style={{ color: '#86868b' }}>
                 Número sin espacios ni guiones
               </p>
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                <Hash className="w-3 h-3 text-slate-400" />
+                <Hash className="w-3 h-3" style={{ color: '#00A8E8' }} />
                 DNI
               </Label>
               <Input
                 value={formData.dni || ''}
                 onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
                 placeholder="12345678"
-                className="transition-all focus:ring-2 focus:ring-cyan-500/50"
+                className="transition-all"
+                style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
               />
             </div>
 
@@ -198,11 +211,14 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                   type="button"
                   onClick={() => setFormData({ ...formData, grupoId: '' })}
                   className={cn(
-                    'px-3 py-2 text-sm rounded-lg border-2 transition-all',
+                    'px-3 py-2 text-sm rounded-xl border-2 transition-all',
                     !formData.grupoId
-                      ? 'border-cyan-500 bg-cyan-50 text-cyan-700'
-                      : 'border-slate-200 hover:border-slate-300'
+                      ? 'border-[#00A8E8] text-[#005691]'
+                      : 'border-[rgba(0,168,232,0.2)] hover:border-[rgba(0,168,232,0.4)]'
                   )}
+                  style={!formData.grupoId ? {
+                    background: 'rgba(0, 168, 232, 0.1)',
+                  } : {}}
                 >
                   Sin grupo
                 </button>
@@ -212,13 +228,13 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                     type="button"
                     onClick={() => setFormData({ ...formData, grupoId: group.id })}
                     className={cn(
-                      'px-3 py-2 text-sm rounded-lg border-2 transition-all',
+                      'px-3 py-2 text-sm rounded-xl border-2 transition-all',
                       formData.grupoId === group.id
-                        ? 'border-transparent shadow-md'
-                        : 'border-slate-200 hover:border-slate-300'
+                        ? 'shadow-md'
+                        : 'border-[rgba(0,168,232,0.2)] hover:border-[rgba(0,168,232,0.4)]'
                     )}
                     style={formData.grupoId === group.id ? {
-                      backgroundColor: `${group.color}20`,
+                      backgroundColor: `${group.color}15`,
                       borderColor: group.color,
                       color: group.color,
                     } : {}}
@@ -231,14 +247,15 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
 
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                <FileText className="w-3 h-3 text-slate-400" />
+                <FileText className="w-3 h-3" style={{ color: '#00A8E8' }} />
                 Notas
               </Label>
               <Textarea
                 value={formData.notes || ''}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Notas sobre el cliente..."
-                className="min-h-[80px] resize-none transition-all focus:ring-2 focus:ring-cyan-500/50"
+                className="min-h-[80px] resize-none transition-all"
+                style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
               />
             </div>
           </div>
@@ -262,51 +279,119 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
         {/* Subscription Section */}
         {activeSection === 'subscription' && (
           <div className="space-y-6 pt-2">
-            <Card className="border-0 shadow-md bg-gradient-to-br from-slate-50 to-slate-100">
-              <CardContent className="p-6">
-                <div className="text-center space-y-4">
-                  <Label className="text-base font-medium">Clases contratadas este mes</Label>
-                  
-                  <div className="flex items-center justify-center gap-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="h-12 w-12 rounded-full border-2 hover:bg-cyan-50 hover:border-cyan-300"
-                      onClick={() => setFormData({ 
-                        ...formData, 
-                        classesTotal: Math.max(1, formData.classesTotal - 1) 
-                      })}
-                    >
-                      <span className="text-xl">−</span>
-                    </Button>
-                    
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500 to-sky-600 flex items-center justify-center shadow-lg shadow-cyan-500/25">
-                      <span className="text-4xl font-bold text-white">
-                        {formData.classesTotal}
-                      </span>
-                    </div>
-                    
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="h-12 w-12 rounded-full border-2 hover:bg-cyan-50 hover:border-cyan-300"
-                      onClick={() => setFormData({ 
-                        ...formData, 
-                        classesTotal: Math.min(30, formData.classesTotal + 1) 
-                      })}
-                    >
-                      <span className="text-xl">+</span>
-                    </Button>
-                  </div>
+            {/* Monthly Amount */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <DollarSign className="w-3 h-3" style={{ color: '#00A8E8' }} />
+                Monto Mensual Personalizado
+              </Label>
+              <div className="flex items-center gap-2">
+                <span style={{ color: '#86868b' }}>$</span>
+                <Input
+                  type="number"
+                  value={formData.monthlyAmount || ''}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    monthlyAmount: e.target.value ? parseFloat(e.target.value) : null 
+                  })}
+                  placeholder="Dejar vacío para usar precio del plan"
+                  className="transition-all"
+                  style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
+                />
+              </div>
+              <p className="text-xs" style={{ color: '#86868b' }}>
+                Dejar vacío para usar el precio del plan por defecto
+              </p>
+            </div>
 
-                  <p className="text-sm text-slate-500">
-                    {formData.classesTotal} clase{formData.classesTotal !== 1 ? 's' : ''} por mes
-                  </p>
+            {/* Registration Paid Toggle */}
+            <div className="flex items-center justify-between p-4 rounded-xl border" style={{ background: 'rgba(0, 168, 232, 0.05)' }}>
+              <div>
+                <Label className="text-sm font-medium" style={{ color: '#1A1A1A' }}>Inscripción Pagada</Label>
+                <p className="text-xs" style={{ color: '#86868b' }}>
+                  Indica si el cliente ya pagó la inscripción
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFormData({ 
+                  ...formData, 
+                  registrationPaid: !formData.registrationPaid 
+                })}
+                className={cn(
+                  'relative inline-flex h-8 w-14 items-center rounded-full transition-all',
+                  formData.registrationPaid 
+                    ? 'bg-[#34C759]' 
+                    : 'bg-[rgba(0,168,232,0.3)]'
+                )}
+              >
+                <span 
+                  className={cn(
+                    'inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all',
+                    formData.registrationPaid ? 'translate-x-7' : 'translate-x-1'
+                  )}
+                />
+              </button>
+            </div>
+
+            {/* Classes Selection */}
+            <div className="rounded-2xl border px-6 py-6" style={{
+              background: 'linear-gradient(135deg, rgba(0, 86, 145, 0.03) 0%, rgba(0, 168, 232, 0.05) 100%)',
+              borderColor: 'rgba(0, 168, 232, 0.15)',
+            }}>
+              <div className="text-center space-y-4">
+                <Label className="text-base font-medium" style={{ color: '#1A1A1A' }}>Clases contratadas este mes</Label>
+                
+                <div className="flex items-center justify-center gap-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12 rounded-full border-2 hover:scale-105 transition-all"
+                    style={{ 
+                      borderColor: 'rgba(0, 168, 232, 0.3)',
+                      color: '#005691'
+                    }}
+                    onClick={() => setFormData({ 
+                      ...formData, 
+                      classesTotal: Math.max(1, formData.classesTotal - 1) 
+                    })}
+                  >
+                    <span className="text-xl">−</span>
+                  </Button>
+                  
+                  <div className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg" style={{
+                    background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
+                    boxShadow: '0 4px 15px rgba(0, 168, 232, 0.4)',
+                  }}>
+                    <span className="text-4xl font-bold text-white">
+                      {formData.classesTotal}
+                    </span>
+                  </div>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-12 w-12 rounded-full border-2 hover:scale-105 transition-all"
+                    style={{ 
+                      borderColor: 'rgba(0, 168, 232, 0.3)',
+                      color: '#005691'
+                    }}
+                    onClick={() => setFormData({ 
+                      ...formData, 
+                      classesTotal: Math.min(30, formData.classesTotal + 1) 
+                    })}
+                  >
+                    <span className="text-xl">+</span>
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
+
+                <p className="text-sm" style={{ color: '#86868b' }}>
+                  {formData.classesTotal} clase{formData.classesTotal !== 1 ? 's' : ''} por mes
+                </p>
+              </div>
+            </div>
 
             <div className="flex gap-2 flex-wrap justify-center">
               {[1, 2, 4, 8, 12].map((num) => (
@@ -316,7 +401,13 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                   variant={formData.classesTotal === num ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setFormData({ ...formData, classesTotal: num })}
-                  className={formData.classesTotal === num ? 'bg-gradient-to-r from-cyan-500 to-sky-600' : ''}
+                  className={formData.classesTotal === num ? 'rounded-full' : 'rounded-full'}
+                  style={formData.classesTotal === num ? {
+                    background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
+                  } : {
+                    borderColor: 'rgba(0, 168, 232, 0.3)',
+                    color: '#005691'
+                  }}
                 >
                   {num} clases
                 </Button>
@@ -336,25 +427,33 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
         )}
       </ScrollArea>
 
-      <div className="flex gap-3 pt-4 border-t">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          className="flex-1"
-          disabled={loading}
-        >
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          className="flex-1 bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700 transition-all"
-          disabled={loading}
-        >
-          {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          {client?.id ? 'Guardar Cambios' : 'Crear Cliente'}
-        </Button>
-      </div>
+        <div className="flex gap-3 pt-4" style={{ borderTop: '1px solid rgba(0, 168, 232, 0.1)' }}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="flex-1 rounded-full"
+            style={{ 
+              borderColor: 'rgba(0, 168, 232, 0.3)',
+              color: '#005691'
+            }}
+            disabled={loading}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            className="flex-1 rounded-full text-white"
+            style={{
+              background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
+              boxShadow: '0 4px 15px rgba(0, 168, 232, 0.3)',
+            }}
+            disabled={loading}
+          >
+            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {client?.id ? 'Guardar Cambios' : 'Crear Cliente'}
+          </Button>
+        </div>
     </form>
   )
 }

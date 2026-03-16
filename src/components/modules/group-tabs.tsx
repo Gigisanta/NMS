@@ -26,10 +26,17 @@ export function GroupTabs({ groups, selectedId, onChange, className }: GroupTabs
         className="w-full"
       >
         <ScrollArea className="w-full">
-          <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-auto min-w-full">
+          <TabsList 
+            className="inline-flex h-11 items-center justify-start px-1 w-auto min-w-full"
+            style={{ background: 'rgba(0, 168, 232, 0.08)' }}
+          >
             <TabsTrigger
               value="all"
-              className="px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+              className="px-5 py-2 text-sm font-medium transition-all"
+              style={{ 
+                color: selectedId === null ? '#FFFFFF' : '#4A5568',
+                background: selectedId === null ? 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' : 'transparent',
+              }}
             >
               Todos los grupos
             </TabsTrigger>
@@ -37,11 +44,17 @@ export function GroupTabs({ groups, selectedId, onChange, className }: GroupTabs
               <TabsTrigger
                 key={group.id}
                 value={group.id}
-                className="px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm relative overflow-hidden"
+                className="px-5 py-2 text-sm font-medium transition-all relative overflow-hidden"
+                style={{ 
+                  color: selectedId === group.id ? '#FFFFFF' : '#4A5568',
+                  background: selectedId === group.id 
+                    ? `linear-gradient(135deg, ${group.color || '#005691'} 0%, ${group.color ? adjustColor(group.color, 30) : '#00A8E8'} 100%)`
+                    : 'transparent',
+                }}
               >
                 <span
                   className="absolute bottom-0 left-0 h-0.5 w-full"
-                  style={{ backgroundColor: group.color || '#06b6d4' }}
+                  style={{ backgroundColor: group.color || '#00A8E8' }}
                 />
                 {group.name}
               </TabsTrigger>
@@ -52,4 +65,12 @@ export function GroupTabs({ groups, selectedId, onChange, className }: GroupTabs
       </Tabs>
     </div>
   )
+}
+
+function adjustColor(color: string, amount: number): string {
+  const hex = color.replace('#', '')
+  const r = Math.min(255, parseInt(hex.substring(0, 2), 16) + amount)
+  const g = Math.min(255, parseInt(hex.substring(2, 4), 16) + amount)
+  const b = Math.min(255, parseInt(hex.substring(4, 6), 16) + amount)
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }

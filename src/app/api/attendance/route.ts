@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { cachedFetch, CacheKeys, invalidateCachePattern } from '@/lib/api-utils'
+import { cachedFetch, CacheKeys, invalidateCachePattern, invalidateClientCache } from '@/lib/api-utils'
 
 // GET /api/attendance - Get attendance records
 export async function GET(request: NextRequest) {
@@ -15,8 +15,11 @@ export async function GET(request: NextRequest) {
         CacheKeys.attendanceToday(),
         async () => {
           const now = new Date()
-          const startOfDay = new Date(now.setHours(0, 0, 0, 0))
-          const endOfDay = new Date(now.setHours(23, 59, 59, 999))
+          // BOLT OPTIMIZATION: Avoid mutating the 'now' date object to prevent side effects
+          const startOfDay = new Date(now)
+          startOfDay.setHours(0, 0, 0, 0)
+          const endOfDay = new Date(now)
+          endOfDay.setHours(23, 59, 59, 999)
 
           return db.attendance.findMany({
             where: {
@@ -203,6 +206,7 @@ export async function POST(request: NextRequest) {
     // Invalidate caches
     invalidateCachePattern('attendance')
     invalidateCachePattern('dashboard')
+    invalidateClientCache()
 
     return NextResponse.json({
       success: true,
@@ -218,6 +222,83 @@ export async function POST(request: NextRequest) {
     console.error('Error registering attendance:', error)
     return NextResponse.json(
       { success: false, error: 'Error al registrar asistencia' },
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE /api/attendance - Remove attendance
+export async function DELETE(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams
+    const attendanceId = searchParams.get('id')
+
+    if (!attendanceId) {
+      return NextResponse.json(
+        { success: false, error: 'ID de asistencia es requerido' },
+        { status: 400 }
+      )
+    }
+
+    // Get attendance record first to find the client and subscription
+    const attendanceRecord = await db.attendance.findUnique({
+      where: { id: attendanceId },
+      select: {
+        clientId: true,
+        date: true,
+      },
+    })
+
+    if (!attendanceRecord) {
+      return NextResponse.json(
+        { success: false, error: 'Asistencia no encontrada' },
+        { status: 404 }
+      )
+    }
+
+    // Find the subscription for the month of the attendance
+    const attendanceDate = new Date(attendanceRecord.date)
+    const subscription = await db.subscription.findFirst({
+      where: {
+        clientId: attendanceRecord.clientId,
+        month: attendanceDate.getMonth() + 1,
+        year: attendanceDate.getFullYear(),
+      },
+      select: {
+        id: true,
+        classesUsed: true,
+      },
+    })
+
+    // Delete attendance and decrement classesUsed in a transaction
+    await db.$transaction(async (tx) => {
+      await tx.attendance.delete({
+        where: { id: attendanceId },
+      })
+
+      if (subscription && subscription.classesUsed > 0) {
+        await tx.subscription.update({
+          where: { id: subscription.id },
+          data: {
+            classesUsed: subscription.classesUsed - 1,
+          },
+        })
+      }
+    })
+
+    // Invalidate caches
+    invalidateCachePattern('attendance')
+    invalidateCachePattern('dashboard')
+    invalidateClientCache()
+
+    return NextResponse.json({
+      success: true,
+      data: { deleted: true },
+    })
+  } catch (error) {
+    console.error('Error removing attendance:', error)
+    return NextResponse.json(
+      { success: false, error: 'Error al eliminar asistencia' },
       { status: 500 }
     )
   }

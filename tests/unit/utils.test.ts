@@ -59,25 +59,31 @@ describe('formatPhone', () => {
 })
 
 describe('formatCurrency', () => {
-  it('should format currency in ARS', () => {
+  it('should format currency in ARS for positive numbers', () => {
     const result = formatCurrency(5000)
-    expect(result).toContain('5.000')
-    expect(result).toContain('$')
+    // Se usa el espacio sin separación irrompible (\xA0 o regular) dependiendo del Intl formatter
+    expect(result.replace(/\xA0/g, ' ')).toBe('$ 5.000')
   })
 
-  it('should handle zero', () => {
+  it('should format currency in ARS for zero', () => {
     const result = formatCurrency(0)
-    expect(result).toContain('0')
+    expect(result.replace(/\xA0/g, ' ')).toBe('$ 0')
   })
 
-  it('should handle large numbers', () => {
+  it('should format currency in ARS for large numbers', () => {
     const result = formatCurrency(1000000)
-    expect(result).toContain('1.000.000')
+    expect(result.replace(/\xA0/g, ' ')).toBe('$ 1.000.000')
   })
 
-  it('should handle decimal numbers', () => {
+  it('should format currency in ARS for decimal numbers by rounding', () => {
+    // 1234.56 should round up to 1235
     const result = formatCurrency(1234.56)
-    expect(result).toBeDefined()
+    expect(result.replace(/\xA0/g, ' ')).toBe('$ 1.235')
+  })
+
+  it('should format currency in ARS for negative numbers', () => {
+    const result = formatCurrency(-5000)
+    expect(result.replace(/\xA0/g, ' ')).toBe('-$ 5.000')
   })
 })
 

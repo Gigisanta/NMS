@@ -14,7 +14,9 @@ import {
   Users,
   Loader2,
   AlertTriangle,
-  Filter
+  Filter,
+  Check,
+  Undo2
 } from 'lucide-react'
 import { formatFullName, formatTime, getPaymentStatusConfig, formatDate } from '@/lib/utils'
 import { useAppStore } from '@/store'
@@ -52,135 +54,124 @@ interface AttendanceRecord {
   }
 }
 
-// Memoized client card component
-const ClientAttendanceCard = memo(function ClientAttendanceCard({ 
+// Compact table row for attendance
+const AttendanceTableRow = memo(function AttendanceTableRow({ 
   client,
   index,
   onMarkAttendance,
+  onRemoveAttendance,
   isMarking,
+  isRemoving,
   optimisticClassesUsed,
   todayCount,
+  todayAttendanceId,
 }: { 
   client: Client
   index: number
   onMarkAttendance: (client: Client) => void
+  onRemoveAttendance: (attendanceId: string) => void
   isMarking: boolean
+  isRemoving: boolean
   optimisticClassesUsed: number | null
   todayCount: number
+  todayAttendanceId: string | null
 }) {
   const classesUsed = optimisticClassesUsed ?? client.currentSubscription?.classesUsed ?? 0
   const classesTotal = client.currentSubscription?.classesTotal ?? 4
   const status = client.currentSubscription?.status ?? 'PENDIENTE'
   const statusConfig = getPaymentStatusConfig(status)
   const isLimitReached = classesUsed >= classesTotal
-  
-  const progressPercent = useMemo(() => 
-    (classesUsed / classesTotal) * 100,
-    [classesUsed, classesTotal]
-  )
+  const progressPercent = (classesUsed / classesTotal) * 100
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ delay: index * 0.03 }}
+    <tr 
+      className={`border-b border-slate-100 hover:bg-slate-50/50 transition-colors ${
+        isLimitReached ? 'bg-red-50/30' : ''
+      }`}
     >
-      <Card 
-        className={`border-0 shadow-lg bg-white/80 backdrop-blur transition-all duration-200 ${
-          isLimitReached ? 'ring-2 ring-red-200' : ''
-        }`}
-      >
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12 bg-gradient-to-br from-cyan-500 to-sky-600 ring-2 ring-white shadow-md">
-                <AvatarFallback className="text-white font-medium">
-                  {client.nombre[0]}{client.apellido[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-medium text-slate-900">
-                  {formatFullName(client.nombre, client.apellido)}
-                </p>
-                <GroupBadge group={client.grupo} size="sm" />
-              </div>
-            </div>
-            <Badge className={`${statusConfig.color} border text-xs`}>
-              {statusConfig.label}
-            </Badge>
+      <td className="py-2 px-3">
+        <div className="flex items-center gap-2">
+          <Avatar className="h-8 w-8 bg-gradient-to-br from-cyan-500 to-sky-600 ring-1 ring-white">
+            <AvatarFallback className="text-white text-xs font-medium">
+              {client.nombre[0]}{client.apellido[0]}
+            </AvatarFallback>
+          </Avatar>
+          <span className="font-medium text-slate-900 text-sm">
+            {formatFullName(client.nombre, client.apellido)}
+          </span>
+        </div>
+      </td>
+      <td className="py-2 px-3">
+        <GroupBadge group={client.grupo} size="sm" />
+      </td>
+      <td className="py-2 px-3">
+        <div className="flex items-center gap-2">
+          <div className="w-16 h-1.5 bg-slate-100 overflow-hidden">
+            <div 
+              className={`h-full ${
+                isLimitReached 
+                  ? 'bg-gradient-to-r from-red-400 to-red-500' 
+                  : 'bg-gradient-to-r from-cyan-500 to-sky-600'
+              }`}
+              style={{ width: `${progressPercent}%` }}
+            />
           </div>
-
-          {/* Classes Progress */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between text-sm mb-1">
-              <span className="text-slate-500">Clases</span>
-              <span className={`font-medium ${isLimitReached ? 'text-red-600' : 'text-slate-900'}`}>
-                {classesUsed}/{classesTotal}
-              </span>
-            </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-              <motion.div 
-                className={`h-full rounded-full ${
-                  isLimitReached 
-                    ? 'bg-gradient-to-r from-red-400 to-red-500' 
-                    : 'bg-gradient-to-r from-cyan-500 to-sky-600'
-                }`}
-                initial={{ width: 0 }}
-                animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.3 }}
-              />
-            </div>
-            {isLimitReached && (
-              <motion.div 
-                className="flex items-center gap-1 mt-2 text-xs text-red-600"
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <AlertTriangle className="w-3 h-3" />
-                Límite alcanzado
-              </motion.div>
-            )}
-          </div>
-
-          {/* Today's attendance */}
-          {todayCount > 0 && (
-            <div className="mb-3 text-xs text-slate-500 bg-slate-50 rounded px-2 py-1">
-              Ya registró {todayCount} asistencia{todayCount > 1 ? 's' : ''} hoy
-            </div>
-          )}
-
-          {/* Action Button */}
+          <span className={`text-xs font-medium ${isLimitReached ? 'text-red-600' : 'text-slate-600'}`}>
+            {classesUsed}/{classesTotal}
+          </span>
+        </div>
+      </td>
+      <td className="py-2 px-3">
+        <Badge className={`${statusConfig.color} border text-xs py-0.5`}>
+          {statusConfig.label}
+        </Badge>
+      </td>
+      <td className="py-2 px-3 text-center">
+        {todayCount > 0 && (
+          <span className="inline-flex items-center justify-center w-6 h-6 bg-emerald-100 text-emerald-700 text-xs font-medium">
+            {todayCount}
+          </span>
+        )}
+      </td>
+      <td className="py-2 px-3">
+        <div className="flex items-center gap-1">
           <Button
-            className={`w-full gap-2 transition-all ${
+            size="sm"
+            variant={isLimitReached ? "ghost" : "default"}
+            className={`h-8 gap-1 transition-all ${
               isLimitReached 
-                ? 'bg-slate-100 text-slate-400 hover:bg-slate-100' 
-                : 'bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700 hover:shadow-lg'
+                ? 'text-slate-400 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700'
             }`}
             onClick={() => onMarkAttendance(client)}
             disabled={isLimitReached || isMarking}
           >
             {isMarking ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Registrando...
-              </>
+              <Loader2 className="w-3 h-3 animate-spin" />
             ) : isLimitReached ? (
-              <>
-                <XCircle className="w-4 h-4" />
-                Sin clases disponibles
-              </>
+              <XCircle className="w-3 h-3" />
             ) : (
-              <>
-                <CheckCircle2 className="w-4 h-4" />
-                Marcar Asistencia
-              </>
+              <Check className="w-3 h-3" />
             )}
           </Button>
-        </CardContent>
-      </Card>
-    </motion.div>
+          {todayAttendanceId && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 gap-1 text-slate-500 hover:text-red-600 hover:bg-red-50 border-slate-200"
+              onClick={() => onRemoveAttendance(todayAttendanceId)}
+              disabled={isRemoving || isMarking}
+            >
+              {isRemoving ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Undo2 className="w-3 h-3" />
+              )}
+            </Button>
+          )}
+        </div>
+      </td>
+    </tr>
   )
 })
 
@@ -194,7 +185,7 @@ const AttendanceListItem = memo(function AttendanceListItem({
 }) {
   return (
     <motion.div 
-      className="flex items-center justify-between p-2 bg-slate-50 rounded-lg"
+      className="flex items-center justify-between p-2 bg-slate-50"
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.03 }}
@@ -220,6 +211,7 @@ export function AttendanceView() {
   const [selectedGrupo, setSelectedGrupo] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [markingAttendance, setMarkingAttendance] = useState<string | null>(null)
+  const [removingAttendance, setRemovingAttendance] = useState<string | null>(null)
   const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, { classesUsed: number }>>({})
   
   // Groups from global store (cached)
@@ -331,6 +323,29 @@ export function AttendanceView() {
     }
   }, [optimisticUpdates, fetchData])
 
+  const handleRemoveAttendance = useCallback(async (attendanceId: string) => {
+    setRemovingAttendance(attendanceId)
+
+    try {
+      const response = await fetch(`/api/attendance?id=${attendanceId}`, {
+        method: 'DELETE',
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setTodayAttendance(prev => prev.filter(a => a.id !== attendanceId))
+        fetchData()
+      } else {
+        alert(result.error || 'Error al eliminar asistencia')
+      }
+    } catch (error) {
+      console.error('Error removing attendance:', error)
+    } finally {
+      setRemovingAttendance(null)
+    }
+  }, [fetchData])
+
   // BOLT OPTIMIZATION: Convert O(N*M) lookup to O(N+M) by pre-calculating counts in a Map.
   // This prevents filtering the entire todayAttendance array for every client row.
   const attendanceCountsMap = useMemo(() => {
@@ -344,6 +359,11 @@ export function AttendanceView() {
   const getClientAttendanceToday = useCallback((clientId: string) => {
     return attendanceCountsMap.get(clientId) || 0
   }, [attendanceCountsMap])
+
+  const getClientLatestAttendanceId = useCallback((clientId: string) => {
+    const attendance = todayAttendance.find(a => a.clientId === clientId)
+    return attendance?.id ?? null
+  }, [todayAttendance])
 
   const getClassesUsed = useCallback((client: Client) => {
     return optimisticUpdates[client.id]?.classesUsed ?? client.currentSubscription?.classesUsed ?? 0
@@ -376,7 +396,7 @@ export function AttendanceView() {
             {formatDate(new Date())} - {todayAttendance.length} asistencias registradas
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-slate-500 bg-white/80 px-4 py-2 rounded-lg border shadow-sm">
+        <div className="flex items-center gap-2 text-sm text-slate-500 bg-white/80 px-4 py-2 border shadow-sm">
           <Calendar className="w-4 h-4" />
           {new Date().toLocaleDateString('es-AR', { weekday: 'long' })}
         </div>
@@ -391,7 +411,7 @@ export function AttendanceView() {
         />
       )}
 
-      {/* Clients Grid */}
+      {/* Clients Table */}
       {filteredClients.length === 0 ? (
         <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
           <CardContent className="py-12">
@@ -408,25 +428,40 @@ export function AttendanceView() {
           </CardContent>
         </Card>
       ) : (
-        <motion.div 
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <AnimatePresence mode="popLayout">
-            {filteredClients.map((client, index) => (
-              <ClientAttendanceCard
-                key={client.id}
-                client={client}
-                index={index}
-                onMarkAttendance={handleAttendance}
-                isMarking={markingAttendance === client.id}
-                optimisticClassesUsed={optimisticUpdates[client.id]?.classesUsed ?? null}
-                todayCount={getClientAttendanceToday(client.id)}
-              />
-            ))}
-          </AnimatePresence>
-        </motion.div>
+        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Alumno</th>
+                  <th className="text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Grupo</th>
+                  <th className="text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Clases</th>
+                  <th className="text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Estado</th>
+                  <th className="text-center py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Hoy</th>
+                  <th className="text-center py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <AnimatePresence mode="popLayout">
+                  {filteredClients.map((client, index) => (
+                    <AttendanceTableRow
+                      key={client.id}
+                      client={client}
+                      index={index}
+                      onMarkAttendance={handleAttendance}
+                      onRemoveAttendance={handleRemoveAttendance}
+                      isMarking={markingAttendance === client.id}
+                      isRemoving={removingAttendance === getClientLatestAttendanceId(client.id)}
+                      optimisticClassesUsed={optimisticUpdates[client.id]?.classesUsed ?? null}
+                      todayCount={getClientAttendanceToday(client.id)}
+                      todayAttendanceId={getClientLatestAttendanceId(client.id)}
+                    />
+                  ))}
+                </AnimatePresence>
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
 
       {/* Today's Attendance List */}

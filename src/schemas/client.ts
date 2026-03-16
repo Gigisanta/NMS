@@ -29,6 +29,8 @@ export const clientSchema = z.object({
   preferredDays: z.string().optional().nullable(),
   preferredTime: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
+  monthlyAmount: z.number().positive().optional().nullable(),
+  registrationPaid: z.boolean().optional().default(false),
 })
 
 export const createClientSchema = clientSchema.extend({
