@@ -174,6 +174,20 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
 
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
+                <Hash className="w-3 h-3 text-slate-400" />
+                DNI
+              </Label>
+              <Input
+                value={formData.dni || ''}
+                onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                placeholder="12345678"
+                className="transition-all"
+                style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
                 <Phone className="w-3 h-3" style={{ color: '#00A8E8' }} />
                 Teléfono *
               </Label>
@@ -188,20 +202,6 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
               <p className="text-xs" style={{ color: '#86868b' }}>
                 Número sin espacios ni guiones
               </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Hash className="w-3 h-3" style={{ color: '#00A8E8' }} />
-                DNI
-              </Label>
-              <Input
-                value={formData.dni || ''}
-                onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
-                placeholder="12345678"
-                className="transition-all"
-                style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
-              />
             </div>
 
             <div className="space-y-2">
@@ -283,10 +283,10 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <DollarSign className="w-3 h-3" style={{ color: '#00A8E8' }} />
-                Monto Mensual Personalizado
+                Monto Mensual del Plan *
               </Label>
               <div className="flex items-center gap-2">
-                <span style={{ color: '#86868b' }}>$</span>
+                <span className="text-lg font-medium" style={{ color: '#1A1A1A' }}>$</span>
                 <Input
                   type="number"
                   value={formData.monthlyAmount || ''}
@@ -294,13 +294,14 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                     ...formData, 
                     monthlyAmount: e.target.value ? parseFloat(e.target.value) : null 
                   })}
-                  placeholder="Dejar vacío para usar precio del plan"
-                  className="transition-all"
+                  placeholder="0.00"
+                  required
+                  className="text-lg font-semibold transition-all h-12"
                   style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
                 />
               </div>
               <p className="text-xs" style={{ color: '#86868b' }}>
-                Dejar vacío para usar el precio del plan por defecto
+                Monto que el cliente debe pagar cada mes.
               </p>
             </div>
 
@@ -334,84 +335,37 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
               </button>
             </div>
 
-            {/* Classes Selection */}
-            <div className="rounded-2xl border px-6 py-6" style={{
-              background: 'linear-gradient(135deg, rgba(0, 86, 145, 0.03) 0%, rgba(0, 168, 232, 0.05) 100%)',
-              borderColor: 'rgba(0, 168, 232, 0.15)',
-            }}>
-              <div className="text-center space-y-4">
-                <Label className="text-base font-medium" style={{ color: '#1A1A1A' }}>Clases contratadas este mes</Label>
-                
-                <div className="flex items-center justify-center gap-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="h-12 w-12 rounded-full border-2 hover:scale-105 transition-all"
-                    style={{ 
-                      borderColor: 'rgba(0, 168, 232, 0.3)',
-                      color: '#005691'
-                    }}
-                    onClick={() => setFormData({ 
-                      ...formData, 
-                      classesTotal: Math.max(1, formData.classesTotal - 1) 
-                    })}
-                  >
-                    <span className="text-xl">−</span>
-                  </Button>
-                  
-                  <div className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg" style={{
-                    background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
-                    boxShadow: '0 4px 15px rgba(0, 168, 232, 0.4)',
-                  }}>
-                    <span className="text-4xl font-bold text-white">
-                      {formData.classesTotal}
-                    </span>
-                  </div>
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="h-12 w-12 rounded-full border-2 hover:scale-105 transition-all"
-                    style={{ 
-                      borderColor: 'rgba(0, 168, 232, 0.3)',
-                      color: '#005691'
-                    }}
-                    onClick={() => setFormData({ 
-                      ...formData, 
-                      classesTotal: Math.min(30, formData.classesTotal + 1) 
-                    })}
-                  >
-                    <span className="text-xl">+</span>
-                  </Button>
-                </div>
-
-                <p className="text-sm" style={{ color: '#86868b' }}>
-                  {formData.classesTotal} clase{formData.classesTotal !== 1 ? 's' : ''} por mes
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-2 flex-wrap justify-center">
-              {[1, 2, 4, 8, 12].map((num) => (
+            <div className="space-y-4">
+              <Label className="flex items-center gap-2">
+                <Hash className="w-3 h-3" style={{ color: '#00A8E8' }} />
+                Clases contratadas
+              </Label>
+              <div className="flex items-center gap-4 bg-white/50 p-4 rounded-xl border border-[rgba(0,168,232,0.1)]">
                 <Button
-                  key={num}
                   type="button"
-                  variant={formData.classesTotal === num ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setFormData({ ...formData, classesTotal: num })}
-                  className={formData.classesTotal === num ? 'rounded-full' : 'rounded-full'}
-                  style={formData.classesTotal === num ? {
-                    background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
-                  } : {
-                    borderColor: 'rgba(0, 168, 232, 0.3)',
-                    color: '#005691'
-                  }}
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 rounded-full border-2"
+                  style={{ borderColor: 'rgba(0, 168, 232, 0.3)', color: '#005691' }}
+                  onClick={() => setFormData({ ...formData, classesTotal: Math.max(1, formData.classesTotal - 1) })}
                 >
-                  {num} clases
+                  <span className="text-lg">−</span>
                 </Button>
-              ))}
+                <div className="flex-1 text-center">
+                  <span className="text-2xl font-bold text-[#005691]">{formData.classesTotal}</span>
+                  <span className="text-sm text-slate-500 ml-2">clases/mes</span>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 rounded-full border-2"
+                  style={{ borderColor: 'rgba(0, 168, 232, 0.3)', color: '#005691' }}
+                  onClick={() => setFormData({ ...formData, classesTotal: Math.min(30, formData.classesTotal + 1) })}
+                >
+                  <span className="text-lg">+</span>
+                </Button>
+              </div>
             </div>
 
             <div className="p-4 bg-amber-50 rounded-lg border border-amber-100">

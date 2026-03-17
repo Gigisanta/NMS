@@ -118,10 +118,18 @@ export async function GET() {
           }),
         ])
 
-        // Calculate revenue by group
+        // Calculate revenue by group (Projected Revenue)
         const groupRevenue = await Promise.all(
           groupsWithRevenue.map(async (group) => {
-            const revenueData = await db.subscription.aggregate({
+            const projectedData = await db.client.aggregate({
+              where: {
+                grupoId: group.id,
+              },
+              _sum: { monthlyAmount: true },
+            })
+            
+            // Also get current month's collected revenue for completeness
+            const collectedData = await db.subscription.aggregate({
               where: {
                 client: { grupoId: group.id },
                 month: currentMonth,
@@ -130,12 +138,14 @@ export async function GET() {
               },
               _sum: { amount: true },
             })
+
             return {
               id: group.id,
               name: group.name,
               color: group.color,
               clientCount: group._count.clients,
-              revenue: revenueData._sum.amount || 0,
+              revenue: projectedData._sum.monthlyAmount || 0, // Showing Projected Revenue as requested
+              collected: collectedData._sum.amount || 0,
             }
           })
         )

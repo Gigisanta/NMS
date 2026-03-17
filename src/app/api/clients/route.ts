@@ -237,6 +237,7 @@ export async function POST(request: NextRequest) {
           status: 'PENDIENTE',
           classesTotal: classesTotal,
           classesUsed: 0,
+          amount: monthlyAmount || null,
         },
       })
 

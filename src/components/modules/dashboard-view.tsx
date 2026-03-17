@@ -64,7 +64,8 @@ interface GroupRevenue {
   name: string
   color: string
   clientCount: number
-  revenue: number
+  revenue: number // Projected
+  collected: number // Actual collected
 }
 
 interface DashboardViewProps {
@@ -343,20 +344,42 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
               </div>
               {data?.groupRevenue && data.groupRevenue.length > 0 && (
                 <div className="mt-4 pt-3 border-t">
-                  <p className="text-xs font-medium text-slate-500 mb-2">Por Grupo</p>
-                  <div className="space-y-2">
+                  <p className="text-xs font-medium text-slate-500 mb-2">Ingresos por Grupo</p>
+                  <div className="space-y-3">
                     {data.groupRevenue.map((group) => (
-                      <div key={group.id} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: group.color }}
-                          />
-                          <span style={{ color: group.color }}>{group.name}</span>
+                      <div key={group.id} className="p-2 rounded-lg bg-slate-50/50 border border-slate-100">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-2.5 h-2.5 rounded-full"
+                              style={{ backgroundColor: group.color }}
+                            />
+                            <span className="font-medium text-slate-800" style={{ color: group.color }}>{group.name}</span>
+                          </div>
+                          <span className="text-xs text-slate-400">{group.clientCount} clientes</span>
                         </div>
-                        <span className="font-medium text-slate-700">
-                          {formatCurrency(group.revenue)}
-                        </span>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-0.5">
+                            <p className="text-[10px] text-slate-400 uppercase">Proyección</p>
+                            <p className="text-sm font-semibold text-slate-700">
+                              {formatCurrency(group.revenue)}
+                            </p>
+                          </div>
+                          <div className="space-y-0.5 text-right">
+                            <p className="text-[10px] text-slate-400 uppercase">Cobrado</p>
+                            <p className="text-sm font-bold text-emerald-600">
+                              {formatCurrency(group.collected)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-2 h-1 bg-slate-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-emerald-500 rounded-full transition-all"
+                            style={{ 
+                              width: `${group.revenue > 0 ? (group.collected / group.revenue) * 100 : 0}%` 
+                            }}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
