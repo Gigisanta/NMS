@@ -37,9 +37,46 @@ model User {
   
   // Time entries (clock in/out)
   timeEntries  TimeEntry[]
+  
+  // Expenses related to this user (salaries)
+  expenses     Expense[]
 
   @@map("users")
 }
+
+// ... existing models ...
+
+// Tabla de Gastos (Expenses)
+model Expense {
+  id          String   @id @default(cuid())
+  description String
+  amount      Float
+  category    ExpenseCategory
+  date        DateTime @default(now())
+  month       Int?     // Mes correspondiente (1-12)
+  year        Int?     // Año correspondiente
+  userId      String?  // Relación con usuario si es un gasto de sueldo
+  supplier    String?  // Nombre del proveedor si aplica
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([category])
+  @@index([date])
+  @@index([userId])
+  @@map("expenses")
+}
+
+enum ExpenseCategory {
+  FIJO      // Gastos fijos (Alquiler, Luz, Impuestos)
+  VARIABLE  // Gastos variables (Insumos, Reparaciones)
+  SUELDO    // Pago de sueldos a empleados
+  PROVEEDOR // Pagos a proveedores específicos
+  OTROS     // Otros gastos
+}
+
 
 // NextAuth Account model
 model Account {
@@ -158,6 +195,7 @@ model Subscription {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  invoices       Invoice[]
   client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@unique([clientId, month, year])
@@ -169,8 +207,10 @@ model Subscription {
 model Invoice {
   id           String   @id @default(cuid())
   clientId     String
+  subscriptionId String? // Vínculo opcional con una suscripción/pago mensual
   
   // File information
+
   fileName     String   @default("unknown") // Original file name
   filePath     String   @default("/uploads/placeholder") // Storage path
   fileSize     Int?     // File size in bytes
@@ -199,14 +239,18 @@ model Invoice {
   source       String   @default("MANUAL") // MANUAL, API, WEBHOOK, WHATSAPP
   externalRef  String?  // Referencia externa para automatización
   
+  // Relations
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
   // Timestamps
+
   uploadedAt   DateTime @default(now())
   updatedAt    DateTime @default(now())
   uploadedBy   String?  // User ID who uploaded
 
-  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-
   @@index([clientId])
+
   @@index([issueDate])
   @@index([status])
   @@map("invoices")

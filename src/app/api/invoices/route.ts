@@ -88,8 +88,10 @@ export async function POST(request: NextRequest) {
     const type = formData.get('type') as string | null
     const category = formData.get('category') as string | null
     const description = formData.get('description') as string | null
+    const subscriptionId = formData.get('subscriptionId') as string | null
 
     if (!clientId) {
+
       return NextResponse.json(
         { success: false, error: 'clientId es requerido' },
         { status: 400 }
@@ -162,7 +164,13 @@ export async function POST(request: NextRequest) {
         type: type || 'PAYMENT',
         category: category || null,
         description: description || null,
+        // @ts-ignore - subscriptionId added in schema but Prisma Client needs regeneration (EPERM on DLL)
+        // subscriptionId: subscriptionId || null,
+        // Almacenamos el ID de suscripción en externalRef temporalmente debido a un error de generación de Prisma en Windows
+        externalRef: subscriptionId || null,
         source: 'MANUAL',
+
+
         uploadedBy: session.user.id,
       },
       include: {

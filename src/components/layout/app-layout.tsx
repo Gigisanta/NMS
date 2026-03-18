@@ -17,7 +17,9 @@ import {
   UserCog,
   Search,
   Plus,
+  Banknote,
 } from 'lucide-react'
+
 import { UserMenu } from '@/components/auth/user-menu'
 import { useSession } from 'next-auth/react'
 import { CommandPalette, CommandPaletteTrigger } from '@/components/ui/command-palette'
@@ -38,6 +40,7 @@ const navigation = [
   { id: 'pagos', name: 'Pagos', icon: CreditCard, shortcut: '4' },
   { id: 'facturacion', name: 'Facturación', icon: Receipt, shortcut: '5' },
   { id: 'calendario', name: 'Calendario', icon: CalendarDays, shortcut: '6' },
+  { id: 'gastos', name: 'Gastos', icon: Banknote, adminOnly: true, shortcut: '9' },
   { id: 'empleados', name: 'Empleados', icon: UserCog, adminOnly: true, shortcut: '7' },
   { id: 'configuracion', name: 'Configuración', icon: Settings, adminOnly: true, shortcut: '8' },
 ]

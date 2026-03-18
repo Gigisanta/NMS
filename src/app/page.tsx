@@ -16,6 +16,7 @@ const BillingView = lazy(() => import('@/components/modules/billing-view').then(
 const CalendarView = lazy(() => import('@/components/modules/calendar-view').then(m => ({ default: m.CalendarView })))
 const SettingsView = lazy(() => import('@/components/modules/settings-view').then(m => ({ default: m.SettingsView })))
 const EmployeesView = lazy(() => import('@/components/modules/employees-view').then(m => ({ default: m.EmployeesView })))
+const ExpensesView = lazy(() => import('@/components/modules/expenses-view').then(m => ({ default: m.ExpensesView })))
 
 // Loading skeleton for views
 function ViewSkeleton() {
@@ -105,6 +106,8 @@ function Home() {
         return <DashboardView onNavigate={handleNavigate} />
       case 'configuracion':
         return <SettingsView />
+      case 'gastos':
+        return <ExpensesView />
       default:
         return <DashboardView onNavigate={handleNavigate} />
     }

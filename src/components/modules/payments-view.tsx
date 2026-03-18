@@ -29,6 +29,9 @@ import { formatFullName, getPaymentStatusConfig, formatMonthYear, getCurrentMont
 import { GroupBadge } from './group-badge'
 import { GroupTabs } from './group-tabs'
 import { useAppStore } from '@/store'
+import { ReceiptUploadDialog } from './payments/receipt-upload-dialog'
+import { formatCurrency } from '@/lib/utils'
+
 
 interface Group {
   id: string
@@ -64,6 +67,11 @@ export function PaymentsView() {
   const [selectedYear, setSelectedYear] = useState(getCurrentYear())
   const [selectedGrupo, setSelectedGrupo] = useState<string | null>(null)
   const [updating, setUpdating] = useState<string | null>(null)
+  
+  // Receipt upload state
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false)
+  const [pendingSub, setPendingSub] = useState<Subscription | null>(null)
+
 
   const storeGroups = useAppStore((state) => (state as any).groups)
 
@@ -114,6 +122,16 @@ export function PaymentsView() {
       setUpdating(null)
     }
   }
+
+  const handlePaymentClick = (sub: Subscription, method: string) => {
+    if (method === 'TRANSFERENCIA') {
+      setPendingSub(sub)
+      setIsReceiptOpen(true)
+    } else {
+      handleStatusChange(sub.id, 'AL_DIA', method)
+    }
+  }
+
 
   const filteredSubscriptions = subscriptions.filter(s => {
     const matchesStatus = !statusFilter || s.status === statusFilter
@@ -318,7 +336,7 @@ export function PaymentsView() {
                                     size="sm"
                                     variant="outline"
                                     className="h-8 text-xs text-emerald-600 hover:bg-emerald-50"
-                                    onClick={() => handleStatusChange(sub.id, 'AL_DIA', 'EFECTIVO')}
+                                    onClick={() => handlePaymentClick(sub, 'EFECTIVO')}
                                     disabled={updating === sub.id}
                                   >
                                     {updating === sub.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
@@ -328,12 +346,13 @@ export function PaymentsView() {
                                     size="sm"
                                     variant="outline"
                                     className="h-8 text-xs text-emerald-600 hover:bg-emerald-50"
-                                    onClick={() => handleStatusChange(sub.id, 'AL_DIA', 'TRANSFERENCIA')}
+                                    onClick={() => handlePaymentClick(sub, 'TRANSFERENCIA')}
                                     disabled={updating === sub.id}
                                   >
                                     {updating === sub.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
                                     Transf.
                                   </Button>
+
                                 </>
                               ) : (
                                 <Badge variant="outline" className="h-8 text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
@@ -374,6 +393,23 @@ export function PaymentsView() {
           )}
         </CardContent>
       </Card>
+
+      {pendingSub && (
+        <ReceiptUploadDialog
+          open={isReceiptOpen}
+          onClose={() => setIsReceiptOpen(false)}
+          onSuccess={() => {
+            setIsReceiptOpen(false)
+            handleStatusChange(pendingSub.id, 'AL_DIA', 'TRANSFERENCIA')
+            setPendingSub(null)
+          }}
+          clientId={pendingSub.client.id}
+          subscriptionId={pendingSub.id}
+          clientName={formatFullName(pendingSub.client.nombre, pendingSub.client.apellido)}
+          periodLabel={formatMonthYear(pendingSub.month, pendingSub.year)}
+        />
+      )}
     </div>
+
   )
 }
