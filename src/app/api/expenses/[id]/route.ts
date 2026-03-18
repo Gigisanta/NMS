@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 // DELETE /api/expenses/[id] - Remove an expense
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -46,7 +46,7 @@ export async function DELETE(
 // PUT /api/expenses/[id] - Update an expense
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
