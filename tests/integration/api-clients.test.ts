@@ -64,7 +64,7 @@ import { GET as getGroups, POST as createGroup } from '@/app/api/groups/route'
 
 // Helper to create NextRequest
 function createRequest(url: string, options: RequestInit = {}): NextRequest {
-  return new NextRequest(new URL(url, 'http://localhost:3000'), options)
+  return new NextRequest(new URL(url, 'http://localhost:3000'), options as any)
 }
 
 describe('API /clients', () => {
@@ -277,7 +277,7 @@ describe('API /groups', () => {
       vi.mocked(db.group.findMany).mockResolvedValue(mockGroups as any)
 
       const request = createRequest('/api/groups')
-      const response = await getGroups(request)
+      const response = await getGroups()
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -291,7 +291,7 @@ describe('API /groups', () => {
       vi.mocked(db.group.findMany).mockResolvedValue([])
 
       const request = createRequest('/api/groups')
-      const response = await getGroups(request)
+      const response = await getGroups()
       const data = await response.json()
 
       expect(response.status).toBe(200)

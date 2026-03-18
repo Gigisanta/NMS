@@ -50,7 +50,7 @@ import { GET as getDashboard } from '@/app/api/dashboard/route'
 import { GET as getAttendance, POST as createAttendance } from '@/app/api/attendance/route'
 
 function createRequest(url: string, options: RequestInit = {}): NextRequest {
-  return new NextRequest(new URL(url, 'http://localhost:3000'), options)
+  return new NextRequest(new URL(url, 'http://localhost:3000'), options as any)
 }
 
 describe('API /dashboard', () => {
