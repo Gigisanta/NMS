@@ -4,6 +4,8 @@ import { getToken } from 'next-auth/jwt'
 
 const publicPaths = ['/login', '/register', '/api/auth', '/favicon.ico', '/_next', '/api/debug', '/_next/static', '/_next/image', '/public', '/uploads', '/images']
 
+
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
@@ -25,7 +27,7 @@ export async function middleware(request: NextRequest) {
   
   // 3. Handle unauthenticated users
   if (!token) {
-    // API routes return 401
+
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ success: false, error: 'No autenticado' }, { status: 401 })
     }

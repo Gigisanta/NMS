@@ -21,8 +21,8 @@ Sistema de gestión integral para natatorios/piscinas que incluye:
 |------------|---------|-----------|
 | Next.js | 16.x | Framework React con App Router |
 | TypeScript | 5.x | Tipado estático |
-| Prisma | 6.x | ORM para SQLite |
-| SQLite | - | Base de datos |
+| Prisma | 6.x | ORM para PostgreSQL (Prisma Postgres) |
+| PostgreSQL | - | Base de datos (Prisma Postgres en Vercel) |
 | Tailwind CSS | 4.x | Estilos utilitarios |
 | shadcn/ui | New York | Componentes UI |
 | NextAuth | 4.x | Autenticación |
@@ -30,6 +30,80 @@ Sistema de gestión integral para natatorios/piscinas que incluye:
 | Zod | 4.x | Validación de esquemas |
 | Vitest | 4.x | Tests unitarios/integración |
 | Playwright | 1.x | Tests E2E |
+
+## 🚀 Deployment
+
+### Variables de Entorno
+
+**Desarrollo (.env):**
+```env
+DATABASE_URL="postgres://9850fa571566b432b2d5486a1f230745dafa941f83aaa0880eb5b541b67a61d9:sk_4Uausia5JafVxcMAxg-YS@db.prisma.io:5432/postgres?sslmode=require"
+NEXTAUTH_SECRET="dev-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
+NODE_ENV="development"
+```
+
+**Producción (Vercel):**
+```env
+DATABASE_URL="postgres://username:password@db.prisma.io:5432/postgres?sslmode=require"
+NEXTAUTH_SECRET="nms-production-secret-key-2024"
+NEXTAUTH_URL="https://nms-two.vercel.app"
+NODE_ENV="production"
+```
+
+### Despliegue a Producción
+
+1. **Hacer cambios en código local**
+2. **Ejecutar seed en producción:**
+   ```bash
+   DATABASE_URL="postgres://..." bun run db:seed
+   ```
+3. **Commit y push a GitHub:**
+   ```bash
+   git add -A
+   git commit -m "feat: description"
+   git push origin main
+   ```
+4. **Vercel hace deployment automáticamente**
+
+## 🔐 Middleware de Autenticación
+
+El archivo `src/middleware.ts` protege todas las rutas verificando cookies de sesión.
+
+### Cookies Soportadas
+
+NextAuth usa diferentes cookies según el entorno:
+
+```typescript
+const NEXT_AUTH_COOKIE_NAMES = [
+  'next-auth.token',
+  'next-auth.session-token',
+  '__Secure-next-auth.token',
+  '__Secure-next-auth.session-token',
+]
+```
+
+**Importante:** Always check all cookie variants because:
+- Desarrollo (HTTP): `next-auth.token`
+- Producción (HTTPS): `__Secure-next-auth.token`
+
+### Rutas Públicas
+
+```typescript
+const publicPaths = [
+  '/login',
+  '/register', 
+  '/api/auth',
+  '/favicon.ico',
+  '/_next',
+  '/api/debug',
+  '/_next/static',
+  '/_next/image',
+  '/public',
+  '/uploads',
+  '/images',
+]
+```
 
 ## 🏗️ Estructura del Proyecto
 
@@ -398,6 +472,13 @@ const admin = await requireRole('EMPLEADORA')
 
 ## 🗄️ Base de Datos
 
+### Configuración de Prisma Postgres
+
+```env
+# Prisma Postgres (Vercel Storage)
+DATABASE_URL="postgres://username:password@db.prisma.io:5432/postgres?sslmode=require"
+```
+
 ### Modelos Principales
 
 ```prisma
@@ -649,14 +730,71 @@ const handleSubmit = useCallback((data: FormData) => {
 4. **Actualizar tests afectados**
 5. **Verificar con `bun run lint`**
 
+## 🐛 Casos de Debugging Documentados
+
+### Caso 1: Login en Producción con NextAuth (Cookies Seguras)
+
+**Fecha:** 2026-03-14  
+**Problema:** El login funcionaba localmente pero en producción (Vercel) redirigía de vuelta al login después de autenticar correctamente.
+
+**Síntomas:**
+- Login retorna 200 en `/api/auth/callback/credentials`
+- Sesión se crea correctamente (verificado en `/api/auth/session`)
+- Middleware redirige al login aunque el usuario está autenticado
+
+**Diagnóstico:**
+1. ✅ Base de datos funcionando (usuarios existen)
+2. ✅ Variables de entorno configuradas en Vercel
+3. ✅ Función `authorize` funciona correctamente
+4. ❌ Middleware verificaba cookie incorrecta
+
+**Causa Raíz:**
+El middleware verificaba `next-auth.session-token` pero NextAuth con HTTPS usa cookies seguras con prefijo `__Secure-next-auth.session-token`.
+
+**Solución:**
+```typescript
+// ANTES (incorrecto)
+const hasSessionCookie = request.cookies.has('next-auth.session-token')
+
+// DESPUÉS (correcto)
+const hasSessionCookie = 
+  request.cookies.has('next-auth.token') || 
+  request.cookies.has('next-auth.session-token') ||
+  request.cookies.has('__Secure-next-auth.session-token') ||
+  request.cookies.has('__Secure-next-auth.token')
+```
+
+**Lecciones Aprendidas:**
+1. NextAuth usa cookies diferentes según el entorno (HTTP vs HTTPS)
+2. Always check browser network requests para ver qué cookies se establecen
+3. Verificar la sesión con `/api/auth/session` endpoint
+4. El middleware debe ser conservador con las cookies que acepta
+
+---
+
 ## 📝 Notas Adicionales
 
 ### Variables de Entorno
 
 ```env
-DATABASE_URL="file:./db/custom.db"
-NEXTAUTH_SECRET="your-secret-key"
+# Desarrollo local (Prisma Postgres)
+DATABASE_URL="postgres://username:password@db.prisma.io:5432/postgres?sslmode=require"
+NEXTAUTH_SECRET="dev-secret-key"
 NEXTAUTH_URL="http://localhost:3000"
+NODE_ENV="development"
+
+# Producción (Vercel)
+DATABASE_URL="postgres://username:password@db.prisma.io:5432/postgres?sslmode=require"
+NEXTAUTH_SECRET="nms-production-secret-key-2024"
+NEXTAUTH_URL="https://nms-two.vercel.app"
+NODE_ENV="production"
+```
+
+### Seed de Producción
+
+Para ejecutar seed en producción (necesario después de cambios de schema):
+```bash
+DATABASE_URL="postgres://..." bun run db:seed
 ```
 
 ### Comandos Útiles

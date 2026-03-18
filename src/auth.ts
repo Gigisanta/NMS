@@ -59,66 +59,36 @@ export const authOptions: NextAuthOptions = {
         const email = credentials.email as string
         const password = credentials.password as string
 
-        // Find user - búsqueda robusta case-insensitive
-        const emailLower = email.toLowerCase()
-        let user = await db.user.findFirst({
-          where: { email: emailLower },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            password: true,
-            role: true,
-            employeeRole: true,
-            active: true,
-            image: true,
-          },
-        })
-        
-        // Si no encuentra, buscar sin transformar
-        if (!user) {
-          user = await db.user.findFirst({
-            where: { email: email },
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              password: true,
-              role: true,
-              employeeRole: true,
-              active: true,
-              image: true,
-            },
+        try {
+          const user = await db.user.findUnique({
+            where: { email: email.toLowerCase() },
           })
-        }
+          
+          console.log('[Auth] User found:', !!user)
+          
+          if (!user || !user.active) {
+            console.log('[Auth] No user or inactive')
+            return null
+          }
 
-        if (!user) {
-          console.log('[Auth] User not found:', email)
+          const isValid = await bcrypt.compare(password, user.password)
+          console.log('[Auth] Password valid:', isValid)
+          
+          if (!isValid) {
+            return null
+          }
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            employeeRole: user.employeeRole || undefined,
+            image: user.image,
+          }
+        } catch (error) {
+          console.error('[Auth] Error:', error)
           return null
-        }
-
-        if (!user.active) {
-          console.log('[Auth] User inactive:', email)
-          return null
-        }
-
-        // Verify password
-        const isValid = await bcrypt.compare(password, user.password)
-
-        if (!isValid) {
-          console.log('[Auth] Invalid password for:', email)
-          return null
-        }
-
-        console.log('[Auth] User authenticated successfully:', email)
-
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          employeeRole: user.employeeRole || undefined,
-          image: user.image,
         }
       },
     }),
@@ -176,6 +146,7 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === 'development',
   secret: process.env.NEXTAUTH_SECRET || 'nms-secret-key-change-in-production-2024',
 }
+
 
 
 // Auth function for API routes - MUST be defined before default export

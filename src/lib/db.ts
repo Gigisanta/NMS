@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 
 // Singleton pattern for Prisma Client
+// Optimized for serverless environments (Vercel)
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
@@ -10,19 +11,10 @@ export const db = globalForPrisma.prisma ?? new PrismaClient({
   log: process.env.NODE_ENV === 'development' 
     ? ['query', 'error', 'warn']
     : ['error'],
-  
-  // Optimized for serverless/edge
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
 })
 
-// Prevent multiple instances in development
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = db
-}
+// Always set in global for serverless to reuse connections
+globalForPrisma.prisma = db
 
 // Helper for transaction with retry logic
 export async function withRetry<T>(
