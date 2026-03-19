@@ -19,68 +19,50 @@ Sistema de gestión integral para natatorios/piscinas que incluye:
 ### Stack Tecnológico Obligatorio
 | Tecnología | Versión | Propósito |
 |------------|---------|-----------|
-| Next.js | 16.x | Framework React con App Router |
+| Next.js | 15.5.x | Framework React con App Router |
 | TypeScript | 5.x | Tipado estático |
-| Prisma | 6.x | ORM para SQLite |
-| SQLite | - | Base de datos |
+| Prisma | 6.x | ORM para PostgreSQL |
+| PostgreSQL | 16 (Neon) | Base de datos serverless |
 | Tailwind CSS | 4.x | Estilos utilitarios |
 | shadcn/ui | New York | Componentes UI |
 | NextAuth | 4.x | Autenticación |
 | Zustand | 5.x | Estado global |
 | Zod | 4.x | Validación de esquemas |
-| Vitest | 4.x | Tests unitarios/integración |
-| Playwright | 1.x | Tests E2E |
 
 ## 🏗️ Estructura del Proyecto
 
 ```
-/home/z/my-project/
+nms/
 ├── 📁 prisma/
 │   ├── schema.prisma      # Esquema de base de datos
-│   └── seed.ts            # Datos de prueba
+│   ├── seed.ts            # Datos iniciales (usuarios, planes, settings)
+│   └── migrations/        # Migraciones Prisma
 ├── 📁 src/
-│   ├── 📁 app/            # Next.js App Router
-│   │   ├── 📁 (auth)/     # Rutas de autenticación
-│   │   │   ├── login/
-│   │   │   └── register/
-│   │   ├── 📁 api/        # API Routes
-│   │   │   ├── 📁 auth/   # NextAuth routes
-│   │   │   ├── 📁 clients/
-│   │   │   ├── 📁 groups/
-│   │   │   ├── 📁 subscriptions/
-│   │   │   ├── 📁 attendance/
-│   │   │   ├── 📁 dashboard/
-│   │   │   └── 📁 webhook/
-│   │   ├── layout.tsx     # Layout raíz
-│   │   ├── page.tsx       # Página principal (SPA)
-│   │   └── globals.css    # Estilos globales
+│   ├── 📁 app/           # Next.js App Router
+│   │   ├── 📁 (auth)/  # Rutas de autenticación
+│   │   ├── 📁 api/      # API Routes
+│   │   ├── layout.tsx   # Layout raíz
+│   │   ├── page.tsx     # Página principal (SPA)
+│   │   └── globals.css  # Estilos globales
 │   ├── 📁 components/
-│   │   ├── 📁 ui/         # Componentes shadcn/ui
-│   │   ├── 📁 auth/       # Componentes de autenticación
-│   │   ├── 📁 layout/     # Componentes de layout
-│   │   ├── 📁 modules/    # Vistas de negocio
-│   │   └── 📁 providers/  # Context providers
-│   ├── 📁 hooks/          # Custom hooks
-│   ├── 📁 lib/            # Utilidades y configuración
-│   │   ├── db.ts          # Cliente Prisma
-│   │   ├── auth.ts        # Configuración auth
-│   │   ├── auth-utils.ts  # Utilidades de auth
-│   │   ├── api-utils.ts   # Cache para API
-│   │   └── utils.ts       # Utilidades generales
-│   ├── 📁 schemas/        # Esquemas Zod
-│   ├── 📁 store/          # Estado global Zustand
-│   ├── 📁 types/          # Tipos TypeScript
-│   └── middleware.ts      # Middleware de autenticación
-├── 📁 tests/
-│   ├── 📁 unit/           # Tests unitarios
-│   ├── 📁 integration/    # Tests de integración
-│   ├── 📁 e2e/            # Tests E2E
-│   ├── 📁 fixtures/       # Fixtures de testing
-│   └── setup.ts           # Configuración de tests
-├── 📁 docs/               # Documentación
-├── 📁 mini-services/      # Microservicios auxiliares
-├── 📁 examples/           # Ejemplos de código
-└── 📁 public/             # Archivos estáticos
+│   │   ├── 📁 ui/       # Componentes shadcn/ui
+│   │   ├── 📁 auth/     # Componentes de autenticación
+│   │   ├── 📁 layout/   # Componentes de layout
+│   │   ├── 📁 modules/  # Vistas de negocio
+│   │   └── 📁 providers/# Context providers
+│   ├── 📁 hooks/        # Custom hooks
+│   ├── 📁 lib/          # Utilidades y configuración
+│   │   ├── db.ts        # Cliente Prisma singleton
+│   │   ├── auth.ts      # Configuración auth
+│   │   └── api-utils.ts # Cache para API
+│   ├── 📁 schemas/      # Esquemas Zod
+│   ├── 📁 store/        # Estado global Zustand
+│   ├── 📁 types/        # Tipos TypeScript
+│   └── middleware.ts     # Middleware de autenticación
+├── 📁 docs/              # Documentación
+├── 📁 tests/             # Tests (README.md para detalles)
+├── vercel.json          # Configuración de Vercel
+└── package.json
 ```
 
 ## 🔑 Patrones de Código Obligatorios
@@ -140,15 +122,15 @@ export const ClientCard = memo(function ClientCard({
   const form = useForm({
     resolver: zodResolver(clientSchema),
   })
-  
+
   // 4. Callbacks estables con useCallback
   const handleEdit = useCallback(() => {
     onEdit?.(client.id)
   }, [client.id, onEdit])
-  
+
   // 5. Early returns para condiciones
   if (!client) return null
-  
+
   // 6. JSX final
   return (
     <Card className={className}>
@@ -183,16 +165,16 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       )
     }
-    
+
     // 2. Obtener parámetros
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
-    
+
     // 3. Lógica de negocio
     const clients = await db.client.findMany({
       // ...
     })
-    
+
     // 4. Respuesta exitosa
     return NextResponse.json({ success: true, data: clients })
   } catch (error) {
@@ -212,24 +194,24 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ success: false, error: 'No autenticado' }, { status: 401 })
     }
-    
+
     // 2. Validación de permisos
     if (session.user.role !== 'EMPLEADORA') {
       return NextResponse.json({ success: false, error: 'Sin permisos' }, { status: 403 })
     }
-    
+
     // 3. Parse y validación del body
     const body = await request.json()
     const validated = clientSchema.parse(body)
-    
+
     // 4. Crear en base de datos
     const client = await db.client.create({
       data: validated,
     })
-    
+
     // 5. Invalidar cache
     invalidateCache(CacheKeys.clients({}))
-    
+
     // 6. Respuesta
     return NextResponse.json({ success: true, data: client }, { status: 201 })
   } catch (error) {
@@ -256,14 +238,14 @@ function MyComponent() {
   const clients = useClients()
   const setClients = useAppStore((state) => state.setClients)
   const shouldFetch = useShouldFetchClients()
-  
+
   // ✅ Verificar cache antes de fetch
   useEffect(() => {
     if (shouldFetch) {
       fetchClients()
     }
   }, [shouldFetch])
-  
+
   // ❌ EVITAR: Suscribirse a todo el store
   // const store = useAppStore()
 }
@@ -318,7 +300,7 @@ type Role = 'EMPLEADORA' | 'EMPLEADO'
 // - Sin acceso a configuración
 ```
 
-### Credenciales de Prueba
+### Credenciales de Prueba (Creadas por Seed)
 
 ```typescript
 // EMPLEADORA (Admin)
@@ -328,6 +310,11 @@ password: 'mariela123'
 // EMPLEADO (Staff)
 email: 'tomas@nms.com'
 password: 'tomas123'
+// employeeRole: 'ADMINISTRATIVO'
+
+email: 'camila@nms.com'
+password: 'camila123'
+// employeeRole: 'ADMINISTRATIVO'
 ```
 
 ### Protección de Rutas
@@ -398,16 +385,18 @@ const admin = await requireRole('EMPLEADORA')
 
 ## 🗄️ Base de Datos
 
-### Modelos Principales
+### Modelo de Datos Principal (PostgreSQL via Neon)
 
 ```prisma
 // Usuarios (autenticación)
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  role      Role     @default(EMPLEADO)  // EMPLEADORA | EMPLEADO
-  active    Boolean  @default(true)
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String
+  role         Role     @default(EMPLEADO)  // EMPLEADORA | EMPLEADO
+  employeeRole String?  // "ADMINISTRATIVO", "PROFESOR"
+  phone        String?
+  active       Boolean  @default(true)
 }
 
 // Grupos (etiquetas)
@@ -439,8 +428,8 @@ model Subscription {
   month        Int      // 1-12
   year         Int      // 2020-2100
   status       String   // AL_DIA | PENDIENTE | DEUDOR
-  classesTotal Int      @default(4)
-  classesUsed  Int      @default(0)
+  classesTotal Int     @default(4)
+  classesUsed  Int     @default(0)
 }
 
 // Asistencias
@@ -454,153 +443,39 @@ model Attendance {
 ### Comandos de Base de Datos
 
 ```bash
-# Aplicar cambios al schema
-bun run db:push
+# Aplicar cambios al schema (sin migración)
+npx prisma db push
 
 # Generar cliente Prisma
-bun run db:generate
+npx prisma generate
 
-# Ejecutar seed
-bun run db:seed
+# Ejecutar seed (usuarios, planes, settings)
+npx tsx prisma/seed.ts
 
 # Resetear base de datos
-bun run db:reset
+npx prisma migrate reset
 ```
 
-## 🧪 Testing
+## 🌐 Deployment (Vercel)
 
-### Estructura de Tests
+### Build Command (vercel.json)
 
-```
-tests/
-├── unit/              # Tests unitarios
-│   ├── store.test.ts
-│   ├── schemas.test.ts
-│   ├── utils.test.ts
-│   └── components/
-├── integration/       # Tests de integración
-│   ├── api-clients.test.ts
-│   └── api-dashboard-attendance.test.ts
-├── e2e/              # Tests E2E
-│   └── app.spec.ts
-├── fixtures/         # Datos de prueba
-│   ├── test-data.ts
-│   └── db-fixtures.ts
-└── setup.ts          # Configuración
+```json
+{
+  "buildCommand": "npx prisma@6.11.1 generate && npx prisma@6.11.1 db push --skip-generate --accept-data-loss && npx tsx prisma/seed.ts && npm run build:standalone"
+}
 ```
 
-### Comandos de Testing
+### Variables de Entorno en Vercel
 
-```bash
-# Todos los tests unitarios/integración
-bun run test
+| Variable | Descripción |
+|----------|-------------|
+| `DATABASE_URL` | Connection string de Neon PostgreSQL |
+| `NEXTAUTH_SECRET` | Secret para JWT (generado automáticamente) |
+| `NEXTAUTH_URL` | URL de producción (https://nms-giolivos-projects.vercel.app) |
 
-# Tests en modo watch
-bun run test:watch
-
-# Tests con coverage
-bun run test:coverage
-
-# Solo tests unitarios
-bun run test:unit
-
-# Solo tests de integración
-bun run test:integration
-
-# Tests E2E
-bun run test:e2e
-
-# Tests E2E con UI
-bun run test:e2e:ui
-
-# Todos los tests
-bun run test:all
-```
-
-### Patrón para Tests
-
-```typescript
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { ClientCard } from '@/components/modules/client-card'
-
-describe('ClientCard', () => {
-  const mockClient = {
-    id: '1',
-    nombre: 'Juan',
-    apellido: 'Pérez',
-    telefono: '+5491112345678',
-  }
-
-  it('should render client name correctly', () => {
-    render(<ClientCard client={mockClient} />)
-    expect(screen.getByText('Juan Pérez')).toBeInTheDocument()
-  })
-
-  it('should call onEdit when edit button clicked', async () => {
-    const onEdit = vi.fn()
-    render(<ClientCard client={mockClient} onEdit={onEdit} />)
-    
-    await userEvent.click(screen.getByRole('button', { name: /editar/i }))
-    expect(onEdit).toHaveBeenCalledWith('1')
-  })
-})
-```
-
-## ⚡ Optimización y Performance
-
-### Cache Implementado
-
-```typescript
-// Cache en memoria para API routes (src/lib/api-utils.ts)
-import { cachedFetch, CacheKeys, invalidateCache } from '@/lib/api-utils'
-
-// Usar cache
-const data = await cachedFetch(
-  CacheKeys.clients({ status: 'active' }),
-  () => db.client.findMany({ ... }),
-  60 * 1000 // TTL: 1 minuto
-)
-
-// Invalidar cache
-invalidateCache('clients')
-```
-
-### Lazy Loading
-
-```typescript
-// Componentes lazy-loaded en page.tsx
-const DashboardView = lazy(() => 
-  import('@/components/modules/dashboard-view').then(m => ({ 
-    default: m.DashboardView 
-  }))
-)
-```
-
-### Memoización
-
-```typescript
-// Usar memo para componentes pesados
-export const ClientList = memo(function ClientList({ clients }: Props) {
-  return (
-    <VirtualList items={clients}>
-      {/* ... */}
-    </VirtualList>
-  )
-})
-
-// Usar useMemo para cálculos costosos
-const sortedClients = useMemo(() => 
-  clients.sort((a, b) => a.nombre.localeCompare(b.nombre)),
-  [clients]
-)
-
-// Usar useCallback para callbacks
-const handleSubmit = useCallback((data: FormData) => {
-  // ...
-}, [dependency1, dependency2])
-```
+### URL de Producción
+**https://nms-giolivos-projects.vercel.app**
 
 ## 🚨 Reglas Importantes
 
@@ -611,9 +486,7 @@ const handleSubmit = useCallback((data: FormData) => {
 3. **No ignorar errores de TypeScript** - Corregir antes de commit
 4. **No usar `any` sin justificación** - Preferir tipos específicos
 5. **No crear rutas nuevas** - La app es SPA, solo modificar /page.tsx
-6. **No usar z-ai-web-dev-sdk en cliente** - Solo en backend
-7. **No ejecutar `bun run dev`** - El servidor se ejecuta automáticamente
-8. **No usar puerto diferente a 3000**
+6. **No ejecutar Prisma migrate en producción** - Usar `db push` con `--accept-data-loss`
 
 ### ✅ SIEMPRE Hacer
 
@@ -626,50 +499,30 @@ const handleSubmit = useCallback((data: FormData) => {
 7. **Mantener responsive** todos los componentes
 8. **Escribir tests** para nueva funcionalidad
 
-## 🔄 Flujo de Trabajo Recomendado
-
-### Para Agregar Nueva Funcionalidad
-
-1. **Definir tipos** en `src/types/index.ts`
-2. **Crear esquemas** en `src/schemas/`
-3. **Actualizar Prisma schema** si es necesario
-4. **Ejecutar `bun run db:push`**
-5. **Crear API route** en `src/app/api/`
-6. **Crear componente** en `src/components/modules/`
-7. **Integrar en vista** existente
-8. **Escribir tests**
-9. **Verificar con `bun run lint`**
-10. **Verificar logs en dev.log**
-
-### Para Modificar Funcionalidad Existente
-
-1. **Leer código existente** completamente
-2. **Identificar dependencias**
-3. **Modificar con cuidado** manteniendo compatibilidad
-4. **Actualizar tests afectados**
-5. **Verificar con `bun run lint`**
-
 ## 📝 Notas Adicionales
 
-### Variables de Entorno
+### Variables de Entorno (Desarrollo)
 
 ```env
-DATABASE_URL="file:./db/custom.db"
-NEXTAUTH_SECRET="your-secret-key"
+DATABASE_URL="postgresql://postgres:password@localhost:5432/nms"
+NEXTAUTH_SECRET="your-secret-key-at-least-32-characters"
 NEXTAUTH_URL="http://localhost:3000"
 ```
 
 ### Comandos Útiles
 
 ```bash
-# Verificar calidad de código
-bun run lint
+# Desarrollo
+npm run dev
 
-# Ver logs del servidor de desarrollo
-# Leer /home/z/my-project/dev.log
+# Verificar código
+npm run lint
 
-# Verificar build
-bun run build
+# Build standalone (para Vercel)
+npm run build:standalone
+
+# Build estándar
+npm run build
 ```
 
 ### Contacto y Soporte
@@ -678,5 +531,5 @@ Este proyecto es mantenido por el equipo de desarrollo. Para consultas técnicas
 
 ---
 
-**Última actualización:** 2026-02-26
-**Versión del documento:** 1.0.0
+**Última actualización:** 2026-03-19
+**Versión del documento:** 2.0.0

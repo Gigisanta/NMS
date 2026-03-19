@@ -4,7 +4,18 @@
 
 ## 📊 Visión General
 
-NMS es una aplicación **Single Page Application (SPA)** construida sobre Next.js 16 con App Router, diseñada para gestionar natatorios y piscinas de manera integral.
+NMS es una aplicación **Single Page Application (SPA)** construida sobre Next.js 15.5 con App Router, diseñada para gestionar natatorios y piscinas de manera integral.
+
+### Stack de Producción
+
+| Componente | Tecnología | Servicio |
+|------------|------------|----------|
+| Frontend | Next.js 15.5, React 19 | Vercel (Edge Network) |
+| API | Next.js API Routes | Vercel (Serverless Functions) |
+| Database | PostgreSQL 16 | Neon (Serverless) |
+| ORM | Prisma 6 | - |
+| Auth | NextAuth v4 (JWT) | Cookies httpOnly |
+| State | Zustand 5 | Client-side |
 
 ### Principios de Diseño
 
@@ -55,24 +66,18 @@ NMS es una aplicación **Single Page Application (SPA)** construida sobre Next.j
 │  │  └────────────────────┬────────────────────────────┘     │  │
 │  │                       │                                   │  │
 │  │  ┌────────────────────▼────────────────────────────┐     │  │
-│  │  │              CACHE LAYER                        │     │  │
-│  │  │  - In-memory cache (TTL configurable)           │     │  │
-│  │  │  - Cache invalidation on mutations              │     │  │
-│  │  └────────────────────┬────────────────────────────┘     │  │
-│  │                       │                                   │  │
-│  │  ┌────────────────────▼────────────────────────────┐     │  │
 │  │  │              PRISMA ORM                         │     │  │
 │  │  │  - Type-safe database queries                   │     │  │
-│  │  │  - Automatic migrations                         │     │  │
-│  │  │  - Relations management                         │     │  │
+│  │  │  - Connection pooling via Neon                   │     │  │
 │  │  └────────────────────┬────────────────────────────┘     │  │
 │  │                       │                                   │  │
 │  └───────────────────────┼───────────────────────────────────┘  │
 │                          │                                       │
-│                    SQLITE DATABASE                               │
+│                    POSTGRESQL (Neon)                             │
 │  ┌───────────────────────▼───────────────────────────────────┐  │
 │  │  users | clients | groups | subscriptions | attendances   │  │
 │  │  invoices | accounts | sessions | verification_tokens     │  │
+│  │  pricing_plans | settings                              │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                   │
 └───────────────────────────────────────────────────────────────────┘
@@ -87,26 +92,26 @@ src/app/
 ├── (auth)/                    # Route Group para autenticación
 │   ├── layout.tsx             # Layout minimal para auth
 │   ├── login/
-│   │   └── page.tsx           # Página de login
+│   │   └── page.tsx          # Página de login
 │   └── register/
-│       └── page.tsx           # Página de registro
+│       └── page.tsx          # Página de registro
 │
 ├── api/                       # API Routes
 │   ├── auth/
-│   │   ├── [...nextauth]/     # NextAuth handler
+│   │   ├── [...nextauth]/    # NextAuth handler
 │   │   │   └── route.ts
 │   │   └── register/
 │   │       └── route.ts       # Registro de usuarios
 │   ├── clients/
-│   │   ├── route.ts           # GET/POST clientes
+│   │   ├── route.ts          # GET/POST clientes
 │   │   └── [id]/
 │   │       └── route.ts       # GET/PUT/DELETE cliente
 │   ├── groups/
-│   │   ├── route.ts           # GET/POST grupos
+│   │   ├── route.ts          # GET/POST grupos
 │   │   └── [id]/
 │   │       └── route.ts       # GET/PUT/DELETE grupo
 │   ├── subscriptions/
-│   │   ├── route.ts           # GET/POST suscripciones
+│   │   ├── route.ts          # GET/POST suscripciones
 │   │   └── [id]/
 │   │       └── route.ts       # GET/PUT/DELETE suscripción
 │   ├── attendance/
@@ -138,26 +143,26 @@ src/components/
 │
 ├── auth/                      # Componentes de autenticación
 │   ├── login-form.tsx         # Formulario de login
-│   ├── register-form.tsx      # Formulario de registro
+│   ├── register-form.tsx       # Formulario de registro
 │   └── user-menu.tsx          # Menú de usuario
 │
 ├── layout/                    # Componentes de layout
 │   └── app-layout.tsx         # Layout principal con sidebar
 │
 ├── modules/                   # Vistas de negocio
-│   ├── dashboard-view.tsx     # Dashboard con estadísticas
+│   ├── dashboard-view.tsx      # Dashboard con estadísticas
 │   ├── clients-view.tsx       # Gestión de clientes
 │   ├── client-form.tsx        # Formulario de cliente
-│   ├── client-profile.tsx     # Perfil de cliente
-│   ├── attendance-view.tsx    # Control de asistencia
-│   ├── payments-view.tsx      # Gestión de pagos
-│   ├── settings-view.tsx      # Configuración
-│   ├── group-selector.tsx     # Selector de grupos
-│   ├── group-badge.tsx        # Badge de grupo
-│   └── schedule-selector.tsx  # Selector de horarios
+│   ├── client-profile.tsx      # Perfil de cliente
+│   ├── attendance-view.tsx     # Control de asistencia
+│   ├── payments-view.tsx       # Gestión de pagos
+│   ├── settings-view.tsx       # Configuración
+│   ├── group-selector.tsx      # Selector de grupos
+│   ├── group-badge.tsx         # Badge de grupo
+│   └── schedule-selector.tsx    # Selector de horarios
 │
 └── providers/                 # Context providers
-    └── session-provider.tsx   # Provider de NextAuth
+    └── session-provider.tsx    # Provider de NextAuth
 ```
 
 ### `/src/lib` - Utilidades y Configuración
@@ -165,46 +170,10 @@ src/components/
 ```
 src/lib/
 ├── db.ts                      # Cliente Prisma singleton
-├── auth.ts                    # Helpers de autenticación
-├── auth-utils.ts              # Utilidades de auth (hash, roles)
+├── auth.ts                    # Configuración NextAuth
+├── auth-utils.ts             # Utilidades de auth (hash, roles)
 ├── api-utils.ts               # Cache y utilidades de API
 └── utils.ts                   # Utilidades generales (cn, etc.)
-```
-
-### `/src/hooks` - Custom Hooks
-
-```
-src/hooks/
-├── use-optimized.ts           # Hooks de optimización
-├── use-mobile.ts              # Detección de móvil
-└── use-toast.ts               # Sistema de notificaciones
-```
-
-### `/src/store` - Estado Global
-
-```
-src/store/
-└── index.ts                   # Store Zustand
-                                # - Estado de UI
-                                # - Cache de datos
-                                # - Loading states
-                                # - Optimistic updates
-```
-
-### `/src/schemas` - Validación Zod
-
-```
-src/schemas/
-├── client.ts                  # Esquemas de cliente
-└── index.ts                   # Exportaciones
-```
-
-### `/src/types` - Tipos TypeScript
-
-```
-src/types/
-├── index.ts                   # Tipos de dominio
-└── next-auth.d.ts             # Extensiones de NextAuth
 ```
 
 ## 🔄 Flujo de Datos
@@ -221,9 +190,9 @@ src/types/
                     ▼
 ┌─────────────────────────────────────────────────────────┐
 │                    NEXTAUTH FLOW                         │
-│  1. Verificar credenciales contra DB                    │
+│  1. Verificar credenciales contra DB (bcrypt)           │
 │  2. Generar JWT con claims (id, role, email)            │
-│  3. Establecer cookie de sesión                         │
+│  3. Establecer cookie httpOnly (30 días TTL)            │
 │  4. Devolver sesión al cliente                          │
 └─────────────────────────────────────────────────────────┘
                     │
@@ -246,7 +215,7 @@ src/types/
 ┌─────────────────────────────────────────────────────────┐
 │                    MIDDLEWARE                            │
 │  - Verificar cookie de sesión                           │
-│  - Si no existe: 401 (API) o redirect (página)          │
+│  - Si no existe: 401 (API) o redirect (página)         │
 │  - Si existe: continuar                                 │
 └──────────────────────────┬──────────────────────────────┘
                            │
@@ -256,46 +225,8 @@ src/types/
 │  1. auth() para obtener sesión                          │
 │  2. Verificar permisos según rol                        │
 │  3. Validar input con Zod                               │
-│  4. Verificar cache (si aplica)                         │
-│  5. Ejecutar query con Prisma                           │
-│  6. Invalidar cache si mutación                         │
-│  7. Devolver respuesta JSON                             │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Flujo de Estado (Zustand + Server State)
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    CLIENTE                               │
-│                                                          │
-│  ┌─────────────────┐    ┌─────────────────────────┐     │
-│  │   ZUSTAND       │    │   REACT QUERY           │     │
-│  │   (Local State) │    │   (Server State)        │     │
-│  │                 │    │                         │     │
-│  │  - currentView  │    │  - clients data         │     │
-│  │  - sidebarOpen  │    │  - groups data          │     │
-│  │  - UI settings  │    │  - dashboard stats      │     │
-│  │                 │    │  - auto-refetch         │     │
-│  │  - clients[]    │    │  - cache invalidation   │     │
-│  │  - groups[]     │    │                         │     │
-│  │  (cached data)  │    │                         │     │
-│  └────────┬────────┘    └───────────┬─────────────┘     │
-│           │                         │                    │
-│           └──────────┬──────────────┘                    │
-│                      │                                   │
-│                      ▼                                   │
-│           ┌─────────────────────┐                        │
-│           │   COMPONENTS        │                        │
-│           │   (React)           │                        │
-│           │                     │                        │
-│           │  - Selectors para   │                        │
-│           │    evitar re-renders│                        │
-│           │  - Memo para        │                        │
-│           │    componentes      │                        │
-│           │    pesados          │                        │
-│           └─────────────────────┘                        │
-│                                                          │
+│  4. Ejecutar query con Prisma                           │
+│  5. Devolver respuesta JSON                             │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -308,56 +239,26 @@ src/types/
 │                 NEXTAUTH CONFIGURATION                   │
 │                                                          │
 │  Providers:                                              │
-│  ┌─────────────────────────────────────────────────┐    │
-│  │  Credentials Provider                            │    │
-│  │  - Email + Password                              │    │
-│  │  - Verificación con bcrypt                       │    │
-│  └─────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  Credentials Provider                             │   │
+│  │  - Email + Password                              │   │
+│  │  - Verificación con bcrypt (12 rounds)           │   │
+│  └─────────────────────────────────────────────────┘   │
 │                                                          │
 │  Session Strategy: JWT                                   │
-│  ┌─────────────────────────────────────────────────┐    │
-│  │  - Almacenado en cookie httpOnly                 │    │
-│  │  - TTL: 30 días                                  │    │
-│  │  - Claims: id, name, email, role                 │    │
-│  └─────────────────────────────────────────────────┘    │
-│                                                          │
-│  Adapters:                                               │
-│  ┌─────────────────────────────────────────────────┐    │
-│  │  Prisma Adapter                                  │    │
-│  │  - Persistencia de sesiones                      │    │
-│  │  - Gestión de accounts                           │    │
-│  └─────────────────────────────────────────────────┘    │
-│                                                          │
-└─────────────────────────────────────────────────────────┘
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  - Almacenado en cookie httpOnly                 │   │
+│  │  - TTL: 30 días                                  │   │
+│  │  - Claims: id, name, email, role                 │   │
+│  └─────────────────────────────────────────────────┘   │
 ```
 
 ### Roles y Permisos
 
-```typescript
-// Definición de permisos por rol
-const rolePermissions = {
-  EMPLEADORA: {
-    canManageUsers: true,      // CRUD usuarios
-    canManageClients: true,    // CRUD clientes
-    canManageGroups: true,     // CRUD grupos
-    canManagePayments: true,   // Gestión de pagos
-    canViewReports: true,      // Ver reportes
-    canViewSettings: true,     // Acceso a configuración
-    canDeleteClients: true,    // Eliminar clientes
-    canCreateEmployees: true,  // Crear empleados
-  },
-  EMPLEADO: {
-    canManageUsers: false,
-    canManageClients: true,    // Solo lectura y edición básica
-    canManageGroups: false,
-    canManagePayments: false,
-    canViewReports: true,
-    canViewSettings: false,
-    canDeleteClients: false,
-    canCreateEmployees: false,
-  },
-}
-```
+| Rol | Descripción | Permisos |
+|-----|-------------|----------|
+| **EMPLEADORA** | Admin | Acceso completo: usuarios, clientes, grupos, pagos, configuración |
+| **EMPLEADO** | Staff | Ver clientes, registrar asistencia, ver reportes |
 
 ### Middleware de Protección
 
@@ -375,59 +276,40 @@ const rolePermissions = {
 
 ## 💾 Capa de Datos
 
+### Neon PostgreSQL
+
+El proyecto usa **Neon** como base de datos PostgreSQL serverless:
+
+- **Connection String**: Configurado como `DATABASE_URL` en Vercel
+- **SSL**: `sslmode=require` para conexiones seguras
+- **Pooling**: Neon maneja connection pooling automáticamente
+- **Branching**: Soporta ramas de base de datos para desarrollo
+
 ### Patrones de Acceso a Datos
 
 ```typescript
 // Patrón Repository implícito en API routes
 
-// 1. Read con cache
+// 1. Read
 export async function GET(request: NextRequest) {
-  const data = await cachedFetch(
-    CacheKeys.clients(params),
-    () => db.client.findMany({ include: { grupo: true } }),
-    60 * 1000
-  )
-  return NextResponse.json({ success: true, data })
+  const clients = await db.client.findMany({
+    include: { grupo: true },
+    orderBy: { createdAt: 'desc' },
+  })
+  return NextResponse.json({ success: true, data: clients })
 }
 
 // 2. Write con invalidación de cache
 export async function POST(request: NextRequest) {
   const client = await db.client.create({ data: validatedData })
-  invalidateCache('clients')
   return NextResponse.json({ success: true, data: client })
 }
 
 // 3. Transacciones para operaciones complejas
 await db.$transaction([
   db.subscription.create({ data: subData }),
-  db.invoice.create({ data: invoiceData }),
+  db.attendance.create({ data: attendanceData }),
 ])
-```
-
-### Cache Strategy
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    CACHE LAYER                           │
-│                                                          │
-│  ┌─────────────────┐    ┌─────────────────────────┐     │
-│  │  IN-MEMORY      │    │  TTL CONFIGURABLE       │     │
-│  │  MAP            │    │                         │     │
-│  │                 │    │  - clients: 1 min       │     │
-│  │  Key: string    │    │  - groups: 5 min        │     │
-│  │  Value: {       │    │  - dashboard: 1 min     │     │
-│  │    data: T,     │    │                         │     │
-│  │    timestamp,   │    │                         │     │
-│  │    ttl          │    │                         │     │
-│  │  }              │    │                         │     │
-│  └─────────────────┘    └─────────────────────────┘     │
-│                                                          │
-│  Invalidación:                                           │
-│  - Manual: invalidateCache(key)                          │
-│  - Por patrón: invalidateCachePattern('clients')         │
-│  - Total: clearCache()                                   │
-│                                                          │
-└─────────────────────────────────────────────────────────┘
 ```
 
 ## 🎨 Arquitectura de UI
@@ -439,26 +321,24 @@ App (page.tsx)
 │
 ├── SessionProvider (next-auth)
 │   │
-│   └── ThemeProvider (next-themes)
+│   └── AppLayout
 │       │
-│       └── AppLayout
+│       ├── Sidebar (navegación)
+│       │   ├── Logo
+│       │   ├── NavItems
+│       │   └── UserMenu
+│       │
+│       └── MainContent
 │           │
-│           ├── Sidebar (navegación)
-│           │   ├── Logo
-│           │   ├── NavItems
-│           │   └── UserMenu
+│           ├── Header (título, acciones)
 │           │
-│           └── MainContent
+│           └── ViewContainer (Suspense + Lazy)
 │               │
-│               ├── Header (título, acciones)
-│               │
-│               └── ViewContainer (Suspense + Lazy)
-│                   │
-│                   ├── DashboardView
-│                   ├── ClientsView
-│                   ├── AttendanceView
-│                   ├── PaymentsView
-│                   └── SettingsView
+│               ├── DashboardView
+│               ├── ClientsView
+│               ├── AttendanceView
+│               ├── PaymentsView
+│               └── SettingsView
 ```
 
 ### Responsive Design Strategy
@@ -467,88 +347,82 @@ App (page.tsx)
 ┌─────────────────────────────────────────────────────────┐
 │                    BREAKPOINTS                           │
 │                                                          │
-│  Mobile:  < 640px (sm)                                   │
-│  - Sidebar oculto, hamburger menu                        │
+│  Mobile:  < 640px (sm)                                 │
+│  - Sidebar oculto, hamburger menu                       │
 │  - Cards en columna única                                │
-│  - Tablas con scroll horizontal                          │
+│  - Tablas con scroll horizontal                         │
 │                                                          │
-│  Tablet: 640px - 1024px (md)                             │
-│  - Sidebar colapsado                                     │
-│  - Grid 2 columnas                                       │
+│  Tablet: 640px - 1024px (md)                            │
+│  - Sidebar colapsado                                    │
+│  - Grid 2 columnas                                     │
 │                                                          │
-│  Desktop: > 1024px (lg)                                  │
-│  - Sidebar expandido                                     │
-│  - Grid 4 columnas                                       │
-│  - Tablas completas                                      │
+│  Desktop: > 1024px (lg)                                 │
+│  - Sidebar expandido                                    │
+│  - Grid 4 columnas                                     │
+│  - Tablas completas                                     │
 │                                                          │
 └─────────────────────────────────────────────────────────┘
 ```
 
-## 🧪 Testing Architecture
+## 🌐 Deployment en Vercel
+
+### Arquitectura de Deployment
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    TESTING PYRAMID                       │
-│                                                          │
-│                    ┌─────────┐                           │
-│                    │   E2E   │  Playwright               │
-│                    │ (Pocos) │  - Flujos críticos        │
-│                    └────┬────┘  - Login, CRUD principal  │
-│                         │                                │
-│               ┌─────────▼─────────┐                      │
-│               │   INTEGRATION     │  Vitest + MSW        │
-│               │   (Moderados)     │  - API routes        │
-│               └─────────┬─────────┘  - DB interactions   │
-│                         │                                │
-│         ┌───────────────▼───────────────┐                │
-│         │          UNIT TESTS           │  Vitest        │
-│         │          (Muchos)             │  - Components  │
-│         │                               │  - Hooks       │
-│         │                               │  - Utils       │
-│         │                               │  - Schemas     │
-│         └───────────────────────────────┘                │
-│                                                          │
-└─────────────────────────────────────────────────────────┘
+GitHub Push → Vercel CI/CD → Build → Deploy
+
+Build Process:
+1. npm install
+2. prisma generate
+3. prisma db push --accept-data-loss (Neon)
+4. tsx prisma/seed.ts
+5. npm run build:standalone
 ```
+
+### Environments
+
+| Environment | Trigger | URL Pattern |
+|-------------|---------|-------------|
+| Production | Push a main | nms-giolivos-projects.vercel.app |
+| Preview | Pull Request | nms-giolivos-projects-git-*.vercel.app |
 
 ## 📈 Escalabilidad y Future-Proofing
 
 ### Decisiones Arquitectónicas para Escalabilidad
 
-1. **SQLite → PostgreSQL**: El uso de Prisma permite migrar fácilmente a PostgreSQL
-2. **In-Memory Cache → Redis**: La interfaz de cache permite intercambiar implementación
-3. **Monolito → Microservicios**: La separación de API routes facilita extracción
-4. **SPA → Multi-page**: Next.js App Router soporta ambas arquitecturas
+1. **Prisma ORM**: Permite migrar fácilmente a cualquier base de datos relacional
+2. **Neon PostgreSQL**: Serverless con branching y auto-scaling
+3. **Vercel Edge Network**: CDN global con low latency
+4. **Monolito → Microservicios**: La separación de API routes facilita extracción
 
 ### Extensibilidad
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    EXTENSION POINTS                      │
+│                    EXTENSION POINTS                    │
 │                                                          │
-│  1. Nuevos módulos de negocio                            │
-│     - Agregar vista en /components/modules/              │
+│  1. Nuevos módulos de negocio                           │
+│     - Agregar vista en /components/modules/             │
 │     - Agregar API routes correspondientes                │
-│     - Actualizar navegación en AppLayout                 │
+│     - Actualizar navegación en AppLayout                │
 │                                                          │
-│  2. Nuevos proveedores de autenticación                  │
-│     - Agregar provider en auth.ts                        │
+│  2. Nuevos proveedores de autenticación                 │
+│     - Agregar provider en auth.ts                       │
 │     - Configurar callback URL                            │
 │                                                          │
 │  3. Integraciones externas                               │
-│     - Webhooks en /api/webhook/                          │
-│     - Usar z-ai-web-dev-sdk en backend                   │
+│     - Webhooks en /api/webhook/                         │
 │                                                          │
-│  4. Nuevos tipos de entidades                            │
-│     - Actualizar schema.prisma                           │
-│     - Crear tipos en /types                              │
-│     - Crear esquemas en /schemas                         │
-│     - Crear API routes                                   │
+│  4. Nuevos tipos de entidades                           │
+│     - Actualizar schema.prisma                          │
+│     - Crear tipos en /types                             │
+│     - Crear esquemas en /schemas                        │
+│     - Crear API routes                                  │
 │                                                          │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-**Última actualización:** 2026-02-26
-**Versión:** 1.0.0
+**Última actualización:** 2026-03-19
+**Versión:** 2.0.0
