@@ -45,6 +45,7 @@ import {
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { toast } from 'sonner'
 
 interface Invoice {
   id: string
@@ -236,7 +237,8 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
   }, [])
 
   const handleUpload = useCallback(async () => {
-    if (!formData.file && !formData.invoiceNumber && !formData.amount) {
+    if (!formData.file && !formData.invoiceNumber && !formData.amount && !formData.description) {
+      toast.error('Por favor, selecciona un archivo o ingresa al menos un dato (número, monto o descripción).')
       return
     }
 
@@ -288,10 +290,13 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
         })
         setDialogOpen(false)
         onInvoiceChange()
+        toast.success(result.message || 'Factura subida correctamente')
       } else {
+        toast.error(result.error || 'Error al subir factura')
         console.error('Error uploading invoice:', result.error)
       }
     } catch (error) {
+      toast.error('Error de conexión al subir factura')
       console.error('Error uploading invoice:', error)
     } finally {
       setUploading(false)
@@ -308,9 +313,13 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
       const result = await response.json()
 
       if (result.success) {
+        toast.success('Factura eliminada correctamente')
         onInvoiceChange()
+      } else {
+        toast.error(result.error || 'Error al eliminar factura')
       }
     } catch (error) {
+      toast.error('Error de conexión al eliminar factura')
       console.error('Error deleting invoice:', error)
     } finally {
       setDeleting(null)
@@ -328,9 +337,13 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
       const result = await response.json()
 
       if (result.success) {
+        toast.success('Estado actualizado')
         onInvoiceChange()
+      } else {
+        toast.error(result.error || 'Error al actualizar estado')
       }
     } catch (error) {
+      toast.error('Error de conexión al actualizar estado')
       console.error('Error updating invoice:', error)
     }
   }, [onInvoiceChange])
@@ -455,8 +468,8 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
               {/* Submit */}
               <Button
                 onClick={handleUpload}
-                disabled={uploading || (!formData.file && !formData.invoiceNumber && !formData.amount)}
-                className="w-full bg-gradient-to-r from-cyan-500 to-sky-600"
+                disabled={uploading || (!formData.file && !formData.invoiceNumber && !formData.amount && !formData.description)}
+                className="w-full bg-gradient-to-r from-cyan-500 to-sky-600 shadow-md hover:shadow-lg transition-all"
               >
                 {uploading ? (
                   <>

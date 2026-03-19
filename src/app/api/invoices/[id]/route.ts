@@ -4,7 +4,7 @@ import { auth } from '@/auth'
 import fs from 'fs'
 import path from 'path'
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public/uploads/invoices')
+export const dynamic = 'force-dynamic'
 
 // GET /api/invoices/[id] - Get single invoice
 export async function GET(
@@ -93,13 +93,13 @@ export async function PUT(
       verified?: boolean
     } = {}
 
-    if (invoiceNumber !== undefined) updateData.invoiceNumber = invoiceNumber || null
-    if (amount !== undefined) updateData.amount = amount ? parseFloat(amount) : null
-    if (issueDate !== undefined) updateData.issueDate = issueDate ? new Date(issueDate) : null
-    if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null
+    if (invoiceNumber !== undefined) updateData.invoiceNumber = invoiceNumber && invoiceNumber.trim() !== '' ? invoiceNumber : null
+    if (amount !== undefined) updateData.amount = amount && !isNaN(parseFloat(amount)) ? parseFloat(amount) : null
+    if (issueDate !== undefined) updateData.issueDate = issueDate && issueDate.trim() !== '' ? new Date(issueDate) : null
+    if (dueDate !== undefined) updateData.dueDate = dueDate && dueDate.trim() !== '' ? new Date(dueDate) : null
     if (type !== undefined) updateData.type = type
-    if (category !== undefined) updateData.category = category || null
-    if (description !== undefined) updateData.description = description || null
+    if (category !== undefined) updateData.category = category && category.trim() !== '' ? category : null
+    if (description !== undefined) updateData.description = description && description.trim() !== '' ? description : null
     if (status !== undefined) updateData.status = status
     if (verified !== undefined) updateData.verified = verified
 

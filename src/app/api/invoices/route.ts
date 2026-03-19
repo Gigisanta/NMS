@@ -5,6 +5,8 @@ import { invalidateClientCache } from '@/lib/api-utils'
 import fs from 'fs'
 import path from 'path'
 
+export const dynamic = 'force-dynamic'
+
 const UPLOAD_DIR = path.join(process.cwd(), 'public/uploads/invoices')
 
 // Ensure upload directory exists
@@ -157,13 +159,13 @@ export async function POST(request: NextRequest) {
         filePath,
         fileSize,
         mimeType,
-        invoiceNumber: invoiceNumber || null,
-        amount: amount ? parseFloat(amount) : null,
-        issueDate: issueDate ? new Date(issueDate) : null,
-        dueDate: dueDate ? new Date(dueDate) : null,
+        invoiceNumber: invoiceNumber && invoiceNumber.trim() !== '' ? invoiceNumber : null,
+        amount: amount && !isNaN(parseFloat(amount)) ? parseFloat(amount) : null,
+        issueDate: issueDate && issueDate.trim() !== '' ? new Date(issueDate) : null,
+        dueDate: dueDate && dueDate.trim() !== '' ? new Date(dueDate) : null,
         type: type || 'PAYMENT',
-        category: category || null,
-        description: description || null,
+        category: category && category.trim() !== '' ? category : null,
+        description: description && description.trim() !== '' ? description : null,
         // @ts-ignore - subscriptionId added in schema but Prisma Client needs regeneration (EPERM on DLL)
         // subscriptionId: subscriptionId || null,
         // Almacenamos el ID de suscripción en externalRef temporalmente debido a un error de generación de Prisma en Windows

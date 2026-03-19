@@ -175,6 +175,7 @@ export const authOptions: NextAuthOptions = {
   },
   debug: process.env.NODE_ENV === 'development',
   secret: process.env.NEXTAUTH_SECRET || 'nms-secret-key-change-in-production-2024',
+  useSecureCookies: process.env.NEXTAUTH_URL?.startsWith('https://') ?? false,
 }
 
 

@@ -1,6 +1,6 @@
+import { getToken } from 'next-auth/jwt'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getToken } from 'next-auth/jwt'
 
 const publicPaths = ['/login', '/register', '/api/auth', '/favicon.ico', '/_next', '/api/debug', '/_next/static', '/_next/image', '/public', '/uploads', '/images']
 
@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
   
-  // 2. Fetch token with more explicit config for Vercel
+  // 2. Fetch token with explicit config
   const isProd = process.env.NODE_ENV === 'production' || !!process.env.VERCEL
   const token = await getToken({ 
     req: request,
@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'No autenticado' }, { status: 401 })
     }
     
-    // Pages redirect to login
+    // Pages redirect to login with callbackUrl
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(loginUrl)
