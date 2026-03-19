@@ -3,10 +3,19 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
+// Check if we're in production and SKIP_SEED is set
+const shouldSkipSeed = process.env.SKIP_SEED === 'true' && process.env.NODE_ENV === 'production'
+
 async function main() {
   console.log('🌱 Starting seed...\n')
 
-  // Clean existing data (except users)
+  // In production with SKIP_SEED, don't touch existing data
+  if (shouldSkipSeed) {
+    console.log('⚠️  Production seed skipped (SKIP_SEED=true)\n')
+    return
+  }
+
+  // Clean existing data (except users) - only in dev/seed scripts
   console.log('🗑️  Cleaning existing data...')
   await prisma.timeEntry.deleteMany()
   await prisma.attendance.deleteMany()
@@ -17,18 +26,21 @@ async function main() {
   console.log('✅ Data cleaned\n')
 
   // ============================================
-  // CREATE INITIAL USERS (Only 3 users)
+  // CREATE/UPDATE INITIAL USERS (Idempotent - uses upsert)
   // ============================================
-  console.log('👤 Creating initial users...')
+  console.log('👤 Creating/updating initial users...')
 
-  // Delete ALL existing users first to ensure only 3 users exist
-  await prisma.user.deleteMany()
-  console.log('  🗑️  Deleted all existing users')
-
-  // Create Mariela (Admin)
+  // Create Mariela (Admin) - upsert to preserve existing data
   const hashedPasswordMariela = await bcrypt.hash('mariela123', 12)
-  await prisma.user.create({
-    data: {
+  await prisma.user.upsert({
+    where: { email: 'mariela@nms.com' },
+    update: {
+      name: 'Mariela',
+      password: hashedPasswordMariela,
+      role: Role.EMPLEADORA,
+      active: true,
+    },
+    create: {
       name: 'Mariela',
       email: 'mariela@nms.com',
       password: hashedPasswordMariela,
@@ -36,12 +48,21 @@ async function main() {
       active: true,
     },
   })
-  console.log('  ✅ Mariela created (Admin) - Password: mariela123')
+  console.log('  ✅ Mariela upserted (Admin) - Password: mariela123')
 
   // Create Tomás (Empleado administrativo)
   const hashedPasswordTomas = await bcrypt.hash('tomas123', 12)
-  await prisma.user.create({
-    data: {
+  await prisma.user.upsert({
+    where: { email: 'tomas@nms.com' },
+    update: {
+      name: 'Tomás',
+      password: hashedPasswordTomas,
+      role: Role.EMPLEADO,
+      employeeRole: 'ADMINISTRATIVO',
+      phone: '+5491112345678',
+      active: true,
+    },
+    create: {
       name: 'Tomás',
       email: 'tomas@nms.com',
       password: hashedPasswordTomas,
@@ -51,12 +72,21 @@ async function main() {
       active: true,
     },
   })
-  console.log('  ✅ Tomás created (ADMINISTRATIVO) - Password: tomas123')
+  console.log('  ✅ Tomás upserted (ADMINISTRATIVO) - Password: tomas123')
 
   // Create Camila (Empleado administrativo)
   const hashedPasswordCamila = await bcrypt.hash('camila123', 12)
-  await prisma.user.create({
-    data: {
+  await prisma.user.upsert({
+    where: { email: 'camila@nms.com' },
+    update: {
+      name: 'Camila',
+      password: hashedPasswordCamila,
+      role: Role.EMPLEADO,
+      employeeRole: 'ADMINISTRATIVO',
+      phone: '+5491198765432',
+      active: true,
+    },
+    create: {
       name: 'Camila',
       email: 'camila@nms.com',
       password: hashedPasswordCamila,
@@ -66,56 +96,29 @@ async function main() {
       active: true,
     },
   })
-  console.log('  ✅ Camila created (ADMINISTRATIVO) - Password: camila123')
+  console.log('  ✅ Camila upserted (ADMINISTRATIVO) - Password: camila123')
   console.log()
 
   // ============================================
-  // CREATE PRICING PLANS
+  // CREATE PRICING PLANS (if not exists - safe to re-run)
   // ============================================
   console.log('💰 Creating pricing plans...')
-  const pricingPlans = await Promise.all([
-    prisma.pricingPlan.create({
-      data: {
-        name: 'Mensual 4 clases',
-        classes: 4,
-        price: 5000,
-        currency: 'ARS',
-        description: 'Plan básico - 4 clases por mes',
-        isDefault: true,
-      },
-    }),
-    prisma.pricingPlan.create({
-      data: {
-        name: 'Mensual 8 clases',
-        classes: 8,
-        price: 8500,
-        currency: 'ARS',
-        description: 'Plan estándar - 8 clases por mes',
-        isDefault: false,
-      },
-    }),
-    prisma.pricingPlan.create({
-      data: {
-        name: 'Mensual 12 clases',
-        classes: 12,
-        price: 11000,
-        currency: 'ARS',
-        description: 'Plan intensivo - 12 clases por mes',
-        isDefault: false,
-      },
-    }),
-    prisma.pricingPlan.create({
-      data: {
-        name: 'Clase individual',
-        classes: 1,
-        price: 1500,
-        currency: 'ARS',
-        description: 'Una clase individual',
-        isDefault: false,
-      },
-    }),
-  ])
-  console.log(`  ✅ Created ${pricingPlans.length} pricing plans\n`)
+  const pricingPlansData = [
+    { name: 'Mensual 4 clases', classes: 4, price: 5000, description: 'Plan básico - 4 clases por mes', isDefault: true },
+    { name: 'Mensual 8 clases', classes: 8, price: 8500, description: 'Plan estándar - 8 clases por mes', isDefault: false },
+    { name: 'Mensual 12 clases', classes: 12, price: 11000, description: 'Plan intensivo - 12 clases por mes', isDefault: false },
+    { name: 'Clase individual', classes: 1, price: 1500, description: 'Una clase individual', isDefault: false },
+  ]
+
+  let plansCreated = 0
+  for (const plan of pricingPlansData) {
+    const existing = await prisma.pricingPlan.findFirst({ where: { name: plan.name } })
+    if (!existing) {
+      await prisma.pricingPlan.create({ data: plan })
+      plansCreated++
+    }
+  }
+  console.log(`  ✅ Ensured ${pricingPlansData.length} pricing plans (${plansCreated} created)\n`)
 
   // ============================================
   // CREATE DEFAULT SETTINGS

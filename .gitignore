@@ -12,6 +12,8 @@ node_modules
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/
@@ -51,3 +53,25 @@ server.log
 /skills/*.db
 *.db-journal
 .env*.local
+
+# Database files
+db/*.db
+db/*.db-journal
+prisma/*.db
+prisma/*.db-journal
+prisma/prisma/*.db
+prisma/dev.db
+
+# Uploads (user generated content)
+public/uploads/
+
+# Logs
+*.log
+
+# Playwright logs
+/playwright-traces/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
