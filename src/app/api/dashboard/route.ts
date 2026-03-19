@@ -21,6 +21,8 @@ export async function GET() {
           recentClients,
           pendingClients,
           groupsWithRevenue,
+          projectedRevenueByGroup,
+          collectedRevenueData,
         ] = await Promise.all([
           // Total clients count
           db.client.count(),
@@ -116,39 +118,49 @@ export async function GET() {
               },
             },
           }),
+
+          // BOLT OPTIMIZATION: Batch projected revenue by group
+          db.client.groupBy({
+            by: ['grupoId'],
+            _sum: { monthlyAmount: true },
+          }),
+
+          // BOLT OPTIMIZATION: Batch collected revenue data for in-memory aggregation
+          db.subscription.findMany({
+            where: {
+              month: currentMonth,
+              year: currentYear,
+              status: 'AL_DIA',
+            },
+            select: {
+              amount: true,
+              client: {
+                select: { grupoId: true },
+              },
+            },
+          }),
         ])
 
-        // Calculate revenue by group (Projected Revenue)
-        const groupRevenue = await Promise.all(
-          groupsWithRevenue.map(async (group) => {
-            const projectedData = await db.client.aggregate({
-              where: {
-                grupoId: group.id,
-              },
-              _sum: { monthlyAmount: true },
-            })
-            
-            // Also get current month's collected revenue for completeness
-            const collectedData = await db.subscription.aggregate({
-              where: {
-                client: { grupoId: group.id },
-                month: currentMonth,
-                year: currentYear,
-                status: 'AL_DIA',
-              },
-              _sum: { amount: true },
-            })
-
-            return {
-              id: group.id,
-              name: group.name,
-              color: group.color,
-              clientCount: group._count.clients,
-              revenue: projectedData._sum.monthlyAmount || 0, // Showing Projected Revenue as requested
-              collected: collectedData._sum.amount || 0,
-            }
-          })
+        // BOLT OPTIMIZATION: Process batch results in-memory O(N+M) instead of N+1 queries.
+        // Impact: Reduces DB queries from 1 + (2 * groups) to 3 total.
+        const projectedMap = new Map(
+          projectedRevenueByGroup.map((item) => [item.grupoId, item._sum.monthlyAmount || 0])
         )
+
+        const collectedMap = collectedRevenueData.reduce((acc, sub) => {
+          const groupId = sub.client?.grupoId || 'unknown'
+          acc.set(groupId, (acc.get(groupId) || 0) + (sub.amount || 0))
+          return acc
+        }, new Map<string, number>())
+
+        const groupRevenue = groupsWithRevenue.map((group) => ({
+          id: group.id,
+          name: group.name,
+          color: group.color,
+          clientCount: group._count.clients,
+          revenue: projectedMap.get(group.id) || 0,
+          collected: collectedMap.get(group.id) || 0,
+        }))
 
         // Calculate stats from optimized database queries
         const statusData = subStats.reduce((acc, curr) => {

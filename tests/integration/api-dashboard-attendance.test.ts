@@ -8,6 +8,10 @@ vi.mock('@/lib/db', () => ({
       count: vi.fn(),
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      groupBy: vi.fn(),
+    },
+    group: {
+      findMany: vi.fn(),
     },
     subscription: {
       findMany: vi.fn(),
@@ -63,6 +67,9 @@ describe('API /dashboard', () => {
       vi.mocked(db.attendance.count).mockResolvedValue(10)
       vi.mocked(db.client.findMany).mockResolvedValue([])
       vi.mocked(db.attendance.findMany).mockResolvedValue([])
+      vi.mocked(db.group.findMany).mockResolvedValue([])
+      vi.mocked(db.client.groupBy).mockResolvedValue([])
+      vi.mocked(db.subscription.findMany).mockResolvedValue([])
 
       const response = await getDashboard()
       const data = await response.json()
@@ -82,6 +89,9 @@ describe('API /dashboard', () => {
       vi.mocked(db.attendance.count).mockResolvedValue(5)
       vi.mocked(db.client.findMany).mockResolvedValue([])
       vi.mocked(db.attendance.findMany).mockResolvedValue([])
+      vi.mocked(db.group.findMany).mockResolvedValue([])
+      vi.mocked(db.client.groupBy).mockResolvedValue([])
+      vi.mocked(db.subscription.findMany).mockResolvedValue([])
 
       const response = await getDashboard()
       const data = await response.json()
@@ -99,6 +109,9 @@ describe('API /dashboard', () => {
       vi.mocked(db.attendance.count).mockResolvedValue(5)
       vi.mocked(db.client.findMany).mockResolvedValue([])
       vi.mocked(db.attendance.findMany).mockResolvedValue([])
+      vi.mocked(db.group.findMany).mockResolvedValue([])
+      vi.mocked(db.client.groupBy).mockResolvedValue([])
+      vi.mocked(db.subscription.findMany).mockResolvedValue([])
 
       const response = await getDashboard()
       const data = await response.json()
@@ -114,6 +127,9 @@ describe('API /dashboard', () => {
       vi.mocked(db.attendance.count).mockResolvedValue(0)
       vi.mocked(db.client.findMany).mockResolvedValue([])
       vi.mocked(db.attendance.findMany).mockResolvedValue([])
+      vi.mocked(db.group.findMany).mockResolvedValue([])
+      vi.mocked(db.client.groupBy).mockResolvedValue([])
+      vi.mocked(db.subscription.findMany).mockResolvedValue([])
 
       const response = await getDashboard()
       const data = await response.json()
