@@ -23,33 +23,35 @@ export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setLoading(true)
 
+    console.log('Attempting to sign in with:', { email, password: '****' })
+
     const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
+        email,
+        password,
+        redirect: false,
     })
 
     console.log('Login result:', result)
     
     if (result?.error) {
-      setError(result.error || 'Credenciales inválidas')
-      setLoading(false)
-      return
+        setError(result.error || 'Credenciales inválidas')
+        setLoading(false)
+        return
     }
 
     if (!result?.ok) {
-      setError('Error al iniciar sesión')
-      setLoading(false)
-      return
+        setError('Error al iniciar sesión')
+        setLoading(false)
+        return
     }
 
     window.location.href = callbackUrl || '/'
-  }
+}
 
   return (
     <Card className="w-full max-w-md mx-auto shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 bg-white text-slate-900 relative overflow-hidden">
