@@ -122,30 +122,30 @@ export async function POST(request: NextRequest) {
     const m = month ? parseInt(month.toString()) : (new Date().getMonth() + 1)
     const y = year ? parseInt(year.toString()) : new Date().getFullYear()
 
-    // Usamos $executeRaw como parche de emergencia ante el error de generación del cliente de Prisma en Windows
-    const result_raw = await db.$executeRawUnsafe(
-      `INSERT INTO "expenses" ("id", "description", "amount", "category", "date", "month", "year", "userId", "supplier", "notes", "updatedAt") 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
-      `exp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      description,
-      parseFloat(amount),
-      category,
-      date ? new Date(date) : new Date(),
-      m,
-      y,
-      userId || null,
-      supplier || null,
-      notes || null
-    )
+    const expense = await db.expense.create({
+      data: {
+        id: `exp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        description,
+        amount: parseFloat(amount),
+        category: category as any,
+        date: date ? new Date(date) : new Date(),
+        month: m,
+        year: y,
+        userId: userId || null,
+        supplier: supplier || null,
+        notes: notes || null,
+      },
+    })
 
     return NextResponse.json({
       success: true,
-      data: { message: 'Gasto registrado correctamente (Raw Insert)' },
+      data: expense,
     }, { status: 201 })
   } catch (error) {
     console.error('Error creating expense:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { success: false, error: 'Error al crear el gasto' },
+      { success: false, error: 'Error al crear el gasto', details: errorMessage },
       { status: 500 }
     )
   }

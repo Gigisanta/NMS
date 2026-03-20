@@ -181,6 +181,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
     preferredTime: '',
     notes: '',
     classesTotal: 4,
+    amount: 0,
   })
 
   const [activeTab, setActiveTab] = useState<'info' | 'subscription' | 'history' | 'invoices'>('info')
@@ -212,6 +213,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
           preferredTime: result.data.preferredTime || '',
           notes: result.data.notes || '',
           classesTotal: currentSub?.classesTotal || 4,
+          amount: currentSub?.amount || 0,
         })
       }
     } catch (error) {
@@ -263,7 +265,10 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         await fetch(`/api/subscriptions/${subscription.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ classesTotal: formData.classesTotal }),
+          body: JSON.stringify({
+            classesTotal: formData.classesTotal,
+            amount: formData.amount,
+          }),
         })
       }
 
@@ -533,6 +538,21 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Monto mensual */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-600">Monto mensual</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-500">$</span>
+                    <Input
+                      type="number"
+                      className="w-32 text-right"
+                      value={formData.amount || ''}
+                      onChange={(e) => updateFormData('amount', parseFloat(e.target.value) || 0)}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Clases contratadas</span>
                   <div className="flex items-center gap-2">
@@ -568,7 +588,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                 {/* Progress bar */}
                 <div className="space-y-2">
                   <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-gradient-to-r from-cyan-500 to-sky-600 rounded-full transition-all duration-500"
                       style={{ width: `${progressPercent}%` }}
                     />
