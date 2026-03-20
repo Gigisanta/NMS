@@ -15,7 +15,7 @@
 
 ### Para Desarrolladores
 
-1. **Configurar entorno**: Ver [CONTRIBUTING.md](../CONTRIBUTING.md)
+1. **Configurar entorno**: Ver package.json para scripts disponibles
 2. **Entender la arquitectura**: Leer [ARCHITECTURE.md](ARCHITECTURE.md)
 3. **Revisar API**: Consultar [API.md](API.md) para endpoints
 4. **Consultar base de datos**: Ver [DATABASE.md](DATABASE.md) para modelos
@@ -43,16 +43,14 @@ docs/
 
 ```bash
 # Desarrollo
-bun run dev          # Servidor de desarrollo
-bun run lint         # Verificar código
+npm run dev          # Servidor de desarrollo
 
 # Base de datos
-bun run db:push      # Aplicar schema
-bun run db:seed      # Datos de prueba
+npx prisma db push   # Aplicar schema
+npx tsx prisma/seed.ts  # Datos de prueba
 
-# Testing
-bun run test         # Tests unitarios
-bun run test:e2e     # Tests E2E
+# Build
+npm run build:standalone  # Build para Vercel
 ```
 
 ### Archivos Clave
@@ -61,15 +59,43 @@ bun run test:e2e     # Tests E2E
 |---------|-----------|
 | `src/app/page.tsx` | Página principal (SPA) |
 | `src/store/index.ts` | Estado global Zustand |
-| `src/auth.ts` | Configuración NextAuth |
+| `src/lib/auth.ts` | Configuración NextAuth |
+| `src/lib/db.ts` | Cliente Prisma singleton |
 | `prisma/schema.prisma` | Esquema de base de datos |
+| `prisma/seed.ts` | Datos iniciales (usuarios, planes, settings) |
+| `vercel.json` | Configuración de deployment Vercel |
 
-### Credenciales de Prueba
+### Credenciales de Prueba (Creadas por Seed)
 
 | Usuario | Email | Password | Rol |
 |---------|-------|----------|-----|
-| Mariela | mariela@nms.com | mariela123 | EMPLEADORA |
-| Tomás | tomas@nms.com | tomas123 | EMPLEADO |
+| Mariela | mariela@nms.com | mariela123 | EMPLEADORA (Admin) |
+| Tomás | tomas@nms.com | tomas123 | EMPLEADO (ADMINISTRATIVO) |
+| Camila | camila@nms.com | camila123 | EMPLEADO (ADMINISTRATIVO) |
+
+### URL de Producción
+
+**https://nms-giolivos-projects.vercel.app**
+
+## 🌐 Deployment en Vercel
+
+El proyecto está configurado para deployment automático en Vercel:
+
+```json
+// vercel.json
+{
+  "buildCommand": "npx prisma@6.11.1 generate && npx prisma@6.11.1 db push --skip-generate --accept-data-loss && npx tsx prisma/seed.ts && npm run build:standalone",
+  "outputDirectory": ".next",
+  "framework": "nextjs"
+}
+```
+
+### Flujo de Deployment
+
+1. Push a GitHub → Build automático en Vercel
+2. Prisma genera cliente y ejecuta `db push` a Neon
+3. Seed crea usuarios y configuraciones iniciales
+4. App disponible en producción
 
 ## 📝 Mantenimiento
 
@@ -78,8 +104,10 @@ Esta documentación debe actualizarse cuando:
 - Se modifican modelos de base de datos
 - Se cambian patrones de arquitectura
 - Se agregan nuevas funcionalidades importantes
+- Se actualiza el stack tecnológico
+- Se cambia la configuración de deployment
 
 ---
 
-**Última actualización:** 2026-02-26
-**Versión:** 1.0.0
+**Última actualización:** 2026-03-19
+**Versión:** 2.0.0

@@ -1,20 +1,41 @@
 import { PrismaClient } from '@prisma/client'
 
-// Singleton pattern for Prisma Client
-// Optimized for serverless environments (Vercel)
+// Singleton pattern for Prisma Client - lazy initialization
+// This avoids build-time errors when DATABASE_URL is not set during `next build`
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Prisma Client with optimized settings
-export const db = globalForPrisma.prisma ?? new PrismaClient({
-  log: process.env.NODE_ENV === 'development' 
-    ? ['query', 'error', 'warn']
-    : ['error'],
-})
+// Factory function to create PrismaClient
+function createPrismaClient(): PrismaClient {
+  return new PrismaClient({
+    log: process.env.NODE_ENV === 'development'
+      ? ['query', 'error', 'warn']
+      : ['error'],
+  })
+}
 
-// Always set in global for serverless to reuse connections
-globalForPrisma.prisma = db
+// Lazy getter - only creates PrismaClient when first accessed
+function getPrismaClient(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient()
+  }
+  return globalForPrisma.prisma
+}
+
+// Proxy that lazily initializes PrismaClient on first access
+// This allows `next build` to succeed even without DATABASE_URL set
+export const db = new Proxy({} as PrismaClient, {
+  get(_target, prop: keyof PrismaClient) {
+    const client = getPrismaClient()
+    const value = client[prop]
+    // Bind functions to the actual client
+    if (typeof value === 'function') {
+      return value.bind(client)
+    }
+    return value
+  },
+})
 
 // Helper for transaction with retry logic
 export async function withRetry<T>(
@@ -23,7 +44,7 @@ export async function withRetry<T>(
   delay = 100
 ): Promise<T> {
   let lastError: Error | null = null
-  
+
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn()
@@ -34,7 +55,7 @@ export async function withRetry<T>(
       }
     }
   }
-  
+
   throw lastError
 }
 
@@ -42,36 +63,36 @@ export async function withRetry<T>(
 export class BatchLoader<T, R> {
   private batch: Map<string, { resolve: (value: R) => void; reject: (error: Error) => void }> = new Map()
   private timer: ReturnType<typeof setTimeout> | null = null
-  
+
   constructor(
     private loader: (ids: string[]) => Promise<Map<string, R>>,
     private delay = 10
   ) {}
-  
+
   load(id: string): Promise<R> {
     return new Promise((resolve, reject) => {
       this.batch.set(id, { resolve, reject })
-      
+
       if (this.timer) {
         clearTimeout(this.timer)
       }
-      
+
       this.timer = setTimeout(() => {
         this.executeBatch()
       }, this.delay)
     })
   }
-  
+
   private async executeBatch() {
     const batch = new Map(this.batch)
     this.batch.clear()
     this.timer = null
-    
+
     const ids = Array.from(batch.keys())
-    
+
     try {
       const results = await this.loader(ids)
-      
+
       for (const [id, { resolve }] of batch) {
         const result = results.get(id)
         if (result !== undefined) {

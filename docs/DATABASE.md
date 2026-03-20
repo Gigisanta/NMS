@@ -4,33 +4,42 @@
 
 ## 📊 Visión General
 
-NMS utiliza **Prisma ORM** con **SQLite** como base de datos. El esquema está diseñado para ser escalable y permite migrar fácilmente a PostgreSQL u otra base de datos relacional.
+NMS utiliza **Prisma ORM** con **PostgreSQL (Neon)** como base de datos en producción. El esquema está diseñado para ser escalable y permite migrar fácilmente a otras bases de datos relacionales.
+
+**Nota:** El schema.prisma está configurado para PostgreSQL. En desarrollo local, puedes usar `DATABASE_URL` con una conexión local o de Neon.
 
 ## 🔧 Configuración
 
 ### Variables de Entorno
 
 ```env
-DATABASE_URL="file:./db/custom.db"
+# Producción (Neon)
+DATABASE_URL="postgresql://user:password@ep-xxx-xxx-123456.us-east-2.aws.neon.tech/nms?sslmode=require"
+
+# Desarrollo local (opcional)
+# DATABASE_URL="postgresql://postgres:password@localhost:5432/nms"
 ```
 
 ### Comandos Prisma
 
 ```bash
-# Aplicar cambios al schema (sin migraciones)
-bun run db:push
+# Aplicar cambios al schema (sin crear migración) - Útil para desarrollo rápido
+npx prisma db push
 
-# Generar cliente Prisma
-bun run db:generate
+# Generar cliente Prisma después de cambios en schema
+npx prisma generate
 
-# Crear migración (para producción)
-bun run db:migrate
+# Crear migración (para desarrollo con control de versiones)
+npx prisma migrate dev
 
-# Resetear base de datos
-bun run db:reset
+# Aplicar migraciones en producción
+npx prisma migrate deploy
 
-# Ejecutar seed
-bun run db:seed
+# Resetear base de datos (⚠️ CUIDADO: Borra todos los datos)
+npx prisma migrate reset
+
+# Ejecutar seed (crea usuarios iniciales y configuraciones)
+npx tsx prisma/seed.ts
 ```
 
 ---
@@ -44,9 +53,11 @@ bun run db:seed
 │ id (PK)         │       │ id (PK)         │
 │ name            │       │ name (UQ)       │
 │ email (UQ)      │       │ color           │
-│ password        │       │ description     │
+│ password         │       │ description     │
 │ role            │       │ schedule        │
 │ active          │       │ active          │
+│ employeeRole     │       │ createdAt       │
+│ phone           │       │ updatedAt       │
 └────────┬────────┘       └────────┬────────┘
          │                         │
          │ 1:N                     │ 1:N
@@ -57,27 +68,48 @@ bun run db:seed
 │    Session      │       ├─────────────────┤
 │ (NextAuth)      │       │ id (PK)         │
 └─────────────────┘       │ nombre          │
-                          │ apellido        │
-                          │ dni             │
-                          │ telefono (UQ)   │
-                          │ grupoId (FK)───►│
-                          └────────┬────────┘
-                                   │
-                 ┌─────────────────┼─────────────────┐
-                 │ 1:N             │ 1:N             │ 1:N
-                 ▼                 ▼                 ▼
-        ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-        │  Subscription   │ │    Invoice      │ │   Attendance    │
-        ├─────────────────┤ ├─────────────────┤ ├─────────────────┤
-        │ id (PK)         │ │ id (PK)         │ │ id (PK)         │
-        │ clientId (FK)   │ │ clientId (FK)   │ │ clientId (FK)   │
-        │ month           │ │ imageUrl        │ │ date            │
-        │ year            │ │ verified        │ │ notes           │
-        │ status          │ │ uploadedAt      │ │ createdAt       │
-        │ classesTotal    │ └─────────────────┘ └─────────────────┘
-        │ classesUsed     │
-        │ amount          │
-        └─────────────────┘
+                         │ apellido        │
+                         │ dni             │
+                         │ telefono (UQ)   │
+                         │ grupoId (FK)───►│
+                         └────────┬────────┘
+                                  │
+                ┌─────────────────┼─────────────────┐
+                │ 1:N             │ 1:N             │ 1:N
+                ▼                 ▼                 ▼
+       ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+       │  Subscription   │ │    Invoice      │ │   Attendance    │
+       ├─────────────────┤ ├─────────────────┤ ├─────────────────┤
+       │ id (PK)         │ │ id (PK)         │ │ id (PK)         │
+       │ clientId (FK)   │ │ clientId (FK)   │ │ clientId (FK)   │
+       │ month           │ │ imageUrl        │ │ date            │
+       │ year            │ │ verified        │ │ notes           │
+       │ status          │ │ uploadedAt      │ │ createdAt       │
+       │ classesTotal    │ └─────────────────┘ └─────────────────┘
+       │ classesUsed     │
+       │ amount          │
+       └─────────────────┘
+
+┌─────────────────┐
+│  PricingPlan    │
+├─────────────────┤
+│ id (PK)         │
+│ name (UQ)       │
+│ classes         │
+│ price           │
+│ description     │
+│ isDefault       │
+└─────────────────┘
+
+┌─────────────────┐
+│   Settings      │
+├─────────────────┤
+│ id (PK)         │
+│ key (UQ)        │
+│ value           │
+│ category        │
+│ description     │
+└─────────────────┘
 ```
 
 ---
@@ -95,8 +127,9 @@ model User {
   email        String   @unique
   password     String
   role         Role     @default(EMPLEADO)
+  employeeRole String?  // Ej: "ADMINISTRATIVO", "PROFESOR"
+  phone        String?
   active       Boolean  @default(true)
-  image        String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -114,6 +147,8 @@ model User {
 | `email` | String | Único | Email para login |
 | `password` | String | - | Hash bcrypt (12 rounds) |
 | `role` | Role | Default: EMPLEADO | Rol del usuario |
+| `employeeRole` | String? | Opcional | Rol específico (ej: ADMINISTRATIVO) |
+| `phone` | String? | Opcional | Teléfono de contacto |
 | `active` | Boolean | Default: true | Usuario activo/inactivo |
 
 **Enum Role:**
@@ -216,7 +251,7 @@ model Subscription {
   clientId       String
   month          Int
   year           Int
-  status         String   @default("PENDIENTE")
+  status         SubscriptionStatus @default(PENDIENTE)
   classesTotal   Int      @default(4)
   classesUsed    Int      @default(0)
   amount         Float?
@@ -237,7 +272,7 @@ model Subscription {
 | `clientId` | String | FK → Client.id | Cliente asociado |
 | `month` | Int | 1-12 | Mes de la suscripción |
 | `year` | Int | 2020-2100 | Año de la suscripción |
-| `status` | String | AL_DIA, PENDIENTE, DEUDOR | Estado del pago |
+| `status` | SubscriptionStatus | PENDIENTE | Estado del pago |
 | `classesTotal` | Int | Default: 4 | Total de clases del mes |
 | `classesUsed` | Int | Default: 0 | Clases utilizadas |
 | `amount` | Float? | Opcional | Monto abonado |
@@ -305,6 +340,49 @@ model Invoice {
 | `imageUrl` | String | Requerido | URL de la imagen |
 | `verified` | Boolean | Default: false | Si fue verificado por admin |
 | `uploadedAt` | DateTime | Default: now() | Fecha de subida |
+
+---
+
+### PricingPlan (Planes de Precios)
+
+Planes de suscripción disponibles.
+
+```prisma
+model PricingPlan {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  classes     Int
+  price       Float
+  description String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@map("pricing_plans")
+}
+```
+
+---
+
+### Settings (Configuraciones)
+
+Configuraciones del sistema almacenadas como clave-valor.
+
+```prisma
+model Settings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  category    String?
+  description String?
+
+  @@map("settings")
+}
+```
+
+**Categorías:**
+- `business` - Configuraciones del negocio
+- `payment` - Configuraciones de pago
+- `notifications` - Configuraciones de notificaciones
 
 ---
 
@@ -446,7 +524,7 @@ const result = await db.$transaction(async (tx) => {
   const client = await tx.client.create({
     data: { nombre, apellido, telefono }
   })
-  
+
   await tx.subscription.create({
     data: {
       clientId: client.id,
@@ -455,7 +533,7 @@ const result = await db.$transaction(async (tx) => {
       status: 'PENDIENTE'
     }
   })
-  
+
   return client
 })
 ```
@@ -491,11 +569,14 @@ model Client {
   // ...
   @@index([grupoId])
 }
+
+model Subscription {
+  // ...
+  @@unique([clientId, month, year])
+}
 ```
 
 ### Índices Recomendados para Producción
-
-Para mejor rendimiento con grandes volúmenes de datos:
 
 ```prisma
 model Client {
@@ -517,66 +598,79 @@ model Attendance {
 
 ---
 
-## 🔄 Migración a PostgreSQL
+## 🔄 Migración desde SQLite
 
-Para migrar de SQLite a PostgreSQL:
+Si estás migrando desde una base de datos SQLite existente:
 
-### 1. Actualizar Schema
-
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-```
-
-### 2. Actualizar Tipos
-
-```prisma
-// SQLite usa String para DateTime, PostgreSQL usa DateTime nativo
-// Prisma maneja esto automáticamente
-
-// Para IDs, considerar usar UUID en PostgreSQL
-model Client {
-  id String @id @default(uuid())
-}
-```
-
-### 3. Comandos de Migración
+### 1. Exportar datos de SQLite
 
 ```bash
-# Crear migración
-bunx prisma migrate dev --name init_postgres
-
-# Aplicar migración a producción
-bunx prisma migrate deploy
+# Usar sqlite3 para exportar
+sqlite3 database.db ".dump" > backup.sql
 ```
+
+### 2. Actualizar connection string
+
+```env
+# Antigua (SQLite)
+DATABASE_URL="file:./db/custom.db"
+
+# Nueva (PostgreSQL/Neon)
+DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
+```
+
+### 3. Ejecutar db push con Prisma 6
+
+```bash
+npx prisma db push --accept-data-loss
+```
+
+**Nota:** `--accept-data-loss` es necesario cuando ya tienes datos en la base de datos PostgreSQL y el schema difiere.
 
 ---
 
 ## 🧪 Seed Data
 
-El archivo `prisma/seed.ts` genera datos de prueba:
+El archivo `prisma/seed.ts` genera datos iniciales idempotentes:
 
 ### Usuarios Iniciales
 
-| Usuario | Email | Password | Rol |
-|---------|-------|----------|-----|
-| Mariela | mariela@nms.com | mariela123 | EMPLEADORA |
-| Tomás | tomas@nms.com | tomas123 | EMPLEADO |
+| Usuario | Email | Password | Rol | employeeRole |
+|---------|-------|----------|-----|--------------|
+| Mariela | mariela@nms.com | mariela123 | EMPLEADORA | - |
+| Tomás | tomas@nms.com | tomas123 | EMPLEADO | ADMINISTRATIVO |
+| Camila | camila@nms.com | camila123 | EMPLEADO | ADMINISTRATIVO |
 
-### Datos de Prueba Generados
+### Planes de Precios
 
-- **6 grupos** con diferentes horarios
-- **20 clientes** con datos aleatorios
-- **20 suscripciones** para el mes actual
-- **~150 asistencias** de los últimos 30 días
-- **16 facturas** verificadas
+| Plan | Clases | Precio |
+|------|--------|--------|
+| Mensual 4 clases | 4 | $5,000 |
+| Mensual 8 clases | 8 | $8,500 |
+| Mensual 12 clases | 12 | $11,000 |
+| Clase individual | 1 | $1,500 |
+
+### Configuraciones
+
+10 configuraciones iniciales para negocio, pagos y notificaciones.
 
 ### Ejecutar Seed
 
 ```bash
-bun run db:seed
+# En desarrollo
+npx tsx prisma/seed.ts
+
+# En producción (automático via vercel.json)
+# El build command incluye el seed
+```
+
+### Skipping Seed en Producción
+
+Para evitar re-ejecutar seed en cada deployment:
+
+```env
+SKIP_SEED=true
+NODE_ENV=production
 ```
 
 ---
@@ -682,5 +776,38 @@ await db.$transaction(
 
 ---
 
-**Última actualización:** 2026-02-26
-**Versión:** 1.0.0
+## 🌐 Neon (PostgreSQL Serverless)
+
+El proyecto usa [Neon](https://neon.tech/) como base de datos PostgreSQL serverless.
+
+### Beneficios de Neon
+
+- **Serverless**: Escala automáticamente
+- **Branching**: Ramas de base de datos como Git
+- **Auto-suspend**: Se suspende cuando no hay tráfico (ahorra créditos)
+- **Compatible**: 100% PostgreSQL compatible
+
+### Connection String
+
+```
+postgresql://user:password@ep-xxx-xxx-123456.us-east-2.aws.neon.tech/nms?sslmode=require
+```
+
+### Configuración de Neon con Prisma
+
+```prisma
+// schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+```
+
+---
+
+**Última actualización:** 2026-03-19
+**Versión:** 2.0.0
