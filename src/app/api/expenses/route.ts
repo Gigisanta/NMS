@@ -21,14 +21,14 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const searchParams = request.nextUrl.searchParams
+    const searchParams = await request.nextUrl.searchParams
     const category = searchParams.get('category')
     const month = searchParams.get('month')
     const year = searchParams.get('year')
     const supplier = searchParams.get('supplier')
 
     const where: any = {}
-    
+
     if (category) {
       where.category = category
     }
@@ -42,31 +42,15 @@ export async function GET(request: NextRequest) {
       where.supplier = { contains: supplier, mode: 'insensitive' }
     }
 
-    // Parche de emergencia: usamos $queryRaw ante el error de generación del cliente de Prisma
-    let query = `SELECT e.*, u.name as "employeeName" FROM "expenses" e LEFT JOIN "User" u ON e."userId" = u.id`
-    const conditions: string[] = []
-    const values: any[] = []
-
-    if (month) {
-      conditions.push(`e.month = $${values.length + 1}`)
-      values.push(parseInt(month))
-    }
-    if (year) {
-      conditions.push(`e.year = $${values.length + 1}`)
-      values.push(parseInt(year))
-    }
-    if (category) {
-      conditions.push(`e.category = $${values.length + 1}`)
-      values.push(category)
-    }
-
-    if (conditions.length > 0) {
-      query += ` WHERE ` + conditions.join(' AND ')
-    }
-    query += ` ORDER BY e.date DESC`
-
-    const expenses = await db.$queryRawUnsafe(query, ...values)
-
+    const expenses = await db.expense.findMany({
+      where,
+      orderBy: { date: 'desc' },
+      include: {
+        user: {
+          select: { name: true }
+        }
+      }
+    })
 
     return NextResponse.json({
       success: true,
