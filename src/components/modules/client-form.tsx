@@ -28,7 +28,8 @@ interface Client {
   preferredTime: string | null
   notes: string | null
   monthlyAmount: number | null
-  registrationPaid: boolean
+  registrationFeePaid1: boolean
+  registrationFeePaid2: boolean
 }
 
 interface ClientFormProps {
@@ -54,7 +55,8 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
     notes: client?.notes || '',
     classesTotal: 4,
     monthlyAmount: client?.monthlyAmount || null,
-    registrationPaid: client?.registrationPaid || false,
+    registrationFeePaid1: client?.registrationFeePaid1 || false,
+    registrationFeePaid2: client?.registrationFeePaid2 || false,
   })
 
   const sections = [
@@ -87,7 +89,8 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
           notes: formData.notes || null,
           classesTotal: formData.classesTotal,
           monthlyAmount: formData.monthlyAmount,
-          registrationPaid: formData.registrationPaid,
+          registrationFeePaid1: formData.registrationFeePaid1,
+          registrationFeePaid2: formData.registrationFeePaid2,
         }),
       })
 
@@ -305,31 +308,61 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
               </p>
             </div>
 
-            {/* Registration Paid Toggle */}
+            {/* Registration Fee - Cuota 1 Toggle */}
             <div className="flex items-center justify-between p-4 rounded-xl border" style={{ background: 'rgba(0, 168, 232, 0.05)' }}>
               <div>
-                <Label className="text-sm font-medium" style={{ color: '#1A1A1A' }}>Inscripción Pagada</Label>
+                <Label className="text-sm font-medium" style={{ color: '#1A1A1A' }}>Cuota 1 - Inscripción</Label>
                 <p className="text-xs" style={{ color: '#86868b' }}>
-                  Indica si el cliente ya pagó la inscripción
+                  Primera cuota de inscripción ($25.000)
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => setFormData({ 
-                  ...formData, 
-                  registrationPaid: !formData.registrationPaid 
+                onClick={() => setFormData({
+                  ...formData,
+                  registrationFeePaid1: !formData.registrationFeePaid1
                 })}
                 className={cn(
                   'relative inline-flex h-8 w-14 items-center rounded-full transition-all',
-                  formData.registrationPaid 
-                    ? 'bg-[#34C759]' 
+                  formData.registrationFeePaid1
+                    ? 'bg-[#34C759]'
                     : 'bg-[rgba(0,168,232,0.3)]'
                 )}
               >
-                <span 
+                <span
                   className={cn(
                     'inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all',
-                    formData.registrationPaid ? 'translate-x-7' : 'translate-x-1'
+                    formData.registrationFeePaid1 ? 'translate-x-7' : 'translate-x-1'
+                  )}
+                />
+              </button>
+            </div>
+
+            {/* Registration Fee - Cuota 2 Toggle */}
+            <div className="flex items-center justify-between p-4 rounded-xl border" style={{ background: 'rgba(0, 168, 232, 0.05)' }}>
+              <div>
+                <Label className="text-sm font-medium" style={{ color: '#1A1A1A' }}>Cuota 2 - Inscripción</Label>
+                <p className="text-xs" style={{ color: '#86868b' }}>
+                  Segunda cuota de inscripción ($25.000)
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFormData({
+                  ...formData,
+                  registrationFeePaid2: !formData.registrationFeePaid2
+                })}
+                className={cn(
+                  'relative inline-flex h-8 w-14 items-center rounded-full transition-all',
+                  formData.registrationFeePaid2
+                    ? 'bg-[#34C759]'
+                    : 'bg-[rgba(0,168,232,0.3)]'
+                )}
+              >
+                <span
+                  className={cn(
+                    'inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all',
+                    formData.registrationFeePaid2 ? 'translate-x-7' : 'translate-x-1'
                   )}
                 />
               </button>

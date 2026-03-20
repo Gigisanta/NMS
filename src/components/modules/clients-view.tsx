@@ -76,16 +76,26 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
         />
       </TableCell>
       <TableCell onClick={(e) => e.stopPropagation()}>
-        {(client as any).registrationPaid ? (
-          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
-            <FileCheck className="w-3 h-3 mr-1" />
-            Pagada
+        <div className="flex flex-col gap-1">
+          <Badge className={cn(
+            "text-xs w-fit",
+            (client as any).registrationFeePaid1
+              ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+              : "bg-amber-50 text-amber-600 border-amber-200"
+          )}>
+            {(client as any).registrationFeePaid1 ? <FileCheck className="w-3 h-3 mr-1 inline" /> : null}
+            Cuota 1 { (client as any).registrationFeePaid1 ? "✓" : "pendiente"}
           </Badge>
-        ) : (
-          <Badge variant="outline" style={{ color: '#86868b', borderColor: 'rgba(0, 168, 232, 0.2)' }}>
-            Pendiente
+          <Badge className={cn(
+            "text-xs w-fit",
+            (client as any).registrationFeePaid2
+              ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+              : "bg-amber-50 text-amber-600 border-amber-200"
+          )}>
+            {(client as any).registrationFeePaid2 ? <FileCheck className="w-3 h-3 mr-1 inline" /> : null}
+            Cuota 2 { (client as any).registrationFeePaid2 ? "✓" : "pendiente"}
           </Badge>
-        )}
+        </div>
       </TableCell>
       <TableCell>
         <div className="flex flex-col gap-1">

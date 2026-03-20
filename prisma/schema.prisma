@@ -166,7 +166,8 @@ model Client {
   preferredTime   String?
   notes           String?
   monthlyAmount   Float?   // Monto mensual personalizado del cliente
-  registrationPaid Boolean  @default(false) // Si pagó la inscripción
+  registrationFeePaid1 Boolean  @default(false) // Si pagó la primera cuota de inscripción ($25.000)
+  registrationFeePaid2 Boolean  @default(false) // Si pagó la segunda cuota de inscripción ($25.000)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

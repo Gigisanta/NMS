@@ -75,6 +75,8 @@ export async function PUT(
       preferredDays,
       preferredTime,
       notes,
+      registrationFeePaid1,
+      registrationFeePaid2,
     } = body
 
     // If telefono is being updated, check for duplicates
@@ -104,6 +106,8 @@ export async function PUT(
       preferredDays?: string | null
       preferredTime?: string | null
       notes?: string | null
+      registrationFeePaid1?: boolean
+      registrationFeePaid2?: boolean
     } = {}
 
     if (nombre !== undefined) updateData.nombre = nombre
@@ -114,6 +118,8 @@ export async function PUT(
     if (preferredDays !== undefined) updateData.preferredDays = preferredDays || null
     if (preferredTime !== undefined) updateData.preferredTime = preferredTime || null
     if (notes !== undefined) updateData.notes = notes || null
+    if (registrationFeePaid1 !== undefined) updateData.registrationFeePaid1 = registrationFeePaid1
+    if (registrationFeePaid2 !== undefined) updateData.registrationFeePaid2 = registrationFeePaid2
 
     const client = await db.client.update({
       where: { id },
@@ -159,6 +165,8 @@ export async function PATCH(
       preferredDays?: string | null
       preferredTime?: string | null
       notes?: string | null
+      registrationFeePaid1?: boolean
+      registrationFeePaid2?: boolean
     } = {}
 
     if (body.nombre !== undefined) updateData.nombre = body.nombre
@@ -169,6 +177,8 @@ export async function PATCH(
     if (body.preferredDays !== undefined) updateData.preferredDays = body.preferredDays
     if (body.preferredTime !== undefined) updateData.preferredTime = body.preferredTime
     if (body.notes !== undefined) updateData.notes = body.notes
+    if (body.registrationFeePaid1 !== undefined) updateData.registrationFeePaid1 = body.registrationFeePaid1
+    if (body.registrationFeePaid2 !== undefined) updateData.registrationFeePaid2 = body.registrationFeePaid2
 
     // If telefono is being updated, check for duplicates
     if (updateData.telefono) {

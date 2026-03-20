@@ -62,7 +62,8 @@ export async function GET(request: NextRequest) {
           preferredTime: true,
           notes: true,
           monthlyAmount: true,
-          registrationPaid: true,
+          registrationFeePaid1: true,
+          registrationFeePaid2: true,
           createdAt: true,
           grupo: {
                 select: {
@@ -110,10 +111,11 @@ export async function GET(request: NextRequest) {
             grupo: client.grupo,
             preferredDays: client.preferredDays,
             preferredTime: client.preferredTime,
-              notes: client.notes,
-              monthlyAmount: client.monthlyAmount,
-              registrationPaid: client.registrationPaid,
-              createdAt: client.createdAt,
+            notes: client.notes,
+            monthlyAmount: client.monthlyAmount,
+            registrationFeePaid1: client.registrationFeePaid1,
+            registrationFeePaid2: client.registrationFeePaid2,
+            createdAt: client.createdAt,
             currentSubscription: currentSub || null,
           }
         })
@@ -162,7 +164,8 @@ export async function POST(request: NextRequest) {
       notes,
       classesTotal = 4,
       monthlyAmount,
-      registrationPaid = false,
+      registrationFeePaid1 = false,
+      registrationFeePaid2 = false,
     } = body
 
     // Validate required fields
@@ -203,7 +206,8 @@ export async function POST(request: NextRequest) {
           preferredTime: preferredTime || null,
           notes: notes || null,
           monthlyAmount: monthlyAmount || null,
-          registrationPaid: registrationPaid,
+          registrationFeePaid1,
+          registrationFeePaid2,
         },
         select: {
           id: true,
@@ -214,10 +218,11 @@ export async function POST(request: NextRequest) {
           grupoId: true,
           preferredDays: true,
           preferredTime: true,
-              notes: true,
-              monthlyAmount: true,
-              registrationPaid: true,
-              createdAt: true,
+          notes: true,
+          monthlyAmount: true,
+          registrationFeePaid1: true,
+          registrationFeePaid2: true,
+          createdAt: true,
               grupo: {
             select: {
               id: true,

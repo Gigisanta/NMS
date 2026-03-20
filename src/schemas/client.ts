@@ -30,7 +30,8 @@ export const clientSchema = z.object({
   preferredTime: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
   monthlyAmount: z.number().positive().optional().nullable(),
-  registrationPaid: z.boolean().optional().default(false),
+  registrationFeePaid1: z.boolean().optional().default(false),
+  registrationFeePaid2: z.boolean().optional().default(false),
 })
 
 export const createClientSchema = clientSchema.extend({
