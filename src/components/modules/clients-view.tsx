@@ -110,6 +110,28 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
           )}
         </div>
       </TableCell>
+      <TableCell>
+        {(client as any).updatedAt ? (
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs" style={{ color: '#86868b' }}>
+              {new Date((client as any).updatedAt).toLocaleDateString('es-AR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </span>
+            {(client as any).updatedByUser?.name && (
+              <span className="text-[10px]" style={{ color: '#005691' }}>
+                por {(client as any).updatedByUser.name}
+              </span>
+            )}
+          </div>
+        ) : (
+          <span className="text-xs" style={{ color: '#86868b' }}>-</span>
+        )}
+      </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
           {isLate && (
@@ -350,6 +372,7 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
                     <TableHead>Grupo</TableHead>
                     <TableHead>Inscripción</TableHead>
                     <TableHead>Estado</TableHead>
+                    <TableHead>Última Modificación</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>

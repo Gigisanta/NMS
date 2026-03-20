@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { cachedFetch, CacheKeys, invalidateCachePattern } from '@/lib/api-utils'
 
@@ -63,8 +64,13 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'No autenticado' }, { status: 401 })
+    }
+
     const body = await request.json()
-    
+
     // Extract all possible fields
     const {
       nombre,
@@ -108,6 +114,7 @@ export async function PUT(
       notes?: string | null
       registrationFeePaid1?: boolean
       registrationFeePaid2?: boolean
+      updatedByUserId?: string
     } = {}
 
     if (nombre !== undefined) updateData.nombre = nombre
@@ -120,12 +127,14 @@ export async function PUT(
     if (notes !== undefined) updateData.notes = notes || null
     if (registrationFeePaid1 !== undefined) updateData.registrationFeePaid1 = registrationFeePaid1
     if (registrationFeePaid2 !== undefined) updateData.registrationFeePaid2 = registrationFeePaid2
+    updateData.updatedByUserId = session.user.id
 
     const client = await db.client.update({
       where: { id },
       data: updateData,
       include: {
         grupo: true,
+        updatedByUser: { select: { name: true } },
       },
     })
 
@@ -153,6 +162,11 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'No autenticado' }, { status: 401 })
+    }
+
     const body = await request.json()
 
     // Build update data to prevent mass assignment
@@ -167,6 +181,7 @@ export async function PATCH(
       notes?: string | null
       registrationFeePaid1?: boolean
       registrationFeePaid2?: boolean
+      updatedByUserId?: string
     } = {}
 
     if (body.nombre !== undefined) updateData.nombre = body.nombre
@@ -179,6 +194,7 @@ export async function PATCH(
     if (body.notes !== undefined) updateData.notes = body.notes
     if (body.registrationFeePaid1 !== undefined) updateData.registrationFeePaid1 = body.registrationFeePaid1
     if (body.registrationFeePaid2 !== undefined) updateData.registrationFeePaid2 = body.registrationFeePaid2
+    updateData.updatedByUserId = session.user.id
 
     // If telefono is being updated, check for duplicates
     if (updateData.telefono) {
@@ -202,6 +218,7 @@ export async function PATCH(
       data: updateData,
       include: {
         grupo: true,
+        updatedByUser: { select: { name: true } },
       },
     })
 

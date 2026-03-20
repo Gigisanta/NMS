@@ -42,6 +42,9 @@ model User {
   // Expenses related to this user (salaries)
   expenses     Expense[]
 
+  // Clients updated by this user
+  clientsUpdated Client[] @relation("ClientUpdates")
+
   @@map("users")
 }
 
@@ -170,8 +173,10 @@ model Client {
   registrationFeePaid2 Boolean  @default(false) // Si pagó la segunda cuota de inscripción ($25.000)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  updatedByUserId String?  // Usuario que hizo la última modificación
 
   grupo          Group?          @relation(fields: [grupoId], references: [id], onDelete: SetNull)
+  updatedByUser  User?    @relation("ClientUpdates", fields: [updatedByUserId], references: [id])
   subscriptions  Subscription[]
   invoices       Invoice[]
   attendances    Attendance[]

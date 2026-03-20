@@ -65,6 +65,10 @@ export async function GET(request: NextRequest) {
           registrationFeePaid1: true,
           registrationFeePaid2: true,
           createdAt: true,
+          updatedAt: true,
+          updatedByUser: {
+            select: { name: true },
+          },
           grupo: {
                 select: {
                   id: true,
@@ -116,6 +120,8 @@ export async function GET(request: NextRequest) {
             registrationFeePaid1: client.registrationFeePaid1,
             registrationFeePaid2: client.registrationFeePaid2,
             createdAt: client.createdAt,
+            updatedAt: client.updatedAt,
+            updatedByUser: client.updatedByUser,
             currentSubscription: currentSub || null,
           }
         })
