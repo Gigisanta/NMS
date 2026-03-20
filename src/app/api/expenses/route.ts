@@ -122,12 +122,15 @@ export async function POST(request: NextRequest) {
     const m = month ? parseInt(month.toString()) : (new Date().getMonth() + 1)
     const y = year ? parseInt(year.toString()) : new Date().getFullYear()
 
+    // Validar que category sea un valor válido del enum
+    const validCategories = ['FIJO', 'VARIABLE', 'SUELDO', 'PROVEEDOR', 'OTROS']
+    const normalizedCategory = validCategories.includes(category) ? category : 'OTROS'
+
     const expense = await db.expense.create({
       data: {
-        id: `exp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         description,
         amount: parseFloat(amount),
-        category: category as any,
+        category: normalizedCategory,
         date: date ? new Date(date) : new Date(),
         month: m,
         year: y,
