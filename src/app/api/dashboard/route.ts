@@ -20,7 +20,9 @@ export async function GET() {
           todayAttendances,
           recentClients,
           pendingClients,
-          groupsWithRevenue,
+          activeGroups,
+          projectedRevenueData,
+          collectedRevenueData,
         ] = await Promise.all([
           // Total clients count
           db.client.count(),
@@ -104,7 +106,7 @@ export async function GET() {
             orderBy: { updatedAt: 'asc' },
           }),
           
-          // Revenue by group for current month
+          // Groups list
           db.group.findMany({
             where: { active: true },
             select: {
@@ -116,39 +118,49 @@ export async function GET() {
               },
             },
           }),
+
+          // BOLT OPTIMIZATION: Projected revenue by group (batch query)
+          db.client.groupBy({
+            by: ['grupoId'],
+            _sum: { monthlyAmount: true },
+          }),
+
+          // BOLT OPTIMIZATION: Collected revenue by group (batch query)
+          // Since groupBy doesn't support grouping by related field, we fetch and aggregate in-memory
+          db.subscription.findMany({
+            where: {
+              month: currentMonth,
+              year: currentYear,
+              status: 'AL_DIA',
+            },
+            select: {
+              amount: true,
+              client: {
+                select: { grupoId: true },
+              },
+            },
+          }),
         ])
 
-        // Calculate revenue by group (Projected Revenue)
-        const groupRevenue = await Promise.all(
-          groupsWithRevenue.map(async (group) => {
-            const projectedData = await db.client.aggregate({
-              where: {
-                grupoId: group.id,
-              },
-              _sum: { monthlyAmount: true },
-            })
-            
-            // Also get current month's collected revenue for completeness
-            const collectedData = await db.subscription.aggregate({
-              where: {
-                client: { grupoId: group.id },
-                month: currentMonth,
-                year: currentYear,
-                status: 'AL_DIA',
-              },
-              _sum: { amount: true },
-            })
-
-            return {
-              id: group.id,
-              name: group.name,
-              color: group.color,
-              clientCount: group._count.clients,
-              revenue: projectedData._sum.monthlyAmount || 0, // Showing Projected Revenue as requested
-              collected: collectedData._sum.amount || 0,
-            }
-          })
+        // BOLT OPTIMIZATION: Aggregate results in-memory to eliminate N+1 queries
+        const projectedMap = new Map(
+          projectedRevenueData.map((p) => [p.grupoId, p._sum.monthlyAmount || 0])
         )
+
+        const collectedMap = collectedRevenueData.reduce((acc, curr) => {
+          const groupId = curr.client?.grupoId || 'ungrouped'
+          acc.set(groupId, (acc.get(groupId) || 0) + (curr.amount || 0))
+          return acc
+        }, new Map<string, number>())
+
+        const groupRevenue = activeGroups.map((group) => ({
+          id: group.id,
+          name: group.name,
+          color: group.color,
+          clientCount: group._count.clients,
+          revenue: projectedMap.get(group.id) || 0,
+          collected: collectedMap.get(group.id) || 0,
+        }))
 
         // Calculate stats from optimized database queries
         const statusData = subStats.reduce((acc, curr) => {
