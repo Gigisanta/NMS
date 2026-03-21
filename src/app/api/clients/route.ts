@@ -50,6 +50,8 @@ export async function GET(request: NextRequest) {
           where.grupoId = grupoId
         }
 
+        console.log(`[API CLIENTS] Query where:`, JSON.stringify(where));
+
         // Run count and findMany in parallel
         const [total, clients] = await Promise.all([
           db.client.count({ where }),
@@ -62,18 +64,18 @@ export async function GET(request: NextRequest) {
               dni: true,
               telefono: true,
               grupoId: true,
-          preferredDays: true,
-          preferredTime: true,
-          notes: true,
-          monthlyAmount: true,
-          registrationFeePaid1: true,
-          registrationFeePaid2: true,
-          createdAt: true,
-          updatedAt: true,
-          updatedByUser: {
-            select: { name: true },
-          },
-          grupo: {
+              preferredDays: true,
+              preferredTime: true,
+              notes: true,
+              monthlyAmount: true,
+              registrationFeePaid1: true,
+              registrationFeePaid2: true,
+              createdAt: true,
+              updatedAt: true,
+              updatedByUser: {
+                select: { name: true },
+              },
+              grupo: {
                 select: {
                   id: true,
                   name: true,
@@ -81,7 +83,7 @@ export async function GET(request: NextRequest) {
                 },
               },
               // Only include subscription if requested
-              ...(withSubscription && {
+              ...(withSubscription ? {
                 subscriptions: {
                   where: {
                     month: currentMonth,
@@ -96,9 +98,9 @@ export async function GET(request: NextRequest) {
                   },
                   take: 1,
                 },
-              }),
+              } : {}),
             },
-            orderBy: [{ apellido: 'asc' }, { nombre: 'asc' }],
+            orderBy: { apellido: 'asc' },
             skip,
             take: limit,
           }),
@@ -150,8 +152,11 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching clients:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+    console.error('Error stack:', errorStack)
     return NextResponse.json(
-      { success: false, error: 'Error al obtener clientes' },
+      { success: false, error: `Error al obtener clientes: ${errorMessage}` },
       { status: 500 }
     )
   }
