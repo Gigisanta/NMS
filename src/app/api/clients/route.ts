@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
                 },
               },
               // Only include subscription if requested
-              ...(withSubscription ? {
+              ...(withSubscription && {
                 subscriptions: {
                   where: {
                     month: currentMonth,
@@ -98,9 +98,12 @@ export async function GET(request: NextRequest) {
                   },
                   take: 1,
                 },
-              } : {}),
+              }),
             },
-            orderBy: { apellido: 'asc' },
+            orderBy: [
+              { apellido: 'asc' },
+              { nombre: 'asc' }
+            ],
             skip,
             take: limit,
           }),
