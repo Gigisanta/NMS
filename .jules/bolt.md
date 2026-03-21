@@ -23,3 +23,7 @@
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
+
+## 2026-03-05 - Memoization and Component Splitting for List Performance
+**Learning:** Rendering large lists with derived stats (e.g., `PaymentsView`) can become a bottleneck if filtering and stats (e.g., `alDia`, `pendiente`) are recalculated on every render via multiple $O(N)$ passes. Furthermore, passing a parent state string (like `updatingId`) to all rows causes every row to re-render whenever *any* row starts updating.
+**Action:** Wrap derived list filtering and stats (using a single-pass `reduce`) in `useMemo`. Extract list items into separate `memo`ized components and pass only the specific boolean state needed (e.g., `isUpdating={updatingId === item.id}`) to ensure targeted re-renders.
