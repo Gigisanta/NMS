@@ -3,6 +3,8 @@ import { db } from '@/lib/db'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
 import { cachedFetch, CacheKeys, invalidateCachePattern } from '@/lib/api-utils'
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/clients - List all clients with pagination and filters
 export async function GET(request: NextRequest) {
   try {
@@ -13,6 +15,9 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50) // Cap at 50
     const skip = (page - 1) * limit
+
+    console.log(`[API CLIENTS] search: "${search}", grupoId: "${grupoId}", withSub: ${withSubscription}, page: ${page}`);
+
 
     const params = {
       search,
@@ -29,21 +34,20 @@ export async function GET(request: NextRequest) {
         const currentMonth = getCurrentMonth()
         const currentYear = getCurrentYear()
 
-        // Build where clause efficiently
-        const where = {
-          AND: [
-            search
-              ? {
-                  OR: [
-                    { nombre: { contains: search } },
-                    { apellido: { contains: search } },
-                    { telefono: { contains: search } },
-                    { dni: { contains: search } },
-                  ],
-                }
-              : {},
-            grupoId ? { grupoId } : {},
-          ],
+        // Build where clause safely
+        const where: any = {}
+        
+        if (search) {
+          where.OR = [
+            { nombre: { contains: search, mode: 'insensitive' } },
+            { apellido: { contains: search, mode: 'insensitive' } },
+            { telefono: { contains: search, mode: 'insensitive' } },
+            { dni: { contains: search, mode: 'insensitive' } },
+          ]
+        }
+        
+        if (grupoId && grupoId !== '' && grupoId !== 'null' && grupoId !== 'undefined') {
+          where.grupoId = grupoId
         }
 
         // Run count and findMany in parallel
@@ -255,10 +259,10 @@ export async function POST(request: NextRequest) {
       return newClient
     })
 
-    // Invalidate relevant caches
+    // Invalidate ALL client and group related caches
     invalidateCachePattern('client')
-    invalidateCachePattern('dashboard')
     invalidateCachePattern('groups')
+    invalidateCachePattern('dashboard')
 
     return NextResponse.json({
       success: true,

@@ -195,10 +195,15 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
       if (shouldFetchGroups) params.set('withSubscription', 'true')
 
       const response = await fetch(`/api/clients?${params}`)
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`)
+      }
       const result = await response.json()
       if (result.success) {
         setClients(result.data)
         setTotalPages(result.pagination?.totalPages || 1)
+      } else {
+        console.error('API Business error:', result.error)
       }
     } catch (error) {
       console.error('Error fetching clients:', error)
