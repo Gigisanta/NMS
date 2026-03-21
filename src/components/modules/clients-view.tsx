@@ -200,13 +200,15 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
       }
       const result = await response.json()
       if (result.success) {
-        setClients(result.data)
+        setClients(result.data || [])
         setTotalPages(result.pagination?.totalPages || 1)
       } else {
         console.error('API Business error:', result.error)
+        setClients([]) // Clear clients on business error
       }
     } catch (error) {
       console.error('Error fetching clients:', error)
+      setClients([]) // Clear clients on error
     } finally {
       setLoading(false)
     }
