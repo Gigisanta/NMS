@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx prisma@6.11.1 generate && npm run build:standalone",
+  "buildCommand": "npx prisma@6.11.1 generate && npx prisma@6.11.1 db push --skip-generate --accept-data-loss && npm run build:standalone",
   "outputDirectory": ".next",
   "installCommand": "npm install",
   "framework": "nextjs"
