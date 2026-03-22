@@ -23,3 +23,7 @@
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
+
+## 2026-03-04 - Targeted Re-renders in Lists
+**Learning:** Passing a status string (e.g., `updatingId`) from a parent state to all items in a list causes every item to re-render when the status changes, even if the item wasn't the one being updated.
+**Action:** Pass a derived boolean (e.g., `isUpdating={updatingId === item.id}`) to memoized child components. This ensures only the item that is actually changing its update state will re-render.
