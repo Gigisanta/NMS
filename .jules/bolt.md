@@ -23,3 +23,11 @@
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
+
+## 2025-05-15 - React List Optimization with Memo and Single-pass Reduce
+**Learning:** In components with large lists and frequent state updates (like an 'updating' status), passing parent state strings (like the current ID being updated) to all items causes a full list re-render on every update. Also, multiple  calls for statistics are inefficient.
+**Action:** Extract list items into separate components wrapped in `React.memo` and pass derived boolean flags (e.g., `isUpdating: boolean`) instead of the raw state. Consolidate statistics into a single-pass `reduce` wrapped in `useMemo`. This keeps render cycles targeted and reduces computation from $O(4N)$ to $O(N)$.
+
+## 2025-05-15 - React List Optimization with Memo and Single-pass Reduce
+**Learning:** In components with large lists and frequent state updates (like an 'updating' status), passing parent state strings (like the current ID being updated) to all items causes a full list re-render on every update. Also, multiple `.filter().length` calls for statistics are inefficient.
+**Action:** Extract list items into separate components wrapped in `React.memo` and pass derived boolean flags (e.g., `isUpdating: boolean`) instead of the raw state. Consolidate statistics into a single-pass `reduce` wrapped in `useMemo`. This keeps render cycles targeted and reduces computation from $O(4N)$ to $O(N)$.
