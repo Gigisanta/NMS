@@ -1,5 +1,6 @@
-import { auth } from '@/auth'
+import NextAuth from '@/auth'
 
-export const GET = auth
-export const POST = auth
+const handler = NextAuth
 
+export const GET = handler
+export const POST = handler

@@ -146,14 +146,14 @@ export async function GET() {
         // BOLT OPTIMIZATION: Aggregate collected revenue in-memory (O(N) where N is paid subscriptions)
         const collectedByGroup = collectedSubscriptions.reduce((acc, sub) => {
           const gId = sub.client?.grupoId || 'ungrouped'
-          acc[gId] = (acc[gId] || 0) + (sub.amount || 0)
+          acc[gId] = (acc[gId] || 0) + Number(sub.amount || 0)
           return acc
         }, {} as Record<string, number>)
 
         // BOLT OPTIMIZATION: Process projected revenue in-memory
         const projectedByGroup = projectedRevenueByGroup.reduce((acc, curr) => {
           const gId = curr.grupoId || 'ungrouped'
-          acc[gId] = curr._sum.monthlyAmount || 0
+          acc[gId] = Number(curr._sum.monthlyAmount) || 0
           return acc
         }, {} as Record<string, number>)
 
@@ -172,7 +172,7 @@ export async function GET() {
         const statusData = subStats.reduce((acc, curr) => {
           acc[curr.status] = {
             count: curr._count._all,
-            revenue: curr._sum.amount || 0
+            revenue: Number(curr._sum.amount) || 0
           }
           return acc
         }, {} as Record<string, { count: number; revenue: number }>)

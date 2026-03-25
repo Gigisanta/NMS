@@ -48,12 +48,12 @@ async function verifyDashboard() {
     const expectedOverduePayments = allSubscriptions.filter((s) => s.status === 'DEUDOR').length
     const expectedMonthRevenue = allSubscriptions
       .filter((s) => s.status === 'AL_DIA')
-      .reduce((sum, s) => sum + (s.amount || 0), 0)
+      .reduce((sum, s) => sum + Number(s.amount || 0), 0)
 
     const statusData = subStats.reduce((acc, curr) => {
       acc[curr.status] = {
         count: curr._count._all,
-        revenue: curr._sum.amount || 0
+        revenue: Number(curr._sum.amount) || 0
       }
       return acc
     }, {} as Record<string, { count: number; revenue: number }>)
