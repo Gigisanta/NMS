@@ -23,3 +23,7 @@
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
+
+## 2026-03-04 - React List Performance and Single-Pass Data Processing
+**Learning:** In views handling large lists (like `PaymentsView`), performing multiple O(N) `filter()` or `reduce()` calls on every render to calculate different statistics creates a performance bottleneck. Additionally, triggering a state update on a single list item often causes the entire list to re-render if not properly memoized.
+**Action:** Use `useMemo` to perform filtering and all statistics calculations in a single O(N) pass. Extract list items into separate components wrapped in `React.memo` and ensure callback props are memoized with `useCallback` (being careful with stale closures) to prevent redundant re-renders of unaffected rows.

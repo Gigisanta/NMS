@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo, memo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -59,6 +59,127 @@ interface Subscription {
   }
 }
 
+// BOLT OPTIMIZATION: Memoized table row to prevent redundant re-renders of the entire list
+// when only one subscription's state (e.g., updating) changes.
+const PaymentTableRow = memo(({
+  sub,
+  index,
+  updating,
+  onPaymentClick,
+  onStatusChange
+}: {
+  sub: Subscription
+  index: number
+  updating: boolean
+  onPaymentClick: (sub: Subscription, method: string) => void
+  onStatusChange: (id: string, status: string) => void
+}) => {
+  const statusConfig = getPaymentStatusConfig(sub.status)
+
+  return (
+    <motion.tr
+      className="hover:bg-slate-50/50 transition-colors"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03 }}
+    >
+      <TableCell>
+        <div className="flex items-center gap-3 relative">
+          {(() => {
+            const today = new Date()
+            const isLate = today.getDate() > 10 && sub.status === 'PENDIENTE'
+            return isLate && (
+              <div className="absolute -left-2 top-0">
+                <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />
+              </div>
+            )
+          })()}
+          <Avatar className="h-10 w-10 bg-gradient-to-br from-cyan-500 to-sky-600 ring-2 ring-white shadow-md">
+            <AvatarFallback className="text-white text-sm">
+              {sub.client.nombre[0]}{sub.client.apellido[0]}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-medium">
+              {formatFullName(sub.client.nombre, sub.client.apellido)}
+            </p>
+            <p className="text-xs text-slate-500">{sub.client.telefono}</p>
+          </div>
+        </div>
+      </TableCell>
+      <TableCell>
+        <GroupBadge group={sub.client.grupo} size="sm" />
+      </TableCell>
+      <TableCell>
+        <Badge className={`${statusConfig.color} border transition-transform hover:scale-105`}>
+          <span className={`w-2 h-2 rounded-full ${statusConfig.dotColor} mr-1.5`} />
+          {statusConfig.label}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <span className="text-sm font-medium">
+          {sub.classesUsed}/{sub.classesTotal}
+        </span>
+      </TableCell>
+      <TableCell>
+        <div className="flex gap-1">
+          {sub.status !== 'AL_DIA' ? (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs text-emerald-600 hover:bg-emerald-50"
+                onClick={() => onPaymentClick(sub, 'EFECTIVO')}
+                disabled={updating}
+              >
+                {updating ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
+                Efectivo
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs text-emerald-600 hover:bg-emerald-50"
+                onClick={() => onPaymentClick(sub, 'TRANSFERENCIA')}
+                disabled={updating}
+              >
+                {updating ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
+                Transf.
+              </Button>
+            </>
+          ) : (
+            <Badge variant="outline" className="h-8 text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
+              Pagado ({sub.paymentMethod === 'EFECTIVO' ? 'Efe' : 'Transf'})
+            </Badge>
+          )}
+
+          <Button
+            size="sm"
+            variant="ghost"
+            className={`h-8 w-8 p-0 ${sub.status === 'PENDIENTE' ? 'text-amber-600 bg-amber-50' : 'text-slate-400'}`}
+            onClick={() => onStatusChange(sub.id, 'PENDIENTE')}
+            disabled={updating || sub.status === 'PENDIENTE'}
+            title="Marcar como Pendiente"
+          >
+            <Clock className="w-3 h-3" />
+          </Button>
+
+          <Button
+            size="sm"
+            variant="ghost"
+            className={`h-8 w-8 p-0 ${sub.status === 'DEUDOR' ? 'text-red-600 bg-red-50' : 'text-slate-400'}`}
+            onClick={() => onStatusChange(sub.id, 'DEUDOR')}
+            disabled={updating || sub.status === 'DEUDOR'}
+            title="Marcar como Deudor"
+          >
+            <AlertTriangle className="w-3 h-3" />
+          </Button>
+        </div>
+      </TableCell>
+    </motion.tr>
+  )
+})
+PaymentTableRow.displayName = 'PaymentTableRow'
+
 export function PaymentsView() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
@@ -98,7 +219,7 @@ export function PaymentsView() {
     fetchSubscriptions()
   }, [fetchSubscriptions])
 
-  const handleStatusChange = async (subscriptionId: string, newStatus: string, paymentMethod?: string) => {
+  const handleStatusChange = useCallback(async (subscriptionId: string, newStatus: string, paymentMethod?: string) => {
     setUpdating(subscriptionId)
     try {
       const response = await fetch(`/api/subscriptions/${subscriptionId}`, {
@@ -121,30 +242,48 @@ export function PaymentsView() {
     } finally {
       setUpdating(null)
     }
-  }
+  }, [])
 
-  const handlePaymentClick = (sub: Subscription, method: string) => {
+  const handlePaymentClick = useCallback((sub: Subscription, method: string) => {
     if (method === 'TRANSFERENCIA') {
       setPendingSub(sub)
       setIsReceiptOpen(true)
     } else {
       handleStatusChange(sub.id, 'AL_DIA', method)
     }
-  }
+  }, [handleStatusChange])
 
 
-  const filteredSubscriptions = subscriptions.filter(s => {
-    const matchesStatus = !statusFilter || s.status === statusFilter
-    const matchesGroup = !selectedGrupo || s.client.grupo?.id === selectedGrupo
-    return matchesStatus && matchesGroup
-  })
+  // BOLT OPTIMIZATION: Memoize filtered list and stats calculation in a single pass O(N)
+  // instead of multiple filter() calls O(4N) + filtering O(N).
+  const { filteredSubscriptions, stats } = useMemo(() => {
+    const stats = {
+      total: subscriptions.length,
+      alDia: 0,
+      pendiente: 0,
+      deudor: 0,
+    }
 
-  const stats = {
-    total: subscriptions.length,
-    alDia: subscriptions.filter(s => s.status === 'AL_DIA').length,
-    pendiente: subscriptions.filter(s => s.status === 'PENDIENTE').length,
-    deudor: subscriptions.filter(s => s.status === 'DEUDOR').length,
-  }
+    const filtered = []
+    for (let i = 0; i < subscriptions.length; i++) {
+      const s = subscriptions[i]
+
+      // Calculate stats for all subscriptions in this period
+      if (s.status === 'AL_DIA') stats.alDia++
+      else if (s.status === 'PENDIENTE') stats.pendiente++
+      else if (s.status === 'DEUDOR') stats.deudor++
+
+      // Apply filters
+      const matchesStatus = !statusFilter || s.status === statusFilter
+      const matchesGroup = !selectedGrupo || s.client.grupo?.id === selectedGrupo
+
+      if (matchesStatus && matchesGroup) {
+        filtered.push(s)
+      }
+    }
+
+    return { filteredSubscriptions: filtered, stats }
+  }, [subscriptions, statusFilter, selectedGrupo])
 
   const months = Array.from({ length: 12 }, (_, i) => i + 1)
   const years = [selectedYear - 1, selectedYear, selectedYear + 1]
@@ -280,112 +419,16 @@ export function PaymentsView() {
                 </TableHeader>
                 <TableBody>
                   <AnimatePresence>
-                    {filteredSubscriptions.map((sub, index) => {
-                      const statusConfig = getPaymentStatusConfig(sub.status)
-                      return (
-                        <motion.tr
-                          key={sub.id}
-                          className="hover:bg-slate-50/50 transition-colors"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.03 }}
-                        >
-                          <TableCell>
-                            <div className="flex items-center gap-3 relative">
-                              {(() => {
-                                const today = new Date()
-                                const isLate = today.getDate() > 10 && sub.status === 'PENDIENTE'
-                                return isLate && (
-                                  <div className="absolute -left-2 top-0">
-                                    <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />
-                                  </div>
-                                )
-                              })()}
-                              <Avatar className="h-10 w-10 bg-gradient-to-br from-cyan-500 to-sky-600 ring-2 ring-white shadow-md">
-                                <AvatarFallback className="text-white text-sm">
-                                  {sub.client.nombre[0]}{sub.client.apellido[0]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">
-                                  {formatFullName(sub.client.nombre, sub.client.apellido)}
-                                </p>
-                                <p className="text-xs text-slate-500">{sub.client.telefono}</p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <GroupBadge group={sub.client.grupo} size="sm" />
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={`${statusConfig.color} border transition-transform hover:scale-105`}>
-                              <span className={`w-2 h-2 rounded-full ${statusConfig.dotColor} mr-1.5`} />
-                              {statusConfig.label}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-sm font-medium">
-                              {sub.classesUsed}/{sub.classesTotal}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              {sub.status !== 'AL_DIA' ? (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-8 text-xs text-emerald-600 hover:bg-emerald-50"
-                                    onClick={() => handlePaymentClick(sub, 'EFECTIVO')}
-                                    disabled={updating === sub.id}
-                                  >
-                                    {updating === sub.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
-                                    Efectivo
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-8 text-xs text-emerald-600 hover:bg-emerald-50"
-                                    onClick={() => handlePaymentClick(sub, 'TRANSFERENCIA')}
-                                    disabled={updating === sub.id}
-                                  >
-                                    {updating === sub.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
-                                    Transf.
-                                  </Button>
-
-                                </>
-                              ) : (
-                                <Badge variant="outline" className="h-8 text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
-                                  Pagado ({sub.paymentMethod === 'EFECTIVO' ? 'Efe' : 'Transf'})
-                                </Badge>
-                              )}
-
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className={`h-8 w-8 p-0 ${sub.status === 'PENDIENTE' ? 'text-amber-600 bg-amber-50' : 'text-slate-400'}`}
-                                onClick={() => handleStatusChange(sub.id, 'PENDIENTE')}
-                                disabled={updating === sub.id || sub.status === 'PENDIENTE'}
-                                title="Marcar como Pendiente"
-                              >
-                                <Clock className="w-3 h-3" />
-                              </Button>
-
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className={`h-8 w-8 p-0 ${sub.status === 'DEUDOR' ? 'text-red-600 bg-red-50' : 'text-slate-400'}`}
-                                onClick={() => handleStatusChange(sub.id, 'DEUDOR')}
-                                disabled={updating === sub.id || sub.status === 'DEUDOR'}
-                                title="Marcar como Deudor"
-                              >
-                                <AlertTriangle className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </motion.tr>
-                      )
-                    })}
+                    {filteredSubscriptions.map((sub, index) => (
+                      <PaymentTableRow
+                        key={sub.id}
+                        sub={sub}
+                        index={index}
+                        updating={updating === sub.id}
+                        onPaymentClick={handlePaymentClick}
+                        onStatusChange={handleStatusChange}
+                      />
+                    ))}
                   </AnimatePresence>
                 </TableBody>
               </Table>
