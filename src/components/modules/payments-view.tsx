@@ -319,7 +319,6 @@ export function PaymentsView() {
                           </TableCell>
                           <TableCell>
                             <Badge className={`${statusConfig.color} border transition-transform hover:scale-105`}>
-                              <span className={`w-2 h-2 rounded-full ${statusConfig.dotColor} mr-1.5`} />
                               {statusConfig.label}
                             </Badge>
                           </TableCell>
