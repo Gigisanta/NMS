@@ -25,7 +25,7 @@ model User {
   password     String
   role         Role         @default(EMPLEADO)
   employeeRole String?      // Changed from enum to String for free-form roles
-  hourlyRate   Float?       // Hourly wage for employees
+  hourlyRate   Decimal?     @db.Decimal(10, 2) // Hourly wage for employees
   phone        String?
   active       Boolean      @default(true)
   image        String?
@@ -54,7 +54,7 @@ model User {
 model Expense {
   id          String   @id @default(cuid())
   description String
-  amount      Float
+  amount      Decimal     @db.Decimal(10, 2)
   category    ExpenseCategory
   date        DateTime @default(now())
   month       Int?     // Mes correspondiente (1-12)
@@ -168,7 +168,7 @@ model Client {
   preferredDays   String?
   preferredTime   String?
   notes           String?
-  monthlyAmount   Float?   // Monto mensual personalizado del cliente
+  monthlyAmount   Decimal?  @db.Decimal(10, 2) // Monto mensual personalizado del cliente
   registrationFeePaid1 Boolean  @default(false) // Si pagó la primera cuota de inscripción ($25.000)
   registrationFeePaid2 Boolean  @default(false) // Si pagó la segunda cuota de inscripción ($25.000)
   createdAt       DateTime @default(now())
@@ -194,10 +194,12 @@ model Subscription {
   year           Int
   status         String   @default("PENDIENTE")
   paymentMethod  String?  // EFECTIVO, TRANSFERENCIA, MERCADO_PAGO
+
+  @@index([status])
   isBilled       Boolean  @default(false) // Whether it was processed for ARCA
   classesTotal   Int      @default(4)
   classesUsed    Int      @default(0)
-  amount         Float?
+  amount         Decimal?  @db.Decimal(10, 2)
   notes          String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -228,7 +230,7 @@ model Invoice {
   
   // Invoice metadata
   invoiceNumber String? // Número de factura/comprobante
-  amount       Float?   // Monto de la factura
+  amount       Decimal?  @db.Decimal(10, 2) // Monto de la factura
   currency     String   @default("ARS")
   issueDate    DateTime? // Fecha de emisión
   dueDate      DateTime? // Fecha de vencimiento
@@ -249,6 +251,8 @@ model Invoice {
   // Relations
   client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([subscriptionId])
 
   // Timestamps
 
@@ -291,6 +295,9 @@ model CalendarEvent {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([start])
+  @@index([end])
+  @@index([userId])
   @@map("calendar_events")
 }
 
@@ -312,7 +319,7 @@ model PricingPlan {
   id          String   @id @default(cuid())
   name        String   // Nombre del plan (Ej: "Mensual 4 clases")
   classes     Int      // Cantidad de clases
-  price       Float    // Precio
+  price       Decimal  @db.Decimal(10, 2) // Precio
   currency    String   @default("ARS")
   description String?
   active      Boolean  @default(true)
@@ -404,6 +411,7 @@ model WhatsAppMessage {
   @@index([fromPhone])
   @@index([status])
   @@index([createdAt])
+  @@index([fromPhone, createdAt])
   @@map("whatsapp_messages")
 }
 

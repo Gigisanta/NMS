@@ -8,16 +8,17 @@ La base de datos está alojada en **Prisma Postgres** (gestionado por Vercel Sto
 
 **Connection String:**
 ```
-postgres://9850fa571566b432b2d5486a1f230745dafa941f83aaa0880eb5b541b67a61d9:sk_4Uausia5JafVxcMAxg-YS@db.prisma.io:5432/postgres?sslmode=require
+postgres://[USER]:[PASSWORD]@[HOST]/[DATABASE]?sslmode=require
 ```
+_Get the actual connection string from Vercel Dashboard → Storage → nms → Quickstart_
 
 ## Development (.env)
 
 For local development, create a `.env` file:
 
 ```bash
-# Prisma Postgres (Vercel)
-DATABASE_URL="postgres://9850fa571566b432b2d5486a1f230745dafa941f83aaa0880eb5b541b67a61d9:sk_4Uausia5JafVxcMAxg-YS@db.prisma.io:5432/postgres?sslmode=require"
+# Prisma Postgres (Vercel) - Get from Vercel Dashboard → Storage → nms
+DATABASE_URL="postgres://[USER]:[PASSWORD]@[HOST]/[DATABASE]?sslmode=require"
 NEXTAUTH_SECRET="dev-secret-key"
 NEXTAUTH_URL="http://localhost:3000"
 NODE_ENV="development"

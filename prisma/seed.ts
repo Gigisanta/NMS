@@ -3,27 +3,16 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
-// Check if we're in production and SKIP_SEED is set
-const shouldSkipSeed = process.env.SKIP_SEED === 'true' && process.env.NODE_ENV === 'production'
+// Check if we're in production - NEVER delete data in production
+const isProduction = process.env.NODE_ENV === 'production'
 
 async function main() {
   console.log('🌱 Starting seed...\n')
 
-  // In production with SKIP_SEED, don't touch existing data
-  if (shouldSkipSeed) {
-    console.log('⚠️  Production seed skipped (SKIP_SEED=true)\n')
-    return
+  // In production, NEVER delete existing data - only ensure users exist
+  if (isProduction) {
+    console.log('⚠️  Production environment detected - seed will preserve all existing data\n')
   }
-
-  // Clean existing data (except users) - only in dev/seed scripts
-  console.log('🗑️  Cleaning existing data...')
-  await prisma.timeEntry.deleteMany()
-  await prisma.attendance.deleteMany()
-  await prisma.invoice.deleteMany()
-  await prisma.subscription.deleteMany()
-  await prisma.client.deleteMany()
-  await prisma.group.deleteMany()
-  console.log('✅ Data cleaned\n')
 
   // ============================================
   // CREATE/UPDATE INITIAL USERS (Idempotent - uses upsert)

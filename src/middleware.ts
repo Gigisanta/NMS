@@ -21,7 +21,12 @@ export async function middleware(request: NextRequest) {
   const isProd = process.env.NODE_ENV === 'production' || !!process.env.VERCEL
   const token = await getToken({ 
     req: request,
-    secret: process.env.NEXTAUTH_SECRET || 'nms-secret-key-change-in-production-2024',
+    secret: process.env.NEXTAUTH_SECRET ?? (() => {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('NEXTAUTH_SECRET environment variable is required in production')
+      }
+      return 'dev-only-secret-do-not-use-in-production'
+    })(),
     secureCookie: isProd
   })
   
