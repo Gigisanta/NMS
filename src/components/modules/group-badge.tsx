@@ -57,8 +57,8 @@ export function GroupBadge({ group, className, size = 'md', onClick, interactive
       }}
       onClick={onClick}
     >
-      <span 
-        className="w-2 h-2"
+      <span
+        className="w-2 h-2 rounded-full flex-shrink-0"
         style={{ backgroundColor: group.color }}
       />
       {group.name}

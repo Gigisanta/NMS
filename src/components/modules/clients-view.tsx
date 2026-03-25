@@ -325,8 +325,8 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
                 }`}
                 style={grupoFilter === group.id ? { background: `linear-gradient(135deg, ${group.color || '#005691'} 0%, ${group.color ? adjustColor(group.color, 30) : '#00A8E8'} 100%)` } : {}}
               >
-                <span 
-                  className="w-2 h-2"
+                <span
+                  className="w-2 h-2 rounded-full flex-shrink-0"
                   style={{ backgroundColor: grupoFilter === group.id ? 'white' : (group.color || '#00A8E8') }}
                 />
                 {group.name}
