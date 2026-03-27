@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { updateGroupSchema } from '@/schemas'
+import { CacheKeys, invalidateCache, invalidateCachePattern } from '@/lib/api-utils'
 
 // GET /api/groups/[id] - Get single group
 export async function GET(
@@ -74,6 +75,12 @@ export async function PUT(
       data: validatedData,
     })
 
+    // BOLT: Invalidate groups, dashboard, and client caches
+    invalidateCache(CacheKeys.groups())
+    invalidateCachePattern('dashboard')
+    invalidateCachePattern('clients')
+    invalidateCachePattern('client:')
+
     return NextResponse.json({
       success: true,
       data: group,
@@ -128,6 +135,12 @@ export async function DELETE(
       where: { grupoId: id },
       data: { grupoId: null },
     })
+
+    // BOLT: Invalidate groups, dashboard, and client caches
+    invalidateCache(CacheKeys.groups())
+    invalidateCachePattern('dashboard')
+    invalidateCachePattern('clients')
+    invalidateCachePattern('client:')
 
     return NextResponse.json({
       success: true,

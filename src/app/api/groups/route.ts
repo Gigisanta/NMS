@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { cachedFetch, CacheKeys, invalidateCache } from '@/lib/api-utils'
+import { cachedFetch, CacheKeys, invalidateCache, invalidateCachePattern } from '@/lib/api-utils'
 
 // GET /api/groups - List all groups with client counts
 export async function GET() {
@@ -96,8 +96,9 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Invalidate groups cache
+    // BOLT: Invalidate groups and dashboard cache
     invalidateCache(CacheKeys.groups())
+    invalidateCachePattern('dashboard')
 
     return NextResponse.json({
       success: true,
