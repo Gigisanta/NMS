@@ -337,13 +337,17 @@ const EmployeeFormDialog = memo(function EmployeeFormDialog({
 
             <div className="grid gap-2">
               <Label htmlFor="employeeRole">Rol de trabajo *</Label>
-              <Input
-                id="employeeRole"
-                value={formData.employeeRole}
-                onChange={(e) => setFormData({ ...formData, employeeRole: e.target.value })}
-                placeholder="Ej: Profesor, Administrativo, Mantenimiento..."
-                required
-              />
+              <Select value={formData.employeeRole} onValueChange={(value) => setFormData({ ...formData, employeeRole: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar rol..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PROFESOR">Profesor</SelectItem>
+                  <SelectItem value="ADMINISTRATIVO">Administrativo</SelectItem>
+                  <SelectItem value="LIMPIEZA">Limpieza</SelectItem>
+                  <SelectItem value="MANTENIMIENTO">Mantenimiento</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

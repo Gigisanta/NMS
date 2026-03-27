@@ -61,7 +61,6 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
           </div>
           <div>
             <div className="font-medium" style={{ color: '#1A1A1A' }}>{formatFullName(client.nombre, client.apellido)}</div>
-            <div className="text-xs" style={{ color: '#86868b' }}>{client.email}</div>
           </div>
         </div>
       </TableCell>
@@ -102,12 +101,6 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
           <Badge variant="outline" className={`font-normal text-xs w-fit ${statusConfig.color || ''}`}>
             {statusConfig.label}
           </Badge>
-          {isLate && (
-            <Badge variant="destructive" className="text-[10px] py-0 h-4 w-fit animate-pulse">
-              <AlertCircle className="w-2 h-2 mr-1" />
-              Pago Atrasado
-            </Badge>
-          )}
         </div>
       </TableCell>
       <TableCell>
@@ -181,6 +174,7 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
 
   // from store
   const setStoreGroups = useAppStore((state: any) => state.setGroups)
+  const invalidateDashboard = useAppStore((state: any) => state.invalidateDashboard)
 
   const debouncedSearch = useDebounce(search, 300)
   const shouldFetchGroups = useMemo(() => Date.now() - groupsLastFetch > 5 * 60 * 1000, [groupsLastFetch])
@@ -248,8 +242,9 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
   const handleFormSuccess = useCallback(() => {
     setShowForm(false)
     setEditingClient(null)
+    invalidateDashboard?.()
     fetchClients()
-  }, [fetchClients])
+  }, [fetchClients, invalidateDashboard])
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar este cliente?')) return
@@ -262,6 +257,7 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
       
       const result = await response.json()
       if (result.success) {
+        invalidateDashboard?.()
         setClients(prev => prev.filter(c => c.id !== id))
       }
     } catch (error) {
@@ -279,7 +275,8 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
         body: JSON.stringify({ grupoId })
       })
       if (res.ok) {
-        setClients(prev => prev.map(c => 
+        invalidateDashboard?.()
+        setClients(prev => prev.map(c =>
           c.id === clientId ? { ...c, grupoId } : c
         ))
       }

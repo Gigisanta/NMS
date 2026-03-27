@@ -49,10 +49,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Contraseña', type: 'password' },
       },
       async authorize(credentials) {
-        console.log('[Auth] Authorize called with:', credentials?.email)
-        
         if (!credentials?.email || !credentials?.password) {
-          console.log('[Auth] Missing credentials')
           return null
         }
 
@@ -63,16 +60,12 @@ export const authOptions: NextAuthOptions = {
           const user = await db.user.findUnique({
             where: { email: email.toLowerCase() },
           })
-          
-          console.log('[Auth] User found:', !!user)
-          
+
           if (!user || !user.active) {
-            console.log('[Auth] No user or inactive')
             return null
           }
 
           const isValid = await bcrypt.compare(password, user.password)
-          console.log('[Auth] Password valid:', isValid)
           
           if (!isValid) {
             return null
@@ -103,8 +96,6 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
-      console.log('[Auth] JWT callback - user:', !!user, 'token:', !!token)
-      
       if (user) {
         token.id = user.id
         token.name = user.name
@@ -122,8 +113,6 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      console.log('[Auth] Session callback - token:', !!token)
-      
       if (token) {
         session.user.id = token.id
         session.user.name = token.name
@@ -135,14 +124,7 @@ export const authOptions: NextAuthOptions = {
       return session
     },
   },
-  events: {
-    async signIn({ user }) {
-      console.log(`[Auth] User signed in: ${user.email}`)
-    },
-    async signOut({ token }) {
-      console.log(`[Auth] User signed out: ${token?.email}`)
-    },
-  },
+  events: {},
   debug: process.env.NODE_ENV === 'development',
   secret: process.env.NEXTAUTH_SECRET || 'dev-only-secret-do-not-use-in-production',
 }

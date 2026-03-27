@@ -300,9 +300,6 @@ export function AttendanceView() {
             grupo: client.grupo,
           },
         }, ...prev])
-
-        // Refresh data to get updated subscription
-        fetchData()
       } else {
         setOptimisticUpdates(prev => {
           const newUpdates = { ...prev }
@@ -370,7 +367,10 @@ export function AttendanceView() {
   }, [optimisticUpdates])
 
   // Memoized filtered clients for performance
-  const filteredClients = useMemo(() => clients, [clients])
+  const filteredClients = useMemo(() => {
+    if (!selectedGrupo) return clients
+    return clients.filter(client => client.grupo?.id === selectedGrupo)
+  }, [clients, selectedGrupo])
 
   // Memoized recent attendance
   const recentAttendance = useMemo(() => 

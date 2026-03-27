@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 import { cachedFetch, CacheKeys, invalidateCachePattern } from '@/lib/api-utils'
+import { updateClientSchema } from '@/schemas/client'
+import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
 
 // GET /api/clients/[id] - Get single client with all details
 export async function GET(
@@ -71,6 +74,15 @@ export async function PUT(
 
     const body = await request.json()
 
+    // Validate request body with Zod schema
+    const parsed = updateClientSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+
     // Extract all possible fields
     const {
       nombre,
@@ -81,9 +93,10 @@ export async function PUT(
       preferredDays,
       preferredTime,
       notes,
+      monthlyAmount,
       registrationFeePaid1,
       registrationFeePaid2,
-    } = body
+    } = parsed.data
 
     // If telefono is being updated, check for duplicates
     if (telefono) {
@@ -112,6 +125,7 @@ export async function PUT(
       preferredDays?: string | null
       preferredTime?: string | null
       notes?: string | null
+      monthlyAmount?: Prisma.Decimal | null
       registrationFeePaid1?: boolean
       registrationFeePaid2?: boolean
       updatedByUserId?: string
@@ -125,18 +139,42 @@ export async function PUT(
     if (preferredDays !== undefined) updateData.preferredDays = preferredDays || null
     if (preferredTime !== undefined) updateData.preferredTime = preferredTime || null
     if (notes !== undefined) updateData.notes = notes || null
+    if (monthlyAmount !== undefined) updateData.monthlyAmount = monthlyAmount ? new Prisma.Decimal(monthlyAmount) : null
     if (registrationFeePaid1 !== undefined) updateData.registrationFeePaid1 = registrationFeePaid1
     if (registrationFeePaid2 !== undefined) updateData.registrationFeePaid2 = registrationFeePaid2
     updateData.updatedByUserId = session.user.id
 
     const client = await db.client.update({
       where: { id },
-      data: updateData,
+      data: updateData as Parameters<typeof db.client.update>[0]['data'],
       include: {
         grupo: true,
         updatedByUser: { select: { name: true } },
       },
     })
+
+    // Update active subscription if monthlyAmount or classesTotal changed
+    if (monthlyAmount !== undefined || body.classesTotal !== undefined) {
+      const currentMonth = getCurrentMonth()
+      const currentYear = getCurrentYear()
+
+      const updateData: Record<string, number | null> = {}
+      if (monthlyAmount !== undefined) {
+        updateData.amount = monthlyAmount ?? 0
+      }
+      if (body.classesTotal !== undefined) {
+        updateData.classesTotal = body.classesTotal
+      }
+
+      await db.subscription.updateMany({
+        where: {
+          clientId: id,
+          month: currentMonth,
+          year: currentYear,
+        },
+        data: updateData,
+      })
+    }
 
     // Invalidate caches
     invalidateCachePattern('client')
@@ -169,6 +207,15 @@ export async function PATCH(
 
     const body = await request.json()
 
+    // Validate request body with Zod schema
+    const parsed = updateClientSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+
     // Build update data to prevent mass assignment
     const updateData: {
       nombre?: string
@@ -179,21 +226,23 @@ export async function PATCH(
       preferredDays?: string | null
       preferredTime?: string | null
       notes?: string | null
+      monthlyAmount?: Prisma.Decimal | null
       registrationFeePaid1?: boolean
       registrationFeePaid2?: boolean
       updatedByUserId?: string
     } = {}
 
-    if (body.nombre !== undefined) updateData.nombre = body.nombre
-    if (body.apellido !== undefined) updateData.apellido = body.apellido
-    if (body.dni !== undefined) updateData.dni = body.dni
-    if (body.telefono !== undefined) updateData.telefono = body.telefono
-    if (body.grupoId !== undefined) updateData.grupoId = body.grupoId
-    if (body.preferredDays !== undefined) updateData.preferredDays = body.preferredDays
-    if (body.preferredTime !== undefined) updateData.preferredTime = body.preferredTime
-    if (body.notes !== undefined) updateData.notes = body.notes
-    if (body.registrationFeePaid1 !== undefined) updateData.registrationFeePaid1 = body.registrationFeePaid1
-    if (body.registrationFeePaid2 !== undefined) updateData.registrationFeePaid2 = body.registrationFeePaid2
+    if (parsed.data.nombre !== undefined) updateData.nombre = parsed.data.nombre
+    if (parsed.data.apellido !== undefined) updateData.apellido = parsed.data.apellido
+    if (parsed.data.dni !== undefined) updateData.dni = parsed.data.dni
+    if (parsed.data.telefono !== undefined) updateData.telefono = parsed.data.telefono
+    if (parsed.data.grupoId !== undefined) updateData.grupoId = parsed.data.grupoId
+    if (parsed.data.preferredDays !== undefined) updateData.preferredDays = parsed.data.preferredDays
+    if (parsed.data.preferredTime !== undefined) updateData.preferredTime = parsed.data.preferredTime
+    if (parsed.data.notes !== undefined) updateData.notes = parsed.data.notes
+    if (parsed.data.monthlyAmount !== undefined) updateData.monthlyAmount = parsed.data.monthlyAmount ? new Prisma.Decimal(parsed.data.monthlyAmount) : null
+    if (parsed.data.registrationFeePaid1 !== undefined) updateData.registrationFeePaid1 = parsed.data.registrationFeePaid1
+    if (parsed.data.registrationFeePaid2 !== undefined) updateData.registrationFeePaid2 = parsed.data.registrationFeePaid2
     updateData.updatedByUserId = session.user.id
 
     // If telefono is being updated, check for duplicates
@@ -215,7 +264,7 @@ export async function PATCH(
 
     const client = await db.client.update({
       where: { id },
-      data: updateData,
+      data: updateData as Parameters<typeof db.client.update>[0]['data'],
       include: {
         grupo: true,
         updatedByUser: { select: { name: true } },
@@ -246,6 +295,12 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+
+    // Auth check
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
+    }
 
     // Check if client exists
     const client = await db.client.findUnique({

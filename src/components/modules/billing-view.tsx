@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, Receipt, Send, CheckCircle2, AlertTriangle, ExternalLink, Clock } from 'lucide-react'
 import { formatFullName, formatCurrency, getCurrentMonth, getCurrentYear, formatMonthYear } from '@/lib/utils'
+import { useAppStore } from '@/store'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -33,6 +34,8 @@ export function BillingView() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth())
   const [selectedYear, setSelectedYear] = useState(getCurrentYear())
+
+  const invalidateDashboard = useAppStore((state: any) => state.invalidateDashboard)
 
   const fetchBillableItems = useCallback(async () => {
     setLoading(true)
@@ -91,6 +94,7 @@ export function BillingView() {
       const result = await response.json()
       if (result.success) {
         toast.success(`Se han procesado ${selectedIds.size} facturas exitosamente a través de Mercado Pago y ARCA.`)
+        invalidateDashboard?.()
         setSelectedIds(new Set())
         fetchBillableItems()
       } else {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { updateGroupSchema } from '@/schemas'
+import { invalidateCache, CacheKeys } from '@/lib/api-utils'
 
 // GET /api/groups/[id] - Get single group
 export async function GET(
@@ -74,6 +75,8 @@ export async function PUT(
       data: validatedData,
     })
 
+    invalidateCache(CacheKeys.groups())
+
     return NextResponse.json({
       success: true,
       data: group,
@@ -122,6 +125,8 @@ export async function DELETE(
       where: { id },
       data: { active: false },
     })
+
+    invalidateCache(CacheKeys.groups())
 
     // Remove group from all clients
     await db.client.updateMany({

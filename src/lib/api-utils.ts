@@ -1,6 +1,9 @@
 /**
  * In-memory cache utility for API routes
  * Reduces database queries for frequently accessed data
+ *
+ * NOTE: This in-memory cache is ineffective in serverless environments (Vercel).
+ * Each function invocation may run on a different Node.js instance.
  */
 
 interface CacheEntry<T> {

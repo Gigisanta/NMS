@@ -24,7 +24,9 @@ export const clientSchema = z.object({
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   apellido: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
   dni: z.string().optional().nullable(),
-  telefono: z.string().min(8, 'El teléfono debe tener al menos 8 dígitos'),
+  telefono: z.string()
+    .min(8, 'El teléfono debe tener al menos 8 dígitos')
+    .regex(/^\d{8,15}$/, 'El teléfono debe contener solo números'),
   grupoId: z.string().optional().nullable(),
   preferredDays: z.string().optional().nullable(),
   preferredTime: z.string().optional().nullable(),

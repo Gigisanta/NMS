@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
 import { cachedFetch, CacheKeys, invalidateCachePattern } from '@/lib/api-utils'
+import { createClientSchema } from '@/schemas/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -169,8 +170,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    
-    // Extract data
+
+    // Validate request body with Zod schema
+    const parsed = createClientSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+
     const {
       nombre,
       apellido,
@@ -184,15 +193,7 @@ export async function POST(request: NextRequest) {
       monthlyAmount,
       registrationFeePaid1 = false,
       registrationFeePaid2 = false,
-    } = body
-
-    // Validate required fields
-    if (!nombre || !apellido || !telefono) {
-      return NextResponse.json(
-        { success: false, error: 'Nombre, apellido y teléfono son requeridos' },
-        { status: 400 }
-      )
-    }
+    } = parsed.data
 
     // Check if phone already exists
     const existingClient = await db.client.findUnique({

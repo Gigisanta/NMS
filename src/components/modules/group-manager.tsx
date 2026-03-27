@@ -44,7 +44,8 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  
+  const [error, setError] = useState<string | null>(null)
+
   const [newGroup, setNewGroup] = useState({ name: '', color: predefinedColors[0], schedule: '', description: '' })
   const [editGroup, setEditGroup] = useState<Group | null>(null)
 
@@ -70,6 +71,7 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       }
     } catch (error) {
       console.error('Error creating group:', error)
+      setError('Error al crear el grupo. Intenta de nuevo.')
     } finally {
       setSaving(false)
     }
@@ -97,6 +99,7 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       }
     } catch (error) {
       console.error('Error updating group:', error)
+      setError('Error al actualizar el grupo. Intenta de nuevo.')
     } finally {
       setSaving(false)
     }
@@ -113,6 +116,7 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       }
     } catch (error) {
       console.error('Error deleting group:', error)
+      setError('Error al eliminar el grupo. Intenta de nuevo.')
     } finally {
       setDeletingId(null)
     }
@@ -291,6 +295,11 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
               <Plus className="w-4 h-4 mr-2" />
               Nuevo Grupo
             </Button>
+          )}
+          {error && (
+            <div className="text-sm text-red-500 bg-red-50 p-2 rounded mt-2 w-full">
+              {error}
+            </div>
           )}
         </DialogFooter>
       </DialogContent>

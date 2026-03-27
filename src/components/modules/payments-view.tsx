@@ -112,9 +112,10 @@ export function PaymentsView() {
 
       const result = await response.json()
       if (result.success) {
-        setSubscriptions(prev => 
+        setSubscriptions(prev =>
           prev.map(s => s.id === subscriptionId ? { ...s, status: newStatus, paymentMethod: paymentMethod || s.paymentMethod } : s)
         )
+        useAppStore.getState().invalidateDashboard?.()
       }
     } catch (error) {
       console.error('Error updating subscription:', error)

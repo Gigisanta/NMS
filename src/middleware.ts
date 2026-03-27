@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
   
   // 2. Fetch token with more explicit config for Vercel
   const isProd = process.env.NODE_ENV === 'production' || !!process.env.VERCEL
-  const token = await getToken({ 
+  const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET || 'dev-only-secret-do-not-use-in-production',
     secureCookie: isProd

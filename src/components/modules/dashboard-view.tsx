@@ -24,6 +24,7 @@ import { TimeClockWidget } from './time-clock-widget'
 interface DashboardStats {
   totalClients: number
   activeClients: number
+  alDiaClients: number
   pendingPayments: number
   overduePayments: number
   todayAttendances: number
@@ -329,15 +330,15 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
               <div className="mt-3">
                 <div className="flex justify-between text-xs text-slate-500 mb-1">
                   <span>Al día</span>
-                  <span>{stats?.activeClients ? stats.activeClients - stats.pendingPayments : 0} de {stats?.activeClients ?? 0}</span>
+                  <span>{stats?.alDiaClients ?? 0} de {stats?.activeClients ?? 0}</span>
                 </div>
                 <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-emerald-500 rounded-full transition-all"
-                    style={{ 
-                      width: `${stats?.activeClients 
-                        ? ((stats.activeClients - stats.pendingPayments) / stats.activeClients) * 100 
-                        : 0}%` 
+                    style={{
+                      width: `${stats?.activeClients
+                        ? ((stats.alDiaClients) / stats.activeClients) * 100
+                        : 0}%`
                     }}
                   />
                 </div>
