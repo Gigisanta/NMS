@@ -118,3 +118,41 @@
   - Removed redundant visual elements (shadows, borders, animations)
   - Better spacing and typography hierarchy
 - Application is production-ready with working login (mariela@nms.com / mariela123)
+
+---
+
+## 2026-03-27 - Mejoras en Dashboard y Validación con Zod ✅ COMPLETADO
+
+### Task: Optimizar dashboard y añadir validaciones
+
+**Cambios realizados:**
+
+1. **Validación con Zod:**
+   - Creado `src/schemas/client.ts` con esquemas para Clientes, Grupos y Subscripciones.
+   - Implementada validación en rutas de API y componentes de cliente.
+
+2. **Optimización del Dashboard:**
+   - Resuelto problema de consultas N+1 en `api/dashboard`.
+   - Implementado procesamiento en memoria para métricas de ingresos por grupo.
+   - Mejorada la velocidad de carga de las estadísticas principales.
+
+3. **Correcciones de Deployment:**
+   - Actualizado `vercel.json` para usar `migrate deploy` en lugar de `db push`.
+   - Ajustada la configuración de `outputDirectory` para compatibilidad con Vercel.
+   - Eliminado el modo `standalone` innecesario.
+
+4. **Documentación:**
+   - Creado `CONTACTOS_BD.md` con referencias de datos de ejemplo.
+   - Creado `CLAUDE.md` con instrucciones para asistentes de IA.
+
+---
+
+## 2026-03-25 - Corrección de Vistas e Integración ✅ COMPLETADO
+
+### Task: Corregir errores en la vista de pagos y sesiones
+
+**Cambios realizados:**
+- Corregido error en `payments-view.tsx` al manejar objetos de subscripción.
+- Restaurados handlers de NextAuth y fortalecida la configuración de `NEXTAUTH_SECRET`.
+- Cambiado tipo de datos de `Float` a `Decimal` en Prisma para precisión fiscal en montos de dinero.
+- Agregados índices faltantes en la base de datos para mejorar el performance de búsquedas.
