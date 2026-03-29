@@ -19,7 +19,10 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-  Receipt
+  Receipt,
+  FileCheck,
+  Upload,
+  CreditCard
 } from 'lucide-react'
 import { GroupBadge } from './group-badge'
 import { GroupSelector } from './group-selector'
@@ -82,6 +85,8 @@ interface Client {
   preferredDays: string | null
   preferredTime: string | null
   notes: string | null
+  registrationFeePaid1: boolean
+  registrationFeePaid2: boolean
   subscriptions: Subscription[]
   attendances: Attendance[]
   invoices: Invoice[]
@@ -182,9 +187,11 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
     notes: '',
     classesTotal: 4,
     amount: 0,
+    registrationFeePaid1: false,
+    registrationFeePaid2: false,
   })
 
-  const [activeTab, setActiveTab] = useState<'info' | 'subscription' | 'history' | 'invoices'>('info')
+  const [activeTab, setActiveTab] = useState<'info' | 'subscription' | 'inscription' | 'history' | 'invoices'>('info')
 
   // Memoized current date values
   const currentDate = useMemo(() => {
@@ -214,6 +221,8 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
           notes: result.data.notes || '',
           classesTotal: currentSub?.classesTotal || 4,
           amount: currentSub?.amount || 0,
+          registrationFeePaid1: result.data.registrationFeePaid1 || false,
+          registrationFeePaid2: result.data.registrationFeePaid2 || false,
         })
       }
     } catch (error) {
@@ -353,6 +362,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
   const tabs = useMemo(() => [
     { id: 'info' as const, label: 'Información', icon: User },
     { id: 'subscription' as const, label: 'Suscripción', icon: Calendar },
+    { id: 'inscription' as const, label: 'Inscripción', icon: CreditCard },
     { id: 'invoices' as const, label: 'Facturas', icon: Receipt },
     { id: 'history' as const, label: 'Historial', icon: Clock },
   ], [])
@@ -608,6 +618,280 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                     </Badge>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {activeTab === 'inscription' && (
+          <div className="space-y-6">
+            {/* Cuota 1 - Primera cuota de inscripción */}
+            <Card className="border-0 shadow-md">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-cyan-600" />
+                  Cuota 1 - Primera Inscripción
+                </CardTitle>
+                <CardDescription>
+                  Primera cuota de inscripción ($25.000)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Toggle for payment status */}
+                <div className="flex items-center justify-between p-4 rounded-xl border" style={{ background: formData.registrationFeePaid1 ? 'rgba(52, 199, 89, 0.1)' : 'rgba(255, 149, 0, 0.1)' }}>
+                  <div className="flex items-center gap-3">
+                    {formData.registrationFeePaid1 ? (
+                      <FileCheck className="w-5 h-5 text-emerald-600" />
+                    ) : (
+                      <Clock className="w-5 h-5 text-amber-600" />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">Estado de pago</p>
+                      <p className="text-xs text-slate-500">
+                        {formData.registrationFeePaid1 ? 'Pagado' : 'Pendiente'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newValue = !formData.registrationFeePaid1
+                      setFormData(prev => ({ ...prev, registrationFeePaid1: newValue }))
+                      // Save immediately
+                      fetch(`/api/clients/${clientId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ registrationFeePaid1: newValue }),
+                      })
+                    }}
+                    className={cn(
+                      'relative inline-flex h-8 w-14 items-center rounded-full transition-all',
+                      formData.registrationFeePaid1
+                        ? 'bg-emerald-500'
+                        : 'bg-amber-400'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all',
+                        formData.registrationFeePaid1 ? 'translate-x-7' : 'translate-x-1'
+                      )}
+                    />
+                  </button>
+                </div>
+
+                {/* Upload receipt button */}
+                <div className="flex items-center justify-between p-4 rounded-xl border bg-slate-50">
+                  <div className="flex items-center gap-3">
+                    <Upload className="w-5 h-5 text-slate-400" />
+                    <div>
+                      <p className="text-sm font-medium">Comprobante</p>
+                      <p className="text-xs text-slate-500">
+                        {clientInvoices.filter(inv => inv.category === 'INSCRIPCION_CUOTA1').length > 0 
+                          ? 'Comprobante adjuntado'
+                          : 'Sin comprobante'}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      // Trigger file input for this specific cuota
+                      const input = document.getElementById('inscription-receipt-1') as HTMLInputElement
+                      if (input) input.click()
+                    }}
+                    className="gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {clientInvoices.filter(inv => inv.category === 'INSCRIPCION_CUOTA1').length > 0 ? 'Cambiar' : 'Subir'}
+                  </Button>
+                  <input
+                    id="inscription-receipt-1"
+                    type="file"
+                    accept=".pdf,image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+
+                      const formDataUpload = new FormData()
+                      formDataUpload.append('file', file)
+                      formDataUpload.append('clientId', clientId)
+                      formDataUpload.append('type', 'RECEIPT')
+                      formDataUpload.append('category', 'INSCRIPCION_CUOTA1')
+                      formDataUpload.append('description', 'Comprobante cuota 1 inscripción')
+
+                      try {
+                        const response = await fetch('/api/invoices', {
+                          method: 'POST',
+                          body: formDataUpload,
+                        })
+                        const result = await response.json()
+                        if (result.success) {
+                          fetchClient()
+                        }
+                      } catch (error) {
+                        console.error('Error uploading receipt:', error)
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Show existing receipt if any */}
+                {clientInvoices.filter(inv => inv.category === 'INSCRIPCION_CUOTA1').map(invoice => (
+                  <div key={invoice.id} className="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+                    <FileText className="w-5 h-5 text-emerald-600" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{invoice.fileName}</p>
+                      <p className="text-xs text-slate-500">
+                        {new Date(invoice.uploadedAt).toLocaleDateString('es-AR')}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => window.open(invoice.filePath, '_blank')}
+                    >
+                      <Receipt className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Cuota 2 - Segunda cuota de inscripción */}
+            <Card className="border-0 shadow-md">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-cyan-600" />
+                  Cuota 2 - Segunda Inscripción
+                </CardTitle>
+                <CardDescription>
+                  Segunda cuota de inscripción ($25.000)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Toggle for payment status */}
+                <div className="flex items-center justify-between p-4 rounded-xl border" style={{ background: formData.registrationFeePaid2 ? 'rgba(52, 199, 89, 0.1)' : 'rgba(255, 149, 0, 0.1)' }}>
+                  <div className="flex items-center gap-3">
+                    {formData.registrationFeePaid2 ? (
+                      <FileCheck className="w-5 h-5 text-emerald-600" />
+                    ) : (
+                      <Clock className="w-5 h-5 text-amber-600" />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">Estado de pago</p>
+                      <p className="text-xs text-slate-500">
+                        {formData.registrationFeePaid2 ? 'Pagado' : 'Pendiente'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newValue = !formData.registrationFeePaid2
+                      setFormData(prev => ({ ...prev, registrationFeePaid2: newValue }))
+                      // Save immediately
+                      fetch(`/api/clients/${clientId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ registrationFeePaid2: newValue }),
+                      })
+                    }}
+                    className={cn(
+                      'relative inline-flex h-8 w-14 items-center rounded-full transition-all',
+                      formData.registrationFeePaid2
+                        ? 'bg-emerald-500'
+                        : 'bg-amber-400'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all',
+                        formData.registrationFeePaid2 ? 'translate-x-7' : 'translate-x-1'
+                      )}
+                    />
+                  </button>
+                </div>
+
+                {/* Upload receipt button */}
+                <div className="flex items-center justify-between p-4 rounded-xl border bg-slate-50">
+                  <div className="flex items-center gap-3">
+                    <Upload className="w-5 h-5 text-slate-400" />
+                    <div>
+                      <p className="text-sm font-medium">Comprobante</p>
+                      <p className="text-xs text-slate-500">
+                        {clientInvoices.filter(inv => inv.category === 'INSCRIPCION_CUOTA2').length > 0 
+                          ? 'Comprobante adjuntado'
+                          : 'Sin comprobante'}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      // Trigger file input for this specific cuota
+                      const input = document.getElementById('inscription-receipt-2') as HTMLInputElement
+                      if (input) input.click()
+                    }}
+                    className="gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    {clientInvoices.filter(inv => inv.category === 'INSCRIPCION_CUOTA2').length > 0 ? 'Cambiar' : 'Subir'}
+                  </Button>
+                  <input
+                    id="inscription-receipt-2"
+                    type="file"
+                    accept=".pdf,image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+
+                      const formDataUpload = new FormData()
+                      formDataUpload.append('file', file)
+                      formDataUpload.append('clientId', clientId)
+                      formDataUpload.append('type', 'RECEIPT')
+                      formDataUpload.append('category', 'INSCRIPCION_CUOTA2')
+                      formDataUpload.append('description', 'Comprobante cuota 2 inscripción')
+
+                      try {
+                        const response = await fetch('/api/invoices', {
+                          method: 'POST',
+                          body: formDataUpload,
+                        })
+                        const result = await response.json()
+                        if (result.success) {
+                          fetchClient()
+                        }
+                      } catch (error) {
+                        console.error('Error uploading receipt:', error)
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Show existing receipt if any */}
+                {clientInvoices.filter(inv => inv.category === 'INSCRIPCION_CUOTA2').map(invoice => (
+                  <div key={invoice.id} className="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg border border-emerald-100">
+                    <FileText className="w-5 h-5 text-emerald-600" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{invoice.fileName}</p>
+                      <p className="text-xs text-slate-500">
+                        {new Date(invoice.uploadedAt).toLocaleDateString('es-AR')}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => window.open(invoice.filePath, '_blank')}
+                    >
+                      <Receipt className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>

@@ -26,12 +26,12 @@ export const clientSchema = z.object({
   dni: z.string().optional().nullable(),
   telefono: z.string()
     .min(8, 'El teléfono debe tener al menos 8 dígitos')
-    .regex(/^\d{8,15}$/, 'El teléfono debe contener solo números'),
+    .regex(/^[\d\s\-]+$/, 'El teléfono debe contener solo números'),
   grupoId: z.string().optional().nullable(),
   preferredDays: z.string().optional().nullable(),
   preferredTime: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
-  monthlyAmount: z.number().positive().optional().nullable(),
+  monthlyAmount: z.number().min(0).optional().nullable(),
   registrationFeePaid1: z.boolean().optional().default(false),
   registrationFeePaid2: z.boolean().optional().default(false),
 })

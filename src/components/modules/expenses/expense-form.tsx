@@ -44,12 +44,16 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
     month: (new Date().getMonth() + 1).toString(),
     year: new Date().getFullYear().toString(),
     userId: '',
-    supplier: '',
+    supplier: '', // Used for custom employee name in SUELDO category
     notes: '',
   })
 
+  const [employeeMode, setEmployeeMode] = useState<'select' | 'custom'>('select')
+
   useEffect(() => {
     if (expense) {
+      // If there's a supplier but no userId, it's a custom employee
+      const isCustomEmployee = expense.userId === null && expense.supplier
       setFormData({
         description: expense.description,
         amount: expense.amount.toString(),
@@ -61,6 +65,7 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
         supplier: expense.supplier || '',
         notes: expense.notes || '',
       })
+      setEmployeeMode(isCustomEmployee ? 'custom' : 'select')
     } else {
       setFormData({
         description: '',
@@ -73,6 +78,7 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
         supplier: '',
         notes: '',
       })
+      setEmployeeMode('select')
     }
   }, [expense, open])
 
@@ -223,29 +229,75 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
           </div>
 
           {formData.category === 'SUELDO' && (
-            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-              <Label htmlFor="employee" className="text-slate-700 font-semibold">Empleado *</Label>
-              <Select 
-                value={formData.userId} 
-                onValueChange={(v) => setFormData({ ...formData, userId: v })}
-                required
-              >
-                <SelectTrigger className="h-11 border-slate-200">
-                  {loadingEmployees ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-[#00A8E8]" />
-                      <span>Cargando...</span>
-                    </div>
-                  ) : (
-                    <SelectValue placeholder="Seleccionar empleado" />
-                  )}
-                </SelectTrigger>
-                <SelectContent>
-                  {employees.map(emp => (
-                    <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={employeeMode === 'select' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setEmployeeMode('select')
+                    setFormData({ ...formData, supplier: '', userId: '' })
+                  }}
+                  className={employeeMode === 'select' ? 'bg-[#005691] hover:bg-[#0078B0]' : ''}
+                >
+                  Seleccionar
+                </Button>
+                <Button
+                  type="button"
+                  variant={employeeMode === 'custom' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setEmployeeMode('custom')
+                    setFormData({ ...formData, userId: '' })
+                  }}
+                  className={employeeMode === 'custom' ? 'bg-[#005691] hover:bg-[#0078B0]' : ''}
+                >
+                  Otro nombre
+                </Button>
+              </div>
+
+              {employeeMode === 'select' ? (
+                <div>
+                  <Label htmlFor="employee" className="text-slate-700 font-semibold">Empleado existente *</Label>
+                  <Select 
+                    value={formData.userId} 
+                    onValueChange={(v) => setFormData({ ...formData, userId: v })}
+                    required={employeeMode === 'select'}
+                  >
+                    <SelectTrigger className="h-11 border-slate-200 mt-1">
+                      {loadingEmployees ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin text-[#00A8E8]" />
+                          <span>Cargando...</span>
+                        </div>
+                      ) : (
+                        <SelectValue placeholder="Seleccionar empleado" />
+                      )}
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees.map(emp => (
+                        <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div>
+                  <Label htmlFor="customEmployee" className="text-slate-700 font-semibold">Nombre del empleado *</Label>
+                  <Input 
+                    id="customEmployee"
+                    value={formData.supplier}
+                    onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                    placeholder="Ej: María González"
+                    required={employeeMode === 'custom'}
+                    className="h-11 border-slate-200 focus-visible:ring-[#00A8E8] mt-1"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Ingresa el nombre del empleado que no está en la lista
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

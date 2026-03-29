@@ -88,7 +88,7 @@ export async function PUT(
       nombre,
       apellido,
       dni,
-      telefono,
+      telefono: telefonoWithFormat,
       grupoId,
       preferredDays,
       preferredTime,
@@ -97,6 +97,9 @@ export async function PUT(
       registrationFeePaid1,
       registrationFeePaid2,
     } = parsed.data
+
+    // Clean phone number - remove spaces and dashes
+    const telefono = telefonoWithFormat ? telefonoWithFormat.replace(/[\s\-]/g, '') : undefined
 
     // If telefono is being updated, check for duplicates
     if (telefono) {
@@ -235,7 +238,7 @@ export async function PATCH(
     if (parsed.data.nombre !== undefined) updateData.nombre = parsed.data.nombre
     if (parsed.data.apellido !== undefined) updateData.apellido = parsed.data.apellido
     if (parsed.data.dni !== undefined) updateData.dni = parsed.data.dni
-    if (parsed.data.telefono !== undefined) updateData.telefono = parsed.data.telefono
+    if (parsed.data.telefono !== undefined) updateData.telefono = parsed.data.telefono.replace(/[\s\-]/g, '')
     if (parsed.data.grupoId !== undefined) updateData.grupoId = parsed.data.grupoId
     if (parsed.data.preferredDays !== undefined) updateData.preferredDays = parsed.data.preferredDays
     if (parsed.data.preferredTime !== undefined) updateData.preferredTime = parsed.data.preferredTime

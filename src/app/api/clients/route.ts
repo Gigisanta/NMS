@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
       nombre,
       apellido,
       dni,
-      telefono,
+      telefono: telefonoWithFormat,
       grupoId,
       preferredDays,
       preferredTime,
@@ -194,6 +194,9 @@ export async function POST(request: NextRequest) {
       registrationFeePaid1 = false,
       registrationFeePaid2 = false,
     } = parsed.data
+
+    // Clean phone number - remove spaces and dashes
+    const telefono = telefonoWithFormat.replace(/[\s\-]/g, '')
 
     // Check if phone already exists
     const existingClient = await db.client.findUnique({
