@@ -1,9 +1,9 @@
 {
   "name": "nextjs_tailwind_shadcn_ts",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "scripts": {
-    "dev": "powershell -Command \"Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; Start-Sleep -Seconds 1; $env:NEXT_USE_WEBPACK='1'; next dev -p 3000\"",
+    "dev": "npx next dev -p 3000",
     "build": "next build",
     "build:standalone": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
     "start": "NODE_ENV=production next start -p 3000 2>&1 | tee server.log",
