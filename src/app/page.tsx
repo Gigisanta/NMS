@@ -1,5 +1,6 @@
 'use client'
 
+// NMS v0.2.4 - Deployment test
 import { useState, lazy, Suspense, useCallback, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
