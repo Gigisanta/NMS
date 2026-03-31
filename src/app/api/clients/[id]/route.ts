@@ -166,8 +166,9 @@ export async function PUT(
     if (monthlyAmount !== undefined || body.classesTotal !== undefined) {
       const currentMonth = getCurrentMonth()
       const currentYear = getCurrentYear()
+      const billingPeriod = body.billingPeriod || 'FULL'
 
-      const updateData: Record<string, number | null> = {}
+      const updateData: Record<string, number | string | null> = {}
       if (monthlyAmount !== undefined) {
         updateData.amount = monthlyAmount ?? 0
       }
@@ -180,6 +181,7 @@ export async function PUT(
           clientId: id,
           month: currentMonth,
           year: currentYear,
+          billingPeriod: billingPeriod,
         },
         data: updateData,
       })
@@ -202,8 +204,10 @@ export async function PUT(
         { status: 400 }
       )
     }
+    // Return more specific error message
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
     return NextResponse.json(
-      { success: false, error: 'Error al actualizar cliente' },
+      { success: false, error: `Error al actualizar cliente: ${errorMessage}` },
       { status: 500 }
     )
   }
