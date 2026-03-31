@@ -15,68 +15,30 @@ export async function GET(
     const { id } = await params
 
     // Use cached fetch for high-traffic detail route (60s cache)
-    // Note: clientGroups include may fail if migration hasn't run yet, so we handle it carefully
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let client: any = null
-    try {
-      client = await cachedFetch(
-        CacheKeys.client(id),
-        async () => {
-          return db.client.findUnique({
-            where: { id },
-            include: {
-              grupo: true,
-              clientGroups: {
-                include: {
-                  group: {
-                    select: {
-                      id: true,
-                      name: true,
-                      color: true,
-                      schedule: true,
-                    },
-                  },
-                },
-              },
-              subscriptions: {
-                orderBy: [{ year: 'desc' }, { month: 'desc' }],
-                take: 12,
-              },
-              invoices: {
-                orderBy: { uploadedAt: 'desc' },
-                take: 10,
-              },
-              attendances: {
-                orderBy: { date: 'desc' },
-                take: 20,
-              },
+    const client = await cachedFetch(
+      CacheKeys.client(id),
+      async () => {
+        return db.client.findUnique({
+          where: { id },
+          include: {
+            grupo: true,
+            subscriptions: {
+              orderBy: [{ year: 'desc' }, { month: 'desc' }],
+              take: 12,
             },
-          })
-        },
-        60 * 1000 // 1 minute cache
-      )
-    } catch (e) {
-      // If clientGroups include fails (e.g. migration not run), retry without it
-      console.warn('clientGroups include failed, retrying without it:', e)
-      client = await db.client.findUnique({
-        where: { id },
-        include: {
-          grupo: true,
-          subscriptions: {
-            orderBy: [{ year: 'desc' }, { month: 'desc' }],
-            take: 12,
+            invoices: {
+              orderBy: { uploadedAt: 'desc' },
+              take: 10,
+            },
+            attendances: {
+              orderBy: { date: 'desc' },
+              take: 20,
+            },
           },
-          invoices: {
-            orderBy: { uploadedAt: 'desc' },
-            take: 10,
-          },
-          attendances: {
-            orderBy: { date: 'desc' },
-            take: 20,
-          },
-        },
-      })
-    }
+        })
+      },
+      60 * 1000 // 1 minute cache
+    )
 
     if (!client) {
       return NextResponse.json(
