@@ -150,6 +150,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Create invoice record
+    // Only set uploadedBy if user exists in database
+    let uploadedBy: string | null = null
+    if (session.user.id) {
+      const userExists = await db.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true },
+      })
+      if (userExists) {
+        uploadedBy = session.user.id
+      }
+    }
+
     const invoice = await db.invoice.create({
       data: {
         clientId,
@@ -171,7 +183,7 @@ export async function POST(request: NextRequest) {
         source: 'MANUAL',
 
 
-        uploadedBy: session.user.id,
+        uploadedBy,
       },
       include: {
         client: {
