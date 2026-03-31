@@ -153,8 +153,26 @@ model Group {
   updatedAt   DateTime @updatedAt
 
   clients     Client[]
+  clientGroups ClientGroup[]
 
   @@map("groups")
+}
+
+// Junction table for many-to-many relationship between clients and groups
+model ClientGroup {
+  id        String   @id @default(cuid())
+  clientId  String
+  groupId   String
+  schedule  String?  // Optional override of group's default schedule for this specific client-group assignment
+  createdAt DateTime @default(now())
+
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, groupId])
+  @@index([clientId])
+  @@index([groupId])
+  @@map("client_groups")
 }
 
 // Tabla Clientes
@@ -163,7 +181,7 @@ model Client {
   nombre          String
   apellido        String
   dni             String?
-  telefono        String   @unique
+  telefono        String?
   grupoId         String?
   preferredDays   String?
   preferredTime   String?
@@ -180,6 +198,7 @@ model Client {
   subscriptions  Subscription[]
   invoices       Invoice[]
   attendances    Attendance[]
+  clientGroups   ClientGroup[]
 
   @@index([grupoId])
   @@index([apellido, nombre])
@@ -194,6 +213,7 @@ model Subscription {
   year           Int
   status         String   @default("PENDIENTE")
   paymentMethod  String?  // EFECTIVO, TRANSFERENCIA, MERCADO_PAGO
+  billingPeriod  String   @default("FULL") // FULL or HALF (for mid-month signups)
 
   @@index([status])
   isBilled       Boolean  @default(false) // Whether it was processed for ARCA
@@ -207,7 +227,7 @@ model Subscription {
   invoices       Invoice[]
   client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
-  @@unique([clientId, month, year])
+  @@unique([clientId, month, year, billingPeriod])
   @@index([month, year])
   @@map("subscriptions")
 }

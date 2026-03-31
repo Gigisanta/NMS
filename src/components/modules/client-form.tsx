@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Loader2, Check, Calendar, Clock, FileText, User, Phone, Hash, DollarSign } from 'lucide-react'
+import { Loader2, Check, Calendar, Clock, FileText, User, Phone, Hash, DollarSign, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ScheduleSelector } from './schedule-selector'
 
@@ -22,7 +22,7 @@ interface Client {
   nombre: string
   apellido: string
   dni: string | null
-  telefono: string
+  telefono: string | null
   grupoId: string | null
   preferredDays: string | null
   preferredTime: string | null
@@ -43,7 +43,10 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState<'personal' | 'schedule' | 'subscription'>('personal')
-  
+
+  // Additional groups selected (beyond the primary grupoId)
+  const [additionalGroups, setAdditionalGroups] = useState<string[]>([])
+
   const [formData, setFormData] = useState({
     nombre: client?.nombre || '',
     apellido: client?.apellido || '',
@@ -54,6 +57,7 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
     preferredTime: client?.preferredTime || '',
     notes: client?.notes || '',
     classesTotal: 4,
+    billingPeriod: 'FULL' as 'FULL' | 'HALF',
     monthlyAmount: client?.monthlyAmount || null,
     registrationFeePaid1: client?.registrationFeePaid1 || false,
     registrationFeePaid2: client?.registrationFeePaid2 || false,
@@ -71,10 +75,10 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
     setError(null)
 
     try {
-      const url = client?.id 
-        ? `/api/clients/${client.id}` 
+      const url = client?.id
+        ? `/api/clients/${client.id}`
         : '/api/clients'
-      
+
       const response = await fetch(url, {
         method: client?.id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -82,7 +86,7 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
           nombre: formData.nombre,
           apellido: formData.apellido,
           dni: formData.dni || null,
-          telefono: formData.telefono,
+          telefono: formData.telefono || null,
           grupoId: formData.grupoId || null,
           preferredDays: formData.preferredDays || null,
           preferredTime: formData.preferredTime || null,
@@ -95,8 +99,22 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
       })
 
       const result = await response.json()
-      
+
       if (result.success) {
+        // If creating a new client and additional groups were selected, create ClientGroup entries
+        if (!client?.id && additionalGroups.length > 0) {
+          const clientId = result.data.id
+          // Create ClientGroup entries for each additional group
+          await Promise.all(
+            additionalGroups.map(groupId =>
+              fetch('/api/client-groups', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ clientId, groupId }),
+              })
+            )
+          )
+        }
         onSuccess()
       } else {
         setError(result.error || 'Error al guardar cliente')
@@ -107,6 +125,15 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
     } finally {
       setLoading(false)
     }
+  }
+
+  // Toggle an additional group selection
+  const toggleAdditionalGroup = (groupId: string) => {
+    setAdditionalGroups(prev =>
+      prev.includes(groupId)
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    )
   }
 
   return (
@@ -192,23 +219,22 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Phone className="w-3 h-3" style={{ color: '#00A8E8' }} />
-                Teléfono *
+                Teléfono
               </Label>
               <Input
                 value={formData.telefono}
                 onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                 placeholder="3512345678"
-                required
                 className="transition-all"
                 style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
               />
               <p className="text-xs" style={{ color: '#86868b' }}>
-                Número sin espacios ni guiones
+                Opcional - Número sin espacios ni guiones
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label>Grupo</Label>
+              <Label>Grupo Principal</Label>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
@@ -247,6 +273,65 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                 ))}
               </div>
             </div>
+
+            {/* Additional Groups (only for new clients) */}
+            {!client?.id && (
+              <div className="space-y-2">
+                <Label>Grupos Adicionales</Label>
+                <p className="text-xs text-slate-500">Selecciona grupos adicionales si el cliente asiste a más de un horario</p>
+                <div className="flex flex-wrap gap-2">
+                  {groups
+                    .filter(group => group.id !== formData.grupoId)
+                    .map((group) => (
+                      <button
+                        key={group.id}
+                        type="button"
+                        onClick={() => toggleAdditionalGroup(group.id)}
+                        className={cn(
+                          'px-3 py-2 text-sm rounded-xl border-2 transition-all',
+                          additionalGroups.includes(group.id)
+                            ? 'shadow-md'
+                            : 'border-[rgba(0,168,232,0.2)] hover:border-[rgba(0,168,232,0.4)]'
+                        )}
+                        style={additionalGroups.includes(group.id) ? {
+                          backgroundColor: `${group.color}15`,
+                          borderColor: group.color,
+                          color: group.color,
+                        } : {}}
+                      >
+                        {additionalGroups.includes(group.id) && <Check className="w-3 h-3 inline mr-1" />}
+                        {group.name}
+                      </button>
+                    ))}
+                </div>
+                {additionalGroups.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {additionalGroups.map(groupId => {
+                      const group = groups.find(g => g.id === groupId)
+                      return group ? (
+                        <span
+                          key={groupId}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs"
+                          style={{
+                            backgroundColor: `${group.color}20`,
+                            color: group.color,
+                          }}
+                        >
+                          {group.name}
+                          <button
+                            type="button"
+                            onClick={() => toggleAdditionalGroup(groupId)}
+                            className="hover:opacity-70"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ) : null
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
@@ -305,6 +390,43 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
               </div>
               <p className="text-xs" style={{ color: '#86868b' }}>
                 Monto que el cliente debe pagar cada mes.
+              </p>
+            </div>
+
+            {/* Billing Period Selector */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Calendar className="w-3 h-3" style={{ color: '#00A8E8' }} />
+                Periodo de Facturación
+              </Label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, billingPeriod: 'FULL' })}
+                  className={cn(
+                    'flex-1 py-3 px-4 rounded-xl border-2 transition-all text-sm font-medium',
+                    formData.billingPeriod === 'FULL'
+                      ? 'border-[#00A8E8] text-[#005691] bg-[rgba(0,168,232,0.1)]'
+                      : 'border-[rgba(0,168,232,0.2)] text-slate-600 hover:border-[rgba(0,168,232,0.4)]'
+                  )}
+                >
+                  Mes completo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, billingPeriod: 'HALF' })}
+                  className={cn(
+                    'flex-1 py-3 px-4 rounded-xl border-2 transition-all text-sm font-medium',
+                    formData.billingPeriod === 'HALF'
+                      ? 'border-[#00A8E8] text-[#005691] bg-[rgba(0,168,232,0.1)]'
+                      : 'border-[rgba(0,168,232,0.2)] text-slate-600 hover:border-[rgba(0,168,232,0.4)]'
+                  )}
+                >
+                  Media quota (1/2 mes)
+                </button>
+              </div>
+              <p className="text-xs" style={{ color: '#86868b' }}>
+                Para clientes que se inscriben a mitad del mes.
               </p>
             </div>
 

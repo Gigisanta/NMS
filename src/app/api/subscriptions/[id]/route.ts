@@ -10,7 +10,7 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { status, classesTotal, classesUsed, amount, paymentMethod, isBilled } = body
+    const { status, classesTotal, classesUsed, amount, paymentMethod, isBilled, billingPeriod } = body
 
     const updateData: any = {}
 
@@ -20,6 +20,7 @@ export async function PUT(
     if (typeof amount === 'number' || amount === null) updateData.amount = amount
     if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod
     if (typeof isBilled === 'boolean') updateData.isBilled = isBilled
+    if (billingPeriod !== undefined) updateData.billingPeriod = billingPeriod
 
     const subscription = await db.subscription.update({
       where: { id },

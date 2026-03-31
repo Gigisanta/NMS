@@ -19,13 +19,23 @@ export interface GroupWithCount extends Group {
   clientCount: number
 }
 
+// Client-Group junction table type
+export interface ClientGroup {
+  id: string
+  clientId: string
+  groupId: string
+  schedule: string | null
+  createdAt: Date
+  group?: Group
+}
+
 // Client Types
 export interface Client {
   id: string
   nombre: string
   apellido: string
   dni: string | null
-  telefono: string
+  telefono: string | null
   grupoId: string | null
   preferredDays: string | null
   preferredTime: string | null
@@ -35,6 +45,7 @@ export interface Client {
   registrationFeePaid2?: boolean
   createdAt: Date
   updatedAt: Date
+  clientGroups?: ClientGroup[]
 }
 
 export interface ClientWithGroup extends Client {
@@ -60,6 +71,7 @@ export interface Subscription {
   month: number
   year: number
   status: PaymentStatus
+  billingPeriod?: 'FULL' | 'HALF'
   classesTotal: number
   classesUsed: number
   amount: number | null

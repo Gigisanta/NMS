@@ -26,7 +26,9 @@ export const clientSchema = z.object({
   dni: z.string().optional().nullable(),
   telefono: z.string()
     .min(8, 'El teléfono debe tener al menos 8 dígitos')
-    .regex(/^[\d\s\-]+$/, 'El teléfono debe contener solo números'),
+    .regex(/^[\d\s\-]+$/, 'El teléfono debe contener solo números')
+    .optional()
+    .nullable(),
   grupoId: z.string().optional().nullable(),
   preferredDays: z.string().optional().nullable(),
   preferredTime: z.string().optional().nullable(),
@@ -35,6 +37,16 @@ export const clientSchema = z.object({
   registrationFeePaid1: z.boolean().optional().default(false),
   registrationFeePaid2: z.boolean().optional().default(false),
 })
+
+// Client-Group Assignment Schema
+export const clientGroupSchema = z.object({
+  clientId: z.string().min(1, 'El ID del cliente es requerido'),
+  groupId: z.string().min(1, 'El ID del grupo es requerido'),
+  schedule: z.string().max(100).optional().nullable(),
+})
+
+export const createClientGroupSchema = clientGroupSchema
+export type CreateClientGroupInput = z.infer<typeof createClientGroupSchema>
 
 export const createClientSchema = clientSchema.extend({
   classesTotal: z.number().int().min(1).max(30).optional().default(4),
@@ -52,6 +64,7 @@ export const subscriptionSchema = z.object({
   month: z.number().int().min(1).max(12),
   year: z.number().int().min(2020).max(2100),
   status: paymentStatusSchema,
+  billingPeriod: z.enum(['FULL', 'HALF']).default('FULL'),
   classesTotal: z.number().int().min(1).max(30).default(4),
   classesUsed: z.number().int().min(0).default(0),
   amount: z.number().positive().optional().nullable(),

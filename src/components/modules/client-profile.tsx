@@ -8,10 +8,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { 
-  Loader2, 
-  Save, 
-  X, 
+import {
+  Loader2,
+  Save,
+  X,
   Calendar,
   Clock,
   Phone,
@@ -22,7 +22,8 @@ import {
   Receipt,
   FileCheck,
   Upload,
-  CreditCard
+  CreditCard,
+  Plus
 } from 'lucide-react'
 import { GroupBadge } from './group-badge'
 import { GroupSelector } from './group-selector'
@@ -42,6 +43,7 @@ interface Subscription {
   month: number
   year: number
   status: string
+  billingPeriod?: 'FULL' | 'HALF'
   classesTotal: number
   classesUsed: number
   amount: number | null
@@ -74,12 +76,20 @@ interface Invoice {
   uploadedAt: string
 }
 
+interface ClientGroup {
+  id: string
+  clientId: string
+  groupId: string
+  schedule: string | null
+  group: Group
+}
+
 interface Client {
   id: string
   nombre: string
   apellido: string
   dni: string | null
-  telefono: string
+  telefono: string | null
   grupoId: string | null
   grupo: Group | null
   preferredDays: string | null
@@ -90,6 +100,7 @@ interface Client {
   subscriptions: Subscription[]
   attendances: Attendance[]
   invoices: Invoice[]
+  clientGroups: ClientGroup[]
 }
 
 interface ClientProfileProps {
@@ -119,15 +130,19 @@ const AttendanceItem = memo(function AttendanceItem({ attendance }: { attendance
 // Memoized subscription item
 const SubscriptionItem = memo(function SubscriptionItem({ sub }: { sub: Subscription }) {
   const config = useMemo(() => getPaymentStatusConfig(sub.status), [sub.status])
-  const monthLabel = useMemo(() => 
+  const monthLabel = useMemo(() =>
     new Date(sub.year, sub.month - 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }),
     [sub.month, sub.year]
   )
-  
+  const billingLabel = useMemo(() =>
+    sub.billingPeriod === 'HALF' ? ' (1/2)' : '',
+    [sub.billingPeriod]
+  )
+
   return (
     <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
       <div>
-        <p className="text-sm font-medium capitalize">{monthLabel}</p>
+        <p className="text-sm font-medium capitalize">{monthLabel}{billingLabel}</p>
         <p className="text-xs text-slate-500">
           {sub.classesUsed}/{sub.classesTotal} clases
         </p>
@@ -186,6 +201,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
     preferredTime: '',
     notes: '',
     classesTotal: 4,
+    billingPeriod: 'FULL' as 'FULL' | 'HALF',
     amount: 0,
     registrationFeePaid1: false,
     registrationFeePaid2: false,
@@ -220,6 +236,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
           preferredTime: result.data.preferredTime || '',
           notes: result.data.notes || '',
           classesTotal: currentSub?.classesTotal || 4,
+          billingPeriod: currentSub?.billingPeriod || 'FULL',
           amount: currentSub?.amount || 0,
           registrationFeePaid1: result.data.registrationFeePaid1 || false,
           registrationFeePaid2: result.data.registrationFeePaid2 || false,
@@ -276,6 +293,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             classesTotal: formData.classesTotal,
+            billingPeriod: formData.billingPeriod,
             amount: formData.amount,
           }),
         })
@@ -309,6 +327,54 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
   const incrementClasses = useCallback(() => {
     setFormData(prev => ({ ...prev, classesTotal: prev.classesTotal + 1 }))
   }, [])
+
+  // Add client to a group
+  const addClientToGroup = useCallback(async (groupId: string) => {
+    try {
+      const response = await fetch('/api/client-groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: clientId,
+          groupId: groupId,
+        }),
+      })
+      const result = await response.json()
+      if (result.success) {
+        fetchClient()
+      } else {
+        setError(result.error || 'Error al agregar grupo')
+      }
+    } catch (error) {
+      console.error('Error adding client to group:', error)
+      setError('Error de conexión')
+    }
+  }, [clientId, fetchClient])
+
+  // Remove client from a group
+  const removeClientFromGroup = useCallback(async (clientGroupId: string) => {
+    try {
+      const response = await fetch(`/api/client-groups/${clientGroupId}`, {
+        method: 'DELETE',
+      })
+      const result = await response.json()
+      if (result.success) {
+        fetchClient()
+      } else {
+        setError(result.error || 'Error al remover grupo')
+      }
+    } catch (error) {
+      console.error('Error removing client from group:', error)
+      setError('Error de conexión')
+    }
+  }, [fetchClient])
+
+  // Get groups not yet assigned to this client
+  const availableGroups = useMemo(() => {
+    if (!client?.clientGroups) return groups
+    const assignedGroupIds = client.clientGroups.map(cg => cg.groupId)
+    return groups.filter(g => !assignedGroupIds.includes(g.id))
+  }, [groups, client?.clientGroups])
 
   // Memoized computed values
   const currentSubscription = useMemo(() => 
@@ -486,13 +552,65 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Grupo</Label>
+                  <Label>Grupo Principal</Label>
                   <GroupSelector
                     value={formData.grupoId}
                     onChange={(grupoId) => updateFormData('grupoId', grupoId || '')}
                     groups={groups}
                     onGroupsChange={() => {}}
                   />
+                </div>
+
+                {/* Additional Groups */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Grupos Adicionales</Label>
+                    {availableGroups.length > 0 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs gap-1"
+                        onClick={() => {
+                          // Show a simple dropdown or selector to add groups
+                          const groupId = availableGroups[0].id
+                          if (window.confirm(`¿Agregar a ${availableGroups[0].name}?`)) {
+                            addClientToGroup(groupId)
+                          }
+                        }}
+                      >
+                        <Plus className="w-3 h-3" />
+                        Agregar
+                      </Button>
+                    )}
+                  </div>
+                  {client?.clientGroups && client.clientGroups.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {client.clientGroups.map((cg) => (
+                        <div
+                          key={cg.id}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm"
+                          style={{
+                            backgroundColor: `${cg.group.color}20`,
+                            borderColor: cg.group.color,
+                            color: cg.group.color,
+                            borderWidth: 1,
+                          }}
+                        >
+                          <span>{cg.group.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeClientFromGroup(cg.id)}
+                            className="ml-1 hover:opacity-70"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400">Sin grupos adicionales</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -560,6 +678,29 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                       onChange={(e) => updateFormData('amount', parseFloat(e.target.value) || 0)}
                       placeholder="0"
                     />
+                  </div>
+                </div>
+
+                {/* Billing Period */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-600">Periodo de facturación</span>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={formData.billingPeriod === 'FULL' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => updateFormData('billingPeriod', 'FULL')}
+                      className={formData.billingPeriod === 'FULL' ? 'bg-cyan-600 hover:bg-cyan-700' : ''}
+                    >
+                      Mes completo
+                    </Button>
+                    <Button
+                      variant={formData.billingPeriod === 'HALF' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => updateFormData('billingPeriod', 'HALF')}
+                      className={formData.billingPeriod === 'HALF' ? 'bg-cyan-600 hover:bg-cyan-700' : ''}
+                    >
+                      1/2 mes
+                    </Button>
                   </div>
                 </div>
 

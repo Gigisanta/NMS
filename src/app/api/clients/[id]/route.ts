@@ -22,6 +22,18 @@ export async function GET(
           where: { id },
           include: {
             grupo: true,
+            clientGroups: {
+              include: {
+                group: {
+                  select: {
+                    id: true,
+                    name: true,
+                    color: true,
+                    schedule: true,
+                  },
+                },
+              },
+            },
             subscriptions: {
               orderBy: [{ year: 'desc' }, { month: 'desc' }],
               take: 12,
@@ -101,8 +113,14 @@ export async function PUT(
     // Clean phone number - remove spaces and dashes
     const telefono = telefonoWithFormat ? telefonoWithFormat.replace(/[\s\-]/g, '') : undefined
 
-    // If telefono is being updated, check for duplicates
-    if (telefono) {
+    // Get current client phone to check if phone is actually being changed
+    const currentClient = await db.client.findUnique({
+      where: { id },
+      select: { telefono: true },
+    })
+
+    // Only check for duplicates if phone is actually being changed to a different value
+    if (telefono && telefono !== currentClient?.telefono) {
       const existingClient = await db.client.findFirst({
         where: {
           telefono,
@@ -123,7 +141,7 @@ export async function PUT(
       nombre?: string
       apellido?: string
       dni?: string | null
-      telefono?: string
+      telefono?: string | null
       grupoId?: string | null
       preferredDays?: string | null
       preferredTime?: string | null
@@ -189,6 +207,13 @@ export async function PUT(
     })
   } catch (error) {
     console.error('Error updating client:', error)
+    // Check for Prisma unique constraint error (P2002)
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return NextResponse.json(
+        { success: false, error: 'Ya existe un cliente con este teléfono' },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
       { success: false, error: 'Error al actualizar cliente' },
       { status: 500 }
@@ -224,7 +249,7 @@ export async function PATCH(
       nombre?: string
       apellido?: string
       dni?: string | null
-      telefono?: string
+      telefono?: string | null
       grupoId?: string | null
       preferredDays?: string | null
       preferredTime?: string | null
@@ -238,7 +263,9 @@ export async function PATCH(
     if (parsed.data.nombre !== undefined) updateData.nombre = parsed.data.nombre
     if (parsed.data.apellido !== undefined) updateData.apellido = parsed.data.apellido
     if (parsed.data.dni !== undefined) updateData.dni = parsed.data.dni
-    if (parsed.data.telefono !== undefined) updateData.telefono = parsed.data.telefono.replace(/[\s\-]/g, '')
+    if (parsed.data.telefono !== undefined) {
+      updateData.telefono = parsed.data.telefono ? parsed.data.telefono.replace(/[\s\-]/g, '') : null
+    }
     if (parsed.data.grupoId !== undefined) updateData.grupoId = parsed.data.grupoId
     if (parsed.data.preferredDays !== undefined) updateData.preferredDays = parsed.data.preferredDays
     if (parsed.data.preferredTime !== undefined) updateData.preferredTime = parsed.data.preferredTime
@@ -248,8 +275,14 @@ export async function PATCH(
     if (parsed.data.registrationFeePaid2 !== undefined) updateData.registrationFeePaid2 = parsed.data.registrationFeePaid2
     updateData.updatedByUserId = session.user.id
 
-    // If telefono is being updated, check for duplicates
-    if (updateData.telefono) {
+    // Get current client phone to check if phone is actually being changed
+    const currentClient = await db.client.findUnique({
+      where: { id },
+      select: { telefono: true },
+    })
+
+    // Only check for duplicates if phone is being changed to a non-null value
+    if (updateData.telefono && updateData.telefono !== currentClient?.telefono) {
       const existingClient = await db.client.findFirst({
         where: {
           telefono: updateData.telefono,
@@ -284,6 +317,13 @@ export async function PATCH(
     })
   } catch (error) {
     console.error('Error partially updating client:', error)
+    // Check for Prisma unique constraint error (P2002)
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return NextResponse.json(
+        { success: false, error: 'Ya existe un cliente con este teléfono' },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
       { success: false, error: 'Error al actualizar parcialmente el cliente' },
       { status: 500 }
