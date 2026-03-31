@@ -151,7 +151,17 @@ export async function PUT(
     if (monthlyAmount !== undefined) updateData.monthlyAmount = monthlyAmount ? new Prisma.Decimal(monthlyAmount) : null
     if (registrationFeePaid1 !== undefined) updateData.registrationFeePaid1 = registrationFeePaid1
     if (registrationFeePaid2 !== undefined) updateData.registrationFeePaid2 = registrationFeePaid2
-    updateData.updatedByUserId = session.user.id
+
+    // Only set updatedByUserId if the user exists in the database
+    if (session.user.id) {
+      const userExists = await db.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true },
+      })
+      if (userExists) {
+        updateData.updatedByUserId = session.user.id
+      }
+    }
 
     const client = await db.client.update({
       where: { id },
@@ -265,7 +275,17 @@ export async function PATCH(
     if (parsed.data.monthlyAmount !== undefined) updateData.monthlyAmount = parsed.data.monthlyAmount ? new Prisma.Decimal(parsed.data.monthlyAmount) : null
     if (parsed.data.registrationFeePaid1 !== undefined) updateData.registrationFeePaid1 = parsed.data.registrationFeePaid1
     if (parsed.data.registrationFeePaid2 !== undefined) updateData.registrationFeePaid2 = parsed.data.registrationFeePaid2
-    updateData.updatedByUserId = session.user.id
+
+    // Only set updatedByUserId if the user exists in the database
+    if (session.user.id) {
+      const userExists = await db.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true },
+      })
+      if (userExists) {
+        updateData.updatedByUserId = session.user.id
+      }
+    }
 
     // Get current client phone to check if phone is actually being changed
     const currentClient = await db.client.findUnique({
