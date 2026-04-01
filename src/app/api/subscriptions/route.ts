@@ -2,6 +2,44 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
 
+async function ensureSubscriptionsExist(month: number, year: number) {
+  const clients = await db.client.findMany({ select: { id: true } })
+  const existingSubs = await db.subscription.findMany({
+    where: { month, year },
+    select: { clientId: true },
+  })
+  const existingClientIds = new Set(existingSubs.map(s => s.clientId))
+  const missingClients = clients.filter(c => !existingClientIds.has(c.id))
+
+  if (missingClients.length > 0) {
+    const defaultClassesSetting = await db.settings.findUnique({
+      where: { key: 'payment.defaultClasses' },
+    })
+    const defaultPriceSetting = await db.settings.findUnique({
+      where: { key: 'payment.defaultPrice' },
+    })
+    const defaultClasses = defaultClassesSetting ? parseInt(defaultClassesSetting.value) : 4
+    const defaultPrice = defaultPriceSetting ? parseInt(defaultPriceSetting.value) : 5000
+
+    await db.$transaction(
+      missingClients.map(client =>
+        db.subscription.create({
+          data: {
+            clientId: client.id,
+            month,
+            year,
+            status: 'PENDIENTE',
+            billingPeriod: 'FULL',
+            classesTotal: defaultClasses,
+            classesUsed: 0,
+            amount: defaultPrice,
+          },
+        })
+      )
+    )
+  }
+}
+
 // GET /api/subscriptions - Get subscriptions with filters
 export async function GET(request: NextRequest) {
   try {
@@ -9,6 +47,8 @@ export async function GET(request: NextRequest) {
     const clientId = searchParams.get('clientId')
     const month = searchParams.get('month') ? parseInt(searchParams.get('month')!) : getCurrentMonth()
     const year = searchParams.get('year') ? parseInt(searchParams.get('year')!) : getCurrentYear()
+
+    await ensureSubscriptionsExist(month, year)
 
     const whereClause: {
       clientId?: string
