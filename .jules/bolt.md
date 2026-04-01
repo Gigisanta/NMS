@@ -23,3 +23,7 @@
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
+
+## 2026-03-05 - Single-pass Data Processing in React
+**Learning:** Filtering and calculating statistics on the same array in separate passes (e.g., several .filter() calls) is $O(K \times N)$. Combining them into a single .reduce() pass within useMemo reduces this to $O(N)$, which is crucial for performance as the data size grows.
+**Action:** In view components that handle lists and summaries (like PaymentsView), use a single-pass reduce to derive both filtered data and aggregated statistics.
