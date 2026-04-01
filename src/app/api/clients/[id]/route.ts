@@ -29,6 +29,23 @@ export async function GET(
             invoices: {
               orderBy: { uploadedAt: 'desc' },
               take: 10,
+              select: {
+                id: true,
+                fileName: true,
+                filePath: true,
+                fileSize: true,
+                mimeType: true,
+                amount: true,
+                issueDate: true,
+                uploadedAt: true,
+                status: true,
+                category: true,
+                description: true,
+                type: true,
+                verified: true,
+                source: true,
+                // Exclude fileData (bytes) to avoid serialization issues with large files
+              },
             },
             attendances: {
               orderBy: { date: 'desc' },
