@@ -205,8 +205,10 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error uploading invoice:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorCode = error instanceof Error && 'code' in error ? (error as any).code : 'UNKNOWN'
     return NextResponse.json(
-      { success: false, error: 'Error al subir factura' },
+      { success: false, error: `Error al subir factura: ${errorMessage}`, code: errorCode },
       { status: 500 }
     )
   }
