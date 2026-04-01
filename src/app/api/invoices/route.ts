@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { auth } from '@/auth'
 import { invalidateClientCache } from '@/lib/api-utils'
-import { put } from '@vercel/blob'
 
 // GET /api/invoices - List all invoices or filter by client
 export async function GET(request: NextRequest) {
@@ -83,7 +82,6 @@ export async function POST(request: NextRequest) {
     const subscriptionId = formData.get('subscriptionId') as string | null
 
     if (!clientId) {
-
       return NextResponse.json(
         { success: false, error: 'clientId es requerido' },
         { status: 400 }
@@ -102,10 +100,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    let filePath = '/uploads/placeholder'
     let fileName = 'unknown'
     let fileSize: number | null = null
     let mimeType = 'application/pdf'
+    let fileData: Buffer | null = null
+    let filePath = '/uploads/placeholder'
 
     // Handle file upload if provided
     if (file && file.size > 0) {
@@ -125,34 +124,16 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Generate unique filename
-      const timestamp = Date.now()
-      const randomSuffix = Math.random().toString(36).substring(2, 8)
-      const ext = file.name.split('.').pop() || 'pdf'
-      fileName = `${timestamp}-${randomSuffix}.${ext}`
-      filePath = `/uploads/invoices/${fileName}`
+      fileName = file.name
       fileSize = file.size
       mimeType = file.type
+      filePath = `/api/invoices/${clientId}/file`
 
-      // Check if BLOB_READ_WRITE_TOKEN is configured
-      const blobToken = process.env.BLOB_READ_WRITE_TOKEN
-      if (blobToken) {
-        // Save file to Vercel Blob
-        const bytes = await file.arrayBuffer()
-        const buffer = Buffer.from(bytes)
-        const blob = await put(fileName, buffer, {
-          contentType: mimeType,
-          access: 'public',
-          token: blobToken,
-        })
-        filePath = blob.url
-      } else {
-        // Blob not configured - log warning but continue without file
-        console.warn('[API INVOICES] BLOB_READ_WRITE_TOKEN not configured - file will not be uploaded')
-      }
+      // Store file data directly in PostgreSQL
+      const bytes = await file.arrayBuffer()
+      fileData = Buffer.from(bytes)
     }
 
-    // Create invoice record
     // Only set uploadedBy if user exists in database
     let uploadedBy: string | null = null
     if (session.user.id) {
@@ -172,6 +153,7 @@ export async function POST(request: NextRequest) {
         filePath,
         fileSize,
         mimeType,
+        fileData,
         invoiceNumber: invoiceNumber || null,
         amount: amount ? parseFloat(amount) : null,
         issueDate: issueDate ? new Date(issueDate) : null,
@@ -179,13 +161,8 @@ export async function POST(request: NextRequest) {
         type: type || 'PAYMENT',
         category: category || null,
         description: description || null,
-        // @ts-ignore - subscriptionId added in schema but Prisma Client needs regeneration (EPERM on DLL)
-        // subscriptionId: subscriptionId || null,
-        // Almacenamos el ID de suscripción en externalRef temporalmente debido a un error de generación de Prisma en Windows
         externalRef: subscriptionId || null,
         source: 'MANUAL',
-
-
         uploadedBy,
       },
       include: {

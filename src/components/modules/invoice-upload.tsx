@@ -336,8 +336,8 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
   }, [onInvoiceChange])
 
   const handleView = useCallback((invoice: Invoice) => {
-    // Open file in new tab
-    window.open(invoice.filePath, '_blank')
+    // Open file from database via API
+    window.open(`/api/invoices/${invoice.id}/file`, '_blank')
   }, [])
 
   return (

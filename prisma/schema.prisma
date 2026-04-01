@@ -239,11 +239,13 @@ model Invoice {
   subscriptionId String? // Vínculo opcional con una suscripción/pago mensual
   
   // File information
-
   fileName     String   @default("unknown") // Original file name
-  filePath     String   @default("/uploads/placeholder") // Storage path
+  filePath     String   @default("/uploads/placeholder") // Storage path (deprecated - use fileData)
   fileSize     Int?     // File size in bytes
   mimeType     String   @default("application/pdf") // File MIME type
+  
+  // File data stored directly in PostgreSQL (bytea)
+  fileData     Bytes?   @db.ByteA // Binary file data
   
   // Legacy field (deprecated - kept for migration)
   imageUrl     String?  // Deprecated: use filePath instead
