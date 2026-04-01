@@ -134,14 +134,22 @@ export async function POST(request: NextRequest) {
       fileSize = file.size
       mimeType = file.type
 
-      // Save file to Vercel Blob
-      const bytes = await file.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-      const blob = await put(fileName, buffer, {
-        contentType: mimeType,
-        access: 'public',
-      })
-      filePath = blob.url
+      // Check if BLOB_READ_WRITE_TOKEN is configured
+      const blobToken = process.env.BLOB_READ_WRITE_TOKEN
+      if (blobToken) {
+        // Save file to Vercel Blob
+        const bytes = await file.arrayBuffer()
+        const buffer = Buffer.from(bytes)
+        const blob = await put(fileName, buffer, {
+          contentType: mimeType,
+          access: 'public',
+          token: blobToken,
+        })
+        filePath = blob.url
+      } else {
+        // Blob not configured - log warning but continue without file
+        console.warn('[API INVOICES] BLOB_READ_WRITE_TOKEN not configured - file will not be uploaded')
+      }
     }
 
     // Create invoice record
