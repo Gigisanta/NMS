@@ -43,7 +43,8 @@ export function BillingView() {
       const params = new URLSearchParams()
       params.set('month', selectedMonth.toString())
       params.set('year', selectedYear.toString())
-      params.set('status', 'AL_DIA') // Only bill those who paid
+      // Removed invalid 'AL_DIA' status filter - subscription status is PENDIENTE by default
+      // Client payment status is calculated dynamically from invoices
 
       const response = await fetch(`/api/subscriptions?${params}`)
       const result = await response.json()
