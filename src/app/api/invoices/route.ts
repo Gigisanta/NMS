@@ -2,15 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { auth } from '@/auth'
 import { invalidateClientCache } from '@/lib/api-utils'
-import fs from 'fs'
-import path from 'path'
-
-const UPLOAD_DIR = path.join(process.cwd(), 'public/uploads/invoices')
-
-// Ensure upload directory exists
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true })
-}
+import { put } from '@vercel/blob'
 
 // GET /api/invoices - List all invoices or filter by client
 export async function GET(request: NextRequest) {
@@ -142,11 +134,14 @@ export async function POST(request: NextRequest) {
       fileSize = file.size
       mimeType = file.type
 
-      // Save file to disk
+      // Save file to Vercel Blob
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
-      const fullPath = path.join(UPLOAD_DIR, fileName)
-      fs.writeFileSync(fullPath, buffer)
+      const blob = await put(fileName, buffer, {
+        contentType: mimeType,
+        access: 'public',
+      })
+      filePath = blob.url
     }
 
     // Create invoice record
