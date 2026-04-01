@@ -154,12 +154,17 @@ export async function PUT(request: NextRequest) {
       })
     }
 
-    // Log activity
+    // Log activity (only if user exists)
+    let userId: string | null = null
+    if (session.user.id) {
+      const userExists = await db.user.findUnique({ where: { id: session.user.id }, select: { id: true } })
+      if (userExists) userId = session.user.id
+    }
     await db.activityLog.create({
       data: {
         action: 'update',
         entity: 'whatsapp_config',
-        userId: session.user.id,
+        userId,
         details: JSON.stringify({ updatedFields: Object.keys(updateData) }),
       },
     })

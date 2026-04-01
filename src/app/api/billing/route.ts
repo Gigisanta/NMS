@@ -36,12 +36,23 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Log the action
+    // Log the action (only if user exists)
+    let userId: string | null = null
+    if (session.user.id) {
+      const userExists = await db.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true },
+      })
+      if (userExists) {
+        userId = session.user.id
+      }
+    }
+
     await db.activityLog.create({
       data: {
         action: 'billing_process',
         entity: 'subscription',
-        userId: session.user.id,
+        userId,
         details: JSON.stringify({
           count: updated.count,
           ids: subscriptionIds,
