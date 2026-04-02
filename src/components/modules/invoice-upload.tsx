@@ -215,6 +215,7 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
   const [uploading, setUploading] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -229,6 +230,7 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
   })
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null)
     const file = e.target.files?.[0]
     if (file) {
       setFormData(prev => ({ ...prev, file }))
@@ -290,9 +292,11 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
         onInvoiceChange()
       } else {
         console.error('Error uploading invoice:', result.error)
+        setError(result.error || 'Error al subir la factura')
       }
     } catch (error) {
       console.error('Error uploading invoice:', error)
+      setError(error instanceof Error ? error.message : 'Error al subir la factura')
     } finally {
       setUploading(false)
     }
@@ -351,7 +355,7 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
           </p>
         </div>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (open) setError(null); }}>
           <DialogTrigger asChild>
             <Button className="gap-2 bg-gradient-to-r from-cyan-500 to-sky-600">
               <Upload className="w-4 h-4" />
@@ -379,6 +383,9 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
                   <p className="text-xs text-slate-500">
                     {formData.file.name} ({(formData.file.size / 1024).toFixed(1)} KB)
                   </p>
+                )}
+                {error && (
+                  <p className="text-sm text-red-500 mt-2 p-2 bg-red-50 rounded">{error}</p>
                 )}
               </div>
 
