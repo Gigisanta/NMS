@@ -194,7 +194,7 @@ export function WhatsAppMessages() {
 
   if (!isEmpleadora) {
     return (
-      <Card className="border-0 shadow-lg">
+      <Card className="border-slate-100 shadow-sm">
         <CardContent className="py-8 text-center">
           <p className="text-slate-500">No tienes permisos para ver esta sección</p>
         </CardContent>
@@ -203,7 +203,7 @@ export function WhatsAppMessages() {
   }
 
   return (
-    <Card className="border-0 shadow-lg">
+    <Card className="border-slate-100 shadow-sm">
       <CardHeader>
         <div className="flex items-center gap-3">
           <div className="p-2 bg-green-100 rounded-lg">
@@ -278,7 +278,7 @@ export function WhatsAppMessages() {
                             {statusConfig.label}
                           </Badge>
                           {msg.matchedClientId && (
-                            <Badge className="bg-cyan-100 text-cyan-700 text-xs">
+                            <Badge className="text-xs" style={{ background: '#00A8E818', color: '#005691' }}>
                               <Link2 className="w-3 h-3 mr-1" />
                               {msg.client
                                 ? formatFullName(msg.client.nombre, msg.client.apellido)

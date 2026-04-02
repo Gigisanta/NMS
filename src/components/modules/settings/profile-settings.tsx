@@ -133,7 +133,7 @@ export function ProfileSettings({ onProfileUpdate }: ProfileSettingsProps) {
   return (
     <div className="space-y-6">
       {/* Profile Card */}
-      <Card className="border-0 shadow-lg">
+      <Card className="border-slate-100 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-cyan-100 rounded-lg">
@@ -149,7 +149,7 @@ export function ProfileSettings({ onProfileUpdate }: ProfileSettingsProps) {
           {/* Avatar and Basic Info */}
           <div className="flex items-center gap-4">
             <Avatar className="w-16 h-16">
-              <AvatarFallback className="text-lg bg-gradient-to-br from-cyan-500 to-sky-600 text-white">
+              <AvatarFallback className="text-lg text-white" style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}>
                 {getInitials(session?.user?.name)}
               </AvatarFallback>
             </Avatar>
@@ -206,7 +206,7 @@ export function ProfileSettings({ onProfileUpdate }: ProfileSettingsProps) {
       </Card>
 
       {/* Password Card */}
-      <Card className="border-0 shadow-lg">
+      <Card className="border-slate-100 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-amber-100 rounded-lg">

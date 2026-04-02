@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
+import { z } from 'zod'
+
+const billingSchema = z.object({
+  subscriptionIds: z.array(z.string()).min(1, 'Selecciona al menos una suscripción'),
+})
 
 // POST /api/billing - Process billing for multiple subscriptions
 export async function POST(request: NextRequest) {
@@ -14,14 +19,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { subscriptionIds } = body
-
-    if (!subscriptionIds || !Array.isArray(subscriptionIds) || subscriptionIds.length === 0) {
-      return NextResponse.json(
-        { success: false, error: 'No se seleccionaron suscripciones para facturar' },
-        { status: 400 }
-      )
-    }
+    const validated = billingSchema.parse(body)
+    const { subscriptionIds } = validated
 
     // Simulate ARCA / Mercado Pago processing delay
     await new Promise(resolve => setTimeout(resolve, 1500))

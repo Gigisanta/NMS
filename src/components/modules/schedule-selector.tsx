@@ -57,9 +57,10 @@ export function ScheduleSelector({ preferredDays, preferredTime, onChange }: Sch
                   'relative flex-1 h-12 rounded-xl text-sm font-medium transition-all duration-200',
                   'border-2 hover:scale-105',
                   isSelected
-                    ? 'bg-gradient-to-br from-cyan-500 to-sky-600 text-white border-transparent shadow-lg shadow-cyan-500/25'
+                    ? 'text-white border-transparent shadow-sm'
                     : 'bg-white text-slate-600 border-slate-200 hover:border-cyan-300 hover:bg-cyan-50'
                 )}
+                style={isSelected ? { background: '#005691' } : {}}
                 title={day.fullLabel}
               >
                 <span className="relative z-10">{day.label}</span>
@@ -121,7 +122,7 @@ export function ScheduleSelector({ preferredDays, preferredTime, onChange }: Sch
                 'px-3 py-1.5 text-xs rounded-full transition-all duration-200',
                 'bg-slate-100 text-slate-600 hover:bg-slate-200',
                 selectedDays.join(',') === preset.days && selectedTime === preset.time
-                  && 'bg-cyan-100 text-cyan-700 ring-1 ring-cyan-300'
+                  && 'bg-slate-800 text-white'
               )}
             >
               {preset.label}
@@ -132,8 +133,8 @@ export function ScheduleSelector({ preferredDays, preferredTime, onChange }: Sch
 
       {/* Summary */}
       {(selectedDays.length > 0 || selectedTime) && (
-        <div className="p-3 bg-gradient-to-r from-cyan-50 to-sky-50 rounded-lg border border-cyan-100">
-          <p className="text-sm text-cyan-800 font-medium">
+        <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+          <p className="text-sm text-slate-700 font-medium">
             {selectedDays.length > 0 
               ? `${selectedDays.join(', ')} a las ${selectedTime || '(seleccionar horario)'}`
               : 'Selecciona los días de asistencia'

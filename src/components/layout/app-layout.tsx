@@ -208,7 +208,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
             <div className="flex items-center gap-3">
               {/* Logo con gradiente Oro Azul */}
               <div 
-                className="w-11 h-11 flex items-center justify-center shadow-lg"
+                className="w-11 h-11 flex items-center justify-center rounded-xl shadow-lg"
                 style={{
                   background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
                   boxShadow: '0 4px 15px rgba(0, 168, 232, 0.5)',
@@ -248,9 +248,9 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
           </div>
 
           {/* Navigation */}
-          <ScrollArea className="flex-1 px-4 py-5">
-            <nav className="space-y-1.5">
-              {filteredNavigation.map((item, index) => {
+          <ScrollArea className="flex-1 px-3 py-4">
+            <nav className="space-y-1">
+              {filteredNavigation.map((item) => {
                 const Icon = item.icon
                 const isActive = currentView === item.id
                 return (
@@ -263,29 +263,44 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
                     onMouseEnter={() => handleMouseEnter(item.id)}
                     onMouseLeave={() => handleMouseLeave(item.id)}
                     className={cn(
-                      "w-full flex items-center gap-3.5 px-4 py-3 text-sm font-medium transition-all duration-300 animate-fade-slide-up",
+                      "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group relative",
+                      isActive
+                        ? "text-[#005691] shadow-sm"
+                        : "text-slate-600 hover:text-[#005691]"
                     )}
                     style={{
-                      background: isActive 
-                        ? 'rgba(255, 255, 255, 0.95)' 
-                        : 'rgba(255, 255, 255, 0.6)',
-                      color: isActive ? '#005691' : '#1A1A1A',
-                      border: isActive ? '1px solid rgba(0, 168, 232, 0.5)' : '1px solid rgba(0, 168, 232, 0.15)',
-                      boxShadow: isActive ? '0 2px 12px rgba(0, 168, 232, 0.2)' : 'none',
-                      animationDelay: `${index * 50}ms`,
+                      background: isActive
+                        ? 'rgba(255, 255, 255, 0.97)'
+                        : 'transparent',
+                      border: isActive
+                        ? '1px solid rgba(0, 168, 232, 0.35)'
+                        : '1px solid transparent',
+                      boxShadow: isActive ? '0 1px 8px rgba(0, 168, 232, 0.15)' : 'none',
                     }}
                   >
-                    <Icon 
-                      className="w-5 h-5" 
-                      style={{ color: isActive ? '#00A8E8' : '#4A5568' }}
+                    {/* Acento lateral activo */}
+                    {isActive && (
+                      <span
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full"
+                        style={{ background: '#00A8E8' }}
+                      />
+                    )}
+                    <Icon
+                      className={cn(
+                        "w-4.5 h-4.5 shrink-0 transition-colors",
+                        isActive ? "text-[#00A8E8]" : "text-slate-400 group-hover:text-[#00A8E8]"
+                      )}
                     />
                     <span className="flex-1 text-left">{item.name}</span>
                     {item.shortcut && (
-                      <kbd 
-                        className="text-[11px] px-2.5 py-1 font-medium"
-                        style={{ 
-                          background: 'rgba(0, 168, 232, 0.1)', 
-                          color: '#00A8E8' 
+                      <kbd
+                        className={cn(
+                          "text-[10px] px-1.5 py-0.5 rounded font-mono transition-opacity",
+                          isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60"
+                        )}
+                        style={{
+                          background: 'rgba(0, 168, 232, 0.12)',
+                          color: '#00A8E8',
                         }}
                       >
                         {item.shortcut}
@@ -300,7 +315,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
           {/* User section */}
           <div className="p-4" style={{ borderTop: '1px solid rgba(0, 168, 232, 0.3)' }}>
             <div 
-              className="flex items-center gap-3 px-4 py-3 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
               style={{
                 background: 'rgba(255, 255, 255, 0.95)',
                 border: '1px solid rgba(0, 168, 232, 0.3)',
@@ -308,7 +323,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
               }}
             >
               <div 
-                className="w-10 h-10 flex items-center justify-center"
+                className="w-10 h-10 flex items-center justify-center rounded-xl"
                 style={{
                   background: 'linear-gradient(135deg, #00A8E8 0%, #005691 100%)',
                   boxShadow: '0 2px 10px rgba(0, 168, 232, 0.4)',
@@ -347,26 +362,50 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
             <WaterWavesPattern />
             
             {/* Content */}
-            <div className="flex items-center justify-between w-full px-6 relative z-10">
+            <div className="flex items-center justify-between w-full px-4 sm:px-6 relative z-10">
               {/* Left side */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="lg:hidden h-10 w-10"
+                  className="lg:hidden h-9 w-9 shrink-0"
                   style={{ color: '#005691' }}
                   onClick={() => setSidebarOpen(true)}
                 >
                   <Menu className="w-5 h-5" />
                 </Button>
 
-                {/* Search trigger */}
-                <CommandPaletteTrigger onClick={() => setCommandPaletteOpen(true)} />
+                {/* Vista activa en mobile */}
+                {(() => {
+                  const activeNav = navigation.find(n => n.id === currentView)
+                  const ActiveIcon = activeNav?.icon
+                  return (
+                    <div className="lg:hidden flex items-center gap-2">
+                      {ActiveIcon && <ActiveIcon className="w-4 h-4" style={{ color: '#00A8E8' }} />}
+                      <span className="text-sm font-semibold" style={{ color: '#005691' }}>
+                        {activeNav?.name ?? 'Dashboard'}
+                      </span>
+                    </div>
+                  )
+                })()}
+
+                {/* Search trigger — solo desktop */}
+                <div className="hidden lg:block">
+                  <CommandPaletteTrigger onClick={() => setCommandPaletteOpen(true)} />
+                </div>
               </div>
 
               {/* Right side */}
-              <div className="flex items-center gap-5">
-                <span 
+              <div className="flex items-center gap-3 sm:gap-5">
+                {/* Search en mobile */}
+                <button
+                  className="lg:hidden h-9 w-9 flex items-center justify-center rounded-lg transition-colors hover:bg-slate-100"
+                  style={{ color: '#005691' }}
+                  onClick={() => setCommandPaletteOpen(true)}
+                >
+                  <Search className="w-4 h-4" />
+                </button>
+                <span
                   className="hidden md:block text-sm font-medium"
                   style={{ color: '#4A5568' }}
                 >
@@ -388,6 +427,8 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
       <CommandPalette
         commands={commands}
         placeholder="Buscar acciones, navegación..."
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
       />
     </div>
   )

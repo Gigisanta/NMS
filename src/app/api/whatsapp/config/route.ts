@@ -1,6 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { auth } from '@/auth'
+import { z } from 'zod'
+
+const whatsappConfigSchema = z.object({
+  accessToken: z.string().optional(),
+  phoneNumberId: z.string().optional(),
+  verifyToken: z.string().optional(),
+  businessAccountId: z.string().optional(),
+  isActive: z.boolean().optional(),
+  autoReplyEnabled: z.boolean().optional(),
+  autoDownloadMedia: z.boolean().optional(),
+  autoMatchClients: z.boolean().optional(),
+  autoUpdatePayment: z.boolean().optional(),
+  welcomeMessage: z.string().optional(),
+  successMessage: z.string().optional(),
+  notFoundMessage: z.string().optional(),
+  errorMessage: z.string().optional(),
+})
+
+const whatsappActionSchema = z.object({
+  action: z.enum(['generateToken', 'testConnection']),
+})
 
 // Default WhatsApp messages
 const DEFAULT_MESSAGES = {
@@ -102,21 +123,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const {
-      accessToken,
-      phoneNumberId,
-      verifyToken,
-      businessAccountId,
-      isActive,
-      autoReplyEnabled,
-      autoDownloadMedia,
-      autoMatchClients,
-      autoUpdatePayment,
-      welcomeMessage,
-      successMessage,
-      notFoundMessage,
-      errorMessage,
-    } = body
+    const validated = whatsappConfigSchema.parse(body)
 
     // Get existing config
     let config = await db.whatsAppConfig.findFirst()
@@ -124,21 +131,21 @@ export async function PUT(request: NextRequest) {
     const updateData: Record<string, unknown> = {}
 
     // Only update token if it's not masked
-    if (accessToken && !accessToken.includes('•')) {
-      updateData.accessToken = accessToken
+    if (validated.accessToken && !validated.accessToken.includes('•')) {
+      updateData.accessToken = validated.accessToken
     }
-    if (phoneNumberId !== undefined) updateData.phoneNumberId = phoneNumberId
-    if (verifyToken !== undefined) updateData.verifyToken = verifyToken
-    if (businessAccountId !== undefined) updateData.businessAccountId = businessAccountId
-    if (isActive !== undefined) updateData.isActive = isActive
-    if (autoReplyEnabled !== undefined) updateData.autoReplyEnabled = autoReplyEnabled
-    if (autoDownloadMedia !== undefined) updateData.autoDownloadMedia = autoDownloadMedia
-    if (autoMatchClients !== undefined) updateData.autoMatchClients = autoMatchClients
-    if (autoUpdatePayment !== undefined) updateData.autoUpdatePayment = autoUpdatePayment
-    if (welcomeMessage !== undefined) updateData.welcomeMessage = welcomeMessage
-    if (successMessage !== undefined) updateData.successMessage = successMessage
-    if (notFoundMessage !== undefined) updateData.notFoundMessage = notFoundMessage
-    if (errorMessage !== undefined) updateData.errorMessage = errorMessage
+    if (validated.phoneNumberId !== undefined) updateData.phoneNumberId = validated.phoneNumberId
+    if (validated.verifyToken !== undefined) updateData.verifyToken = validated.verifyToken
+    if (validated.businessAccountId !== undefined) updateData.businessAccountId = validated.businessAccountId
+    if (validated.isActive !== undefined) updateData.isActive = validated.isActive
+    if (validated.autoReplyEnabled !== undefined) updateData.autoReplyEnabled = validated.autoReplyEnabled
+    if (validated.autoDownloadMedia !== undefined) updateData.autoDownloadMedia = validated.autoDownloadMedia
+    if (validated.autoMatchClients !== undefined) updateData.autoMatchClients = validated.autoMatchClients
+    if (validated.autoUpdatePayment !== undefined) updateData.autoUpdatePayment = validated.autoUpdatePayment
+    if (validated.welcomeMessage !== undefined) updateData.welcomeMessage = validated.welcomeMessage
+    if (validated.successMessage !== undefined) updateData.successMessage = validated.successMessage
+    if (validated.notFoundMessage !== undefined) updateData.notFoundMessage = validated.notFoundMessage
+    if (validated.errorMessage !== undefined) updateData.errorMessage = validated.errorMessage
 
     if (config) {
       config = await db.whatsAppConfig.update({
@@ -149,7 +156,7 @@ export async function PUT(request: NextRequest) {
       config = await db.whatsAppConfig.create({
         data: {
           ...updateData,
-          verifyToken: verifyToken || `nms_verify_${Date.now()}`,
+          verifyToken: validated.verifyToken || `nms_verify_${Date.now()}`,
         } as any,
       })
     }
@@ -181,6 +188,12 @@ export async function PUT(request: NextRequest) {
       message: 'Configuración actualizada correctamente',
     })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.issues },
+        { status: 400 }
+      )
+    }
     console.error('Error updating WhatsApp config:', error)
     return NextResponse.json(
       { success: false, error: 'Error al actualizar configuración' },
@@ -201,7 +214,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { action } = body
+    const validated = whatsappActionSchema.parse(body)
+    const { action } = validated
 
     if (action === 'generateToken') {
       const newToken = `nms_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`
@@ -278,6 +292,12 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     )
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.issues },
+        { status: 400 }
+      )
+    }
     console.error('Error in WhatsApp config action:', error)
     return NextResponse.json(
       { success: false, error: 'Error al procesar solicitud' },

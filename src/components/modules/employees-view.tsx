@@ -129,7 +129,7 @@ const EmployeeCard = memo(function EmployeeCard({
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className={`border-0 shadow-lg bg-white/80 backdrop-blur transition-all duration-200 hover:shadow-xl ${
+      <Card className={`border-slate-100 shadow-sm transition-shadow duration-200 hover:shadow-md ${
         !employee.active ? 'opacity-60' : ''
       }`}>
         <CardContent className="p-4">
@@ -137,7 +137,7 @@ const EmployeeCard = memo(function EmployeeCard({
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12 ring-2 ring-white shadow-md">
                 <AvatarImage src={employee.image || undefined} />
-                <AvatarFallback className={`bg-gradient-to-br from-cyan-500 to-sky-600 text-white font-medium`}>
+                <AvatarFallback className="text-white font-medium" style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}>
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -381,7 +381,8 @@ const EmployeeFormDialog = memo(function EmployeeFormDialog({
             <Button 
               type="submit" 
               disabled={loading}
-              className="bg-gradient-to-r from-cyan-500 to-sky-600"
+              className="text-white"
+              style={{ background: '#005691' }}
             >
               {loading ? (
                 <>
@@ -636,7 +637,7 @@ export function EmployeesView() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
       </div>
     )
   }
@@ -646,7 +647,7 @@ export function EmployeesView() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Empleados</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Empleados</h1>
           <p className="text-slate-500">
             Gestiona el equipo de trabajo y sus horarios
           </p>
@@ -656,7 +657,8 @@ export function EmployeesView() {
             setSelectedEmployee(null)
             setFormOpen(true)
           }}
-          className="gap-2 bg-gradient-to-r from-cyan-500 to-sky-600"
+          className="gap-2"
+          style={{ background: '#005691' }}
         >
           <UserPlus className="w-4 h-4" />
           Nuevo Empleado
@@ -664,63 +666,29 @@ export function EmployeesView() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-cyan-100">
-                <Users className="w-5 h-5 text-cyan-600" />
-              </div>
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        {[
+          { title: 'Total activos', value: stats.total, Icon: Users, accent: '#005691' },
+          { title: 'Profesores', value: stats.profesores, Icon: Users, accent: '#8b5cf6' },
+          { title: 'Administrativos', value: stats.administrativos, Icon: Briefcase, accent: '#00A8E8' },
+          { title: 'Limpieza', value: stats.limpieza, Icon: UserCheck, accent: '#10b981' },
+        ].map((stat) => (
+          <div key={stat.title} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+            <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
-                <p className="text-xs text-slate-500">Total activos</p>
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{stat.title}</p>
+                <p className="text-2xl font-semibold text-slate-900 mt-1 tabular-nums">{stat.value}</p>
+              </div>
+              <div className="p-2.5 rounded-lg shrink-0 mt-0.5" style={{ background: `${stat.accent}18` }}>
+                <stat.Icon className="w-4 h-4" style={{ color: stat.accent }} />
               </div>
             </div>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-purple-100">
-                <Users className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900">{stats.profesores}</p>
-                <p className="text-xs text-slate-500">Profesores</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-100">
-                <Briefcase className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900">{stats.administrativos}</p>
-                <p className="text-xs text-slate-500">Administrativos</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-100">
-                <UserCheck className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-slate-900">{stats.limpieza}</p>
-                <p className="text-xs text-slate-500">Limpieza</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        ))}
       </div>
 
       {/* Filters */}
-      <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
+      <Card className="border-slate-100 shadow-sm">
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
@@ -753,7 +721,7 @@ export function EmployeesView() {
               <Button
                 variant={showActiveOnly ? 'default' : 'outline'}
                 onClick={() => setShowActiveOnly(!showActiveOnly)}
-                className={showActiveOnly ? 'bg-gradient-to-r from-cyan-500 to-sky-600' : ''}
+                style={showActiveOnly ? { background: '#005691', color: 'white' } : {}}
               >
                 {showActiveOnly ? 'Activos' : 'Todos'}
               </Button>
@@ -764,19 +732,19 @@ export function EmployeesView() {
 
       {/* Employees Grid */}
       {filteredEmployees.length === 0 ? (
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
-          <CardContent className="py-12">
-            <div className="flex flex-col items-center text-slate-500">
-              <Users className="w-12 h-12 mb-4 text-slate-300" />
-              <p className="text-lg font-medium">No hay empleados</p>
-              <p className="text-sm">
-                {search || roleFilter !== 'all' 
-                  ? 'No se encontraron resultados con esos filtros'
-                  : 'Agrega el primer empleado para comenzar'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-xl border border-slate-100 shadow-sm py-14 flex flex-col items-center gap-3">
+          <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center">
+            <Users className="w-7 h-7 text-slate-300" />
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-semibold text-slate-700">Sin empleados</p>
+            <p className="text-xs text-slate-400 mt-1">
+              {search || roleFilter !== 'all'
+                ? 'No se encontraron resultados con esos filtros'
+                : 'Agrega el primer empleado para comenzar'}
+            </p>
+          </div>
+        </div>
       ) : (
         <motion.div 
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"

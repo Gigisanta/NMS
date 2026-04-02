@@ -231,18 +231,14 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null)
-    console.log('[InvoiceUpload] File input changed', e.target.files?.[0]?.name)
     const file = e.target.files?.[0]
     if (file) {
-      console.log('[InvoiceUpload] Setting file:', file.name, file.size, file.type)
       setFormData(prev => ({ ...prev, file }))
     }
   }, [])
 
   const handleUpload = useCallback(async () => {
-    console.log('[InvoiceUpload] handleUpload called', { formData, clientId })
     if (!formData.file && !formData.invoiceNumber && !formData.amount) {
-      console.log('[InvoiceUpload] No file or data, returning early')
       return
     }
 
@@ -361,7 +357,7 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
 
         <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (open) setError(null); }}>
           <DialogTrigger asChild>
-            <Button className="gap-2 bg-gradient-to-r from-cyan-500 to-sky-600">
+            <Button className="gap-2 text-white" style={{ background: '#005691' }}>
               <Upload className="w-4 h-4" />
               Subir Factura
             </Button>
@@ -467,7 +463,8 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
               <Button
                 onClick={handleUpload}
                 disabled={uploading || (!formData.file && !formData.invoiceNumber && !formData.amount)}
-                className="w-full bg-gradient-to-r from-cyan-500 to-sky-600"
+                className="w-full text-white"
+                style={{ background: '#005691' }}
               >
                 {uploading ? (
                   <>

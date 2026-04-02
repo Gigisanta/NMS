@@ -101,7 +101,7 @@ export function BusinessSettings() {
 
   if (session?.user?.role !== 'EMPLEADORA') {
     return (
-      <Card className="border-0 shadow-lg">
+      <Card className="border-slate-100 shadow-sm">
         <CardContent className="py-8 text-center">
           <p className="text-slate-500">No tienes permisos para ver esta sección</p>
         </CardContent>
@@ -112,13 +112,13 @@ export function BusinessSettings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
       </div>
     )
   }
 
   return (
-    <Card className="border-0 shadow-lg">
+    <Card className="border-slate-100 shadow-sm">
       <CardHeader>
         <div className="flex items-center gap-3">
           <div className="p-2 bg-violet-100 rounded-lg">

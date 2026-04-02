@@ -115,7 +115,7 @@ export function BillingView() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Facturación (ARCA & Mercado Pago)</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Facturación</h1>
           <p className="text-slate-500">
             Gestiona la facturación electrónica y cobros automáticos
           </p>
@@ -144,74 +144,67 @@ export function BillingView() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-0 shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium opacity-80 text-white">Estado de Conexión</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-lg font-bold">ARCA (AFIP)</p>
-                <div className="flex items-center gap-1.5 text-xs text-blue-100">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                  Conectado - Modo Producción
-                </div>
+      <div className="grid gap-3 grid-cols-1 md:grid-cols-3">
+        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">ARCA (AFIP)</p>
+              <p className="text-sm font-semibold text-slate-900 mt-1">Facturación electrónica</p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-xs text-slate-400">Conectado</span>
               </div>
-              <Receipt className="w-8 h-8 opacity-20" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-2.5 rounded-lg shrink-0 mt-0.5" style={{ background: '#005691' + '18' }}>
+              <Receipt className="w-4 h-4" style={{ color: '#005691' }} />
+            </div>
+          </div>
+        </div>
 
-        <Card className="bg-gradient-to-br from-sky-400 to-blue-500 text-white border-0 shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium opacity-80 text-white">Mercado Pago</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-lg font-bold">API Gateway</p>
-                <div className="flex items-center gap-1.5 text-xs text-sky-100">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                  Activo para conciliación
-                </div>
+        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Mercado Pago</p>
+              <p className="text-sm font-semibold text-slate-900 mt-1">API Gateway</p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-xs text-slate-400">Activo para conciliación</span>
               </div>
-              <ExternalLink className="w-8 h-8 opacity-20" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-2.5 rounded-lg shrink-0 mt-0.5" style={{ background: '#00A8E8' + '18' }}>
+              <ExternalLink className="w-4 h-4" style={{ color: '#00A8E8' }} />
+            </div>
+          </div>
+        </div>
 
-        <Card className="bg-white border-0 shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500">Pendientes de Facturar</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold text-slate-900">
-                  {subscriptions.filter(s => !s.isBilled).length}
-                </p>
-                <p className="text-xs text-slate-500">Items en este período</p>
-              </div>
-              <div className="p-2 bg-amber-50 rounded-lg">
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
-              </div>
+        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Pendientes</p>
+              <p className="text-2xl font-semibold text-slate-900 mt-1 tabular-nums">
+                {subscriptions.filter(s => !s.isBilled).length}
+              </p>
+              <p className="text-xs text-slate-400 mt-1">Items sin facturar</p>
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-2.5 rounded-lg shrink-0 mt-0.5" style={{ background: '#f59e0b18' }}>
+              <AlertTriangle className="w-4 h-4" style={{ color: '#f59e0b' }} />
+            </div>
+          </div>
+        </div>
       </div>
 
-      <Card className="border-0 shadow-xl bg-white/80 backdrop-blur overflow-hidden">
+      <Card className="border-slate-100 shadow-sm overflow-hidden">
         <CardHeader className="border-b bg-slate-50/50">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Items Facturables</CardTitle>
+              <CardTitle className="text-base font-semibold">Items Facturables</CardTitle>
               <CardDescription>Selecciona los items que deseas procesar con ARCA</CardDescription>
             </div>
             <Button
               disabled={selectedIds.size === 0 || processing}
               onClick={handleProcessBilling}
-              className="bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all active:scale-95"
+              className="shadow-sm transition-all active:scale-95"
+              style={{ background: '#005691' }}
             >
               {processing ? (
                 <>
@@ -229,14 +222,18 @@ export function BillingView() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            <div className="flex items-center justify-center py-14">
+              <Loader2 className="w-6 h-6 animate-spin text-[#00A8E8]" />
             </div>
           ) : subscriptions.length === 0 ? (
-            <div className="flex flex-col items-center py-20 text-slate-500">
-              <Receipt className="w-16 h-16 mb-4 opacity-10" />
-              <p className="text-lg font-medium">No hay items para facturar</p>
-              <p className="text-sm">Solo se muestran clientes con pago "Al Día"</p>
+            <div className="flex flex-col items-center py-14 gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center">
+                <Receipt className="w-7 h-7 text-slate-300" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-semibold text-slate-700">Sin items para facturar</p>
+                <p className="text-xs text-slate-400 mt-1">Solo se muestran clientes con pago &quot;Al Día&quot;</p>
+              </div>
             </div>
           ) : (
             <Table>
@@ -273,8 +270,8 @@ export function BillingView() {
                           />
                         )}
                       </TableCell>
-                      <TableCell className="font-medium">
-                        {formatFullName(sub.client.nombre, sub.client.apellido)}
+                      <TableCell className="font-medium max-w-[160px]">
+                        <span className="truncate block">{formatFullName(sub.client.nombre, sub.client.apellido)}</span>
                       </TableCell>
                       <TableCell className="text-slate-500 text-sm">{sub.client.dni || '---'}</TableCell>
                       <TableCell className="font-semibold text-slate-700">

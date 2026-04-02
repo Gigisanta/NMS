@@ -155,7 +155,7 @@ export function PaymentsView() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Pagos y Suscripciones</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Pagos y Suscripciones</h1>
           <p className="text-slate-500">
             Gestión de estados de pago
           </p>
@@ -163,33 +163,30 @@ export function PaymentsView() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         {[
-          { label: 'Total', value: stats.total, icon: CreditCard, bg: 'bg-slate-100', color: 'text-slate-600' },
-          { label: 'Al Día', value: stats.alDia, icon: CheckCircle2, bg: 'bg-emerald-100', color: 'text-emerald-600' },
-          { label: 'Pendientes', value: stats.pendiente, icon: Clock, bg: 'bg-amber-100', color: 'text-amber-600' },
-          { label: 'Deudores', value: stats.deudor, icon: AlertTriangle, bg: 'bg-red-100', color: 'text-red-600' },
-        ].map((stat, index) => (
-          <motion.div
+          { label: 'Total', value: stats.total, icon: CreditCard, accent: '#64748b' },
+          { label: 'Al Día', value: stats.alDia, icon: CheckCircle2, accent: '#10b981' },
+          { label: 'Pendientes', value: stats.pendiente, icon: Clock, accent: '#f59e0b' },
+          { label: 'Deudores', value: stats.deudor, icon: AlertTriangle, accent: '#ef4444' },
+        ].map((stat) => (
+          <div
             key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
+            className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm"
           >
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 ${stat.bg} rounded-lg`}>
-                    <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                  </div>
-                  <div>
-                    <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                    <p className="text-xs text-slate-500">{stat.label}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{stat.label}</p>
+                <p className="text-2xl font-semibold text-slate-900 mt-1 tabular-nums">{stat.value}</p>
+              </div>
+              <div
+                className="p-2.5 rounded-lg mt-0.5 shrink-0"
+                style={{ background: `${stat.accent}18` }}
+              >
+                <stat.icon className="w-4 h-4" style={{ color: stat.accent }} />
+              </div>
+            </div>
+          </div>
         ))}
       </div>
 
@@ -203,69 +200,71 @@ export function PaymentsView() {
       )}
 
       {/* Filters */}
-      <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
-        <CardContent className="p-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-slate-400" />
-              <span className="text-sm font-medium">Filtros:</span>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {[
-                { value: '', label: 'Todos' },
-                { value: 'AL_DIA', label: 'Al Día', activeClass: 'bg-emerald-600' },
-                { value: 'PENDIENTE', label: 'Pendiente', activeClass: 'bg-amber-600' },
-                { value: 'DEUDOR', label: 'Deudor', activeClass: 'bg-red-600' },
-              ].map((filter) => (
-                <Button
-                  key={filter.value}
-                  variant={statusFilter === filter.value ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setStatusFilter(filter.value)}
-                  className={statusFilter === filter.value ? filter.activeClass : ''}
-                >
-                  {filter.label}
-                </Button>
-              ))}
-            </div>
-            <div className="flex items-center gap-2 ml-auto">
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                className="h-9 px-3 rounded-md border border-slate-200 bg-white text-sm"
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex gap-1.5 flex-wrap">
+          {[
+            { value: '', label: 'Todos' },
+            { value: 'AL_DIA', label: 'Al Día', accent: '#10b981' },
+            { value: 'PENDIENTE', label: 'Pendiente', accent: '#f59e0b' },
+            { value: 'DEUDOR', label: 'Deudor', accent: '#ef4444' },
+          ].map((filter) => {
+            const isActive = statusFilter === filter.value
+            return (
+              <button
+                key={filter.value}
+                onClick={() => setStatusFilter(filter.value)}
+                className="h-8 px-3 text-xs font-medium rounded-lg border transition-all"
+                style={{
+                  background: isActive ? (filter.accent ?? '#1e293b') : 'white',
+                  color: isActive ? 'white' : '#475569',
+                  borderColor: isActive ? (filter.accent ?? '#1e293b') : '#e2e8f0',
+                }}
               >
-                {months.map(m => (
-                  <option key={m} value={m}>
-                    {formatMonthYear(m, selectedYear).split(' ')[0]}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                className="h-9 px-3 rounded-md border border-slate-200 bg-white text-sm"
-              >
-                {years.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                {filter.label}
+              </button>
+            )
+          })}
+        </div>
+        <div className="flex items-center gap-2 ml-auto">
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+            className="h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
+          >
+            {months.map(m => (
+              <option key={m} value={m}>
+                {formatMonthYear(m, selectedYear).split(' ')[0]}
+              </option>
+            ))}
+          </select>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+            className="h-8 px-2 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
+          >
+            {years.map(y => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       {/* Subscriptions Table */}
-      <Card className="border-0 shadow-lg bg-white/80 backdrop-blur overflow-hidden">
+      <Card className="border-slate-100 shadow-sm overflow-hidden">
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
+            <div className="flex items-center justify-center py-14">
+              <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
             </div>
           ) : filteredSubscriptions.length === 0 ? (
-            <div className="flex flex-col items-center py-12 text-slate-500">
-              <CreditCard className="w-12 h-12 mb-4 text-slate-300" />
-              <p className="text-lg font-medium">No hay suscripciones</p>
-              <p className="text-sm">No se encontraron registros para el período seleccionado</p>
+            <div className="flex flex-col items-center py-14 gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center">
+                <CreditCard className="w-7 h-7 text-emerald-400" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-semibold text-slate-700">Sin suscripciones</p>
+                <p className="text-xs text-slate-400 mt-1">No hay registros para el período y filtros seleccionados</p>
+              </div>
             </div>
           ) : (
             <ScrollArea className="h-[calc(100vh-450px)] min-h-[400px]">
@@ -302,7 +301,7 @@ export function PaymentsView() {
                                   </div>
                                 )
                               })()}
-                              <Avatar className="h-10 w-10 bg-gradient-to-br from-cyan-500 to-sky-600 ring-2 ring-white shadow-md">
+                              <Avatar className="h-10 w-10 ring-2 ring-white shadow-sm" style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}>
                                 <AvatarFallback className="text-white text-sm">
                                   {sub.client.nombre[0]}{sub.client.apellido[0]}
                                 </AvatarFallback>

@@ -178,7 +178,8 @@ export function GroupSelector({
               </Button>
               <Button
                 size="sm"
-                className="flex-1 h-7 text-xs bg-gradient-to-r from-cyan-500 to-sky-600"
+                className="flex-1 h-7 text-xs text-white"
+                style={{ background: '#005691' }}
                 onClick={handleCreateGroup}
                 disabled={!newGroupName.trim() || creating}
               >
@@ -199,7 +200,7 @@ export function GroupSelector({
               className={cn(
                 'w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors',
                 'hover:bg-slate-100',
-                !selectedGroup && 'bg-cyan-50 text-cyan-700'
+                !selectedGroup && 'bg-slate-100 text-slate-700'
               )}
               onClick={() => {
                 onChange(null)

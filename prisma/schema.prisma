@@ -1,5 +1,5 @@
 // Natatory Management System (NMS) - Database Schema
-// Adapted for SQLite with Prisma ORM
+// PostgreSQL with Prisma ORM (Neon serverless)
 
 generator client {
   provider      = "prisma-client-js"
@@ -25,7 +25,7 @@ model User {
   password     String
   role         Role         @default(EMPLEADO)
   employeeRole String?      // Changed from enum to String for free-form roles
-  hourlyRate   Decimal?     @db.Decimal(10, 2) // Hourly wage for employees
+  hourlyRate   Decimal?  @db.Decimal(10, 2) // Hourly wage for employees
   phone        String?
   active       Boolean      @default(true)
   image        String?
@@ -54,7 +54,7 @@ model User {
 model Expense {
   id          String   @id @default(cuid())
   description String
-  amount      Decimal     @db.Decimal(10, 2)
+  amount      Decimal    @db.Decimal(10, 2)
   category    ExpenseCategory
   date        DateTime @default(now())
   month       Int?     // Mes correspondiente (1-12)
@@ -138,6 +138,7 @@ model TimeEntry {
 
   @@index([userId])
   @@index([clockIn])
+  @@index([userId, clockIn])
   @@map("time_entries")
 }
 
@@ -216,6 +217,7 @@ model Subscription {
   billingPeriod  String   @default("FULL") // FULL or HALF (for mid-month signups)
 
   @@index([status])
+  @@index([clientId, status])
   isBilled       Boolean  @default(false) // Whether it was processed for ARCA
   classesTotal   Int      @default(4)
   classesUsed    Int      @default(0)
@@ -245,7 +247,7 @@ model Invoice {
   mimeType     String   @default("application/pdf") // File MIME type
   
   // File data stored directly in PostgreSQL (bytea)
-  fileData     Bytes?   @db.ByteA // Binary file data
+  fileData     Bytes?  @db.ByteA // Binary file data
   
   // Legacy field (deprecated - kept for migration)
   imageUrl     String?  // Deprecated: use filePath instead
@@ -301,6 +303,7 @@ model Attendance {
 
   @@index([clientId])
   @@index([date])
+  @@index([clientId, date])
   @@map("attendances")
 }
 
@@ -434,6 +437,7 @@ model WhatsAppMessage {
   @@index([status])
   @@index([createdAt])
   @@index([fromPhone, createdAt])
+  @@index([matchedClientId])
   @@map("whatsapp_messages")
 }
 

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { ClientForm } from './client-form'
 import { GroupSelector } from './group-selector'
 import { GroupManager } from './group-manager'
@@ -47,14 +48,13 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
 
   return (
     <tr
-      className="cursor-pointer transition-colors animate-fade-in"
-      style={{ background: 'rgba(0, 168, 232, 0.02)' }}
+      className="cursor-pointer transition-colors animate-fade-in hover:bg-slate-50/80"
       onClick={() => onClientClick(client)}
     >
       <TableCell className="py-3">
         <div className="flex items-center gap-3">
-          <div 
-            className="flex h-8 w-8 items-center justify-center font-medium text-xs"
+          <div
+            className="flex h-8 w-8 items-center justify-center font-medium text-xs rounded-full"
             style={{ background: 'rgba(0, 168, 232, 0.1)', color: '#005691' }}
           >
             {initials}
@@ -169,6 +169,7 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [memoizedGroups, setMemoizedGroups] = useState<Group[]>([])
   const [groupsLastFetch, setGroupsLastFetch] = useState(0)
 
@@ -247,7 +248,6 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
   }, [fetchClients, invalidateDashboard])
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este cliente?')) return
     setDeletingId(id)
     try {
       const response = await fetch(`/api/clients/${id}`, {
@@ -300,11 +300,12 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
                 setGrupoFilter(null)
                 setPage(1)
               }}
-              className={`w-full text-left px-3 py-2 text-sm font-medium transition-all ${
-                grupoFilter === null 
-                  ? 'bg-gradient-to-r from-cyan-500 to-sky-600 text-white' 
+              className={`w-full text-left px-3 py-2 text-sm font-medium transition-all rounded-lg ${
+                grupoFilter === null
+                  ? 'text-white'
                   : 'hover:bg-slate-100 text-slate-600'
               }`}
+              style={grupoFilter === null ? { background: '#005691' } : {}}
             >
               Todos
             </button>
@@ -341,7 +342,7 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
 
       {/* Tabla de Clientes */}
       <div className="flex-1 flex flex-col min-w-0">
-        <Card className="border-0 shadow-md flex flex-col h-full">
+        <Card className="border-slate-100 shadow-sm flex flex-col h-full">
           <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2 flex-shrink-0">
             <div>
               <CardTitle className="text-xl font-semibold">Clientes</CardTitle>
@@ -367,7 +368,7 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
               />
             </div>
 
-            <div className="flex-1 border overflow-hidden">
+            <div className="flex-1 border border-slate-100 rounded-lg overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -384,16 +385,29 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
                   {loading && clients.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="h-24 text-center">
-                        <Loader2 className="w-6 h-6 animate-spin inline mr-2" />
+                        <Loader2 className="w-6 h-6 animate-spin inline mr-2" style={{ color: '#00A8E8' }} />
                         Cargando...
                       </TableCell>
                     </TableRow>
                   ) : clients.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
-                        <div className="flex flex-col items-center justify-center" style={{ color: '#86868b' }}>
-                          <Clock className="h-8 w-8 mb-2 opacity-50" />
-                          <p>No se encontraron clientes</p>
+                      <TableCell colSpan={6} className="py-12 text-center">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: '#00A8E818' }}>
+                            <Users className="w-6 h-6" style={{ color: '#00A8E8' }} />
+                          </div>
+                          <p className="text-sm font-medium text-slate-600">
+                            {search ? `Sin resultados para "${search}"` : 'No hay clientes registrados'}
+                          </p>
+                          {search && (
+                            <button
+                              onClick={() => setSearch('')}
+                              className="text-xs font-medium hover:underline"
+                              style={{ color: '#005691' }}
+                            >
+                              Limpiar búsqueda
+                            </button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -406,7 +420,7 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
                         index={index}
                         onClientClick={handleClientClick}
                         onGroupChange={handleGroupChange}
-                        onDelete={handleDelete}
+                        onDelete={setConfirmDeleteId}
                         deletingId={deletingId === client.id}
                       />
                     ))
@@ -475,6 +489,26 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
           onSaved={fetchClients}
         />
       )}
+
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar cliente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción es permanente. Se eliminarán también las suscripciones y asistencias asociadas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => { if (confirmDeleteId) { handleDelete(confirmDeleteId); setConfirmDeleteId(null) } }}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -507,7 +507,7 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                   <span className="text-lg">−</span>
                 </Button>
                 <div className="flex-1 text-center">
-                  <span className="text-2xl font-bold text-[#005691]">{formData.classesTotal}</span>
+                  <span className="text-2xl font-semibold text-[#005691]">{formData.classesTotal}</span>
                   <span className="text-sm text-slate-500 ml-2">clases/mes</span>
                 </div>
                 <Button

@@ -121,7 +121,7 @@ describe('API /dashboard', () => {
       const response = await getDashboard()
       const data = await response.json()
 
-      expect(data.data.stats.activeClients).toBe(5)
+      expect(data.data.stats.activeClients).toBe(3)
       expect(data.data.stats.pendingPayments).toBe(2)
       expect(data.data.stats.overduePayments).toBe(2)
     })

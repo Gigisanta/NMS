@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { invalidateCachePattern, invalidateClientCache } from '@/lib/api-utils'
+import { z } from 'zod'
+
+const updateSubscriptionSchema = z.object({
+  status: z.enum(['AL_DIA', 'PENDIENTE', 'SUSPENDIDO', 'CANCELADO']).optional(),
+  classesTotal: z.number().int().min(0).optional(),
+  classesUsed: z.number().int().min(0).optional(),
+  amount: z.number().min(0).nullable().optional(),
+  paymentMethod: z.string().optional(),
+  isBilled: z.boolean().optional(),
+  billingPeriod: z.enum(['FULL', 'HALF', 'QUARTER']).optional(),
+})
 
 // PUT /api/subscriptions/[id] - Update subscription
 export async function PUT(
@@ -10,17 +21,17 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { status, classesTotal, classesUsed, amount, paymentMethod, isBilled, billingPeriod } = body
+    const validated = updateSubscriptionSchema.parse(body)
 
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
 
-    if (status) updateData.status = status
-    if (typeof classesTotal === 'number') updateData.classesTotal = classesTotal
-    if (typeof classesUsed === 'number') updateData.classesUsed = classesUsed
-    if (typeof amount === 'number' || amount === null) updateData.amount = amount
-    if (paymentMethod !== undefined) updateData.paymentMethod = paymentMethod
-    if (typeof isBilled === 'boolean') updateData.isBilled = isBilled
-    if (billingPeriod !== undefined) updateData.billingPeriod = billingPeriod
+    if (validated.status !== undefined) updateData.status = validated.status
+    if (validated.classesTotal !== undefined) updateData.classesTotal = validated.classesTotal
+    if (validated.classesUsed !== undefined) updateData.classesUsed = validated.classesUsed
+    if (validated.amount !== undefined) updateData.amount = validated.amount
+    if (validated.paymentMethod !== undefined) updateData.paymentMethod = validated.paymentMethod
+    if (validated.isBilled !== undefined) updateData.isBilled = validated.isBilled
+    if (validated.billingPeriod !== undefined) updateData.billingPeriod = validated.billingPeriod
 
     const subscription = await db.subscription.update({
       where: { id },
@@ -36,6 +47,12 @@ export async function PUT(
       data: subscription,
     })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.issues },
+        { status: 400 }
+      )
+    }
     console.error('Error updating subscription:', error)
     return NextResponse.json(
       { success: false, error: 'Error al actualizar suscripción' },

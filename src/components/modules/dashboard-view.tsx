@@ -1,15 +1,16 @@
 'use client'
 
-import { useEffect, useState, memo, useCallback, useMemo } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { 
-  Users, 
-  UserCheck, 
-  Clock, 
+import {
+  Users,
+  UserCheck,
+  Clock,
   AlertTriangle,
   Calendar,
   DollarSign,
@@ -74,27 +75,42 @@ interface DashboardViewProps {
 }
 
 // Minimalist stat card
-const StatCard = memo(function StatCard({ 
-  title, 
-  value, 
+const StatCard = memo(function StatCard({
+  title,
+  value,
   Icon,
-  trend 
-}: { 
+  trend,
+  accent = '#64748b',
+  format,
+}: {
   title: string
   value: number
   Icon: React.ComponentType<{ className?: string }>
   trend?: string
+  accent?: string
+  format?: 'number' | 'currency'
 }) {
+  const displayValue = format === 'currency'
+    ? formatCurrency(value)
+    : value.toLocaleString('es-AR')
+
   return (
-    <div className="bg-white p-4 border border-slate-200/60">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{title}</p>
-          <p className="text-2xl font-semibold text-slate-900 mt-1">{value}</p>
-          {trend && <p className="text-xs text-slate-400 mt-0.5">{trend}</p>}
+    <div
+      className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-200"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider truncate">{title}</p>
+          <p className="text-2xl font-semibold text-slate-900 mt-1 tabular-nums">{displayValue}</p>
+          {trend && <p className="text-xs text-slate-400 mt-1">{trend}</p>}
         </div>
-        <div className="p-2 bg-slate-50">
-          <Icon className="w-4 h-4 text-slate-400" />
+        <div
+          className="p-2.5 rounded-lg shrink-0 mt-0.5"
+          style={{ background: `${accent}18` }}
+        >
+          <span style={{ color: accent }}>
+            <Icon className="w-4 h-4" />
+          </span>
         </div>
       </div>
     </div>
@@ -116,7 +132,7 @@ const ClientItem = memo(function ClientItem({ client, showStatus, status }: {
 
   return (
     <div className="flex items-center gap-3 py-2">
-      <div className="w-8 h-8 bg-slate-100 flex items-center justify-center flex-shrink-0">
+      <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0">
         <span className="text-xs font-medium text-slate-500">{initials}</span>
       </div>
       <div className="flex-1 min-w-0">
@@ -165,48 +181,24 @@ const DashboardSkeleton = memo(function DashboardSkeleton() {
 export function DashboardView({ onNavigate }: DashboardViewProps) {
   const { data: session } = useSession()
   const isEmployee = session?.user?.role === 'EMPLEADO'
-  
-  const [data, setData] = useState<DashboardData | null>(null)
-  const [loading, setLoading] = useState(true)
-  
-  const dashboardStats = useAppStore((state) => state.dashboardStats)
+
   const setDashboardStats = useAppStore((state) => state.setDashboardStats)
-  const dashboardLastFetch = useAppStore((state) => state.dashboardLastFetch)
 
   const handleNavigate = useCallback((view: string) => onNavigate(view), [onNavigate])
 
-  const shouldFetch = useMemo(() => 
-    Date.now() - dashboardLastFetch > 2 * 60 * 1000,
-    [dashboardLastFetch]
-  )
-
-  useEffect(() => {
-    let mounted = true
-
-    async function fetchDashboard() {
-      if (dashboardStats && !shouldFetch) {
-        setLoading(false)
-        return
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard')
+      if (!res.ok) throw new Error('Error fetching dashboard')
+      const result = await res.json()
+      if (result.success) {
+        setDashboardStats(result.data.stats)
       }
-
-      try {
-        const response = await fetch('/api/dashboard')
-        const result = await response.json()
-        if (mounted && result.success) {
-          setData(result.data)
-          setDashboardStats(result.data.stats)
-        }
-      } catch (error) {
-        console.error('Error fetching dashboard:', error)
-      } finally {
-        if (mounted) setLoading(false)
-      }
-    }
-
-    fetchDashboard()
-    
-    return () => { mounted = false }
-  }, [shouldFetch, dashboardStats, setDashboardStats])
+      return result.data as DashboardData
+    },
+    staleTime: 60 * 1000, // 1 minute
+  })
 
   const stats = data?.stats
   const recentClients = data?.recentClients ?? []
@@ -224,7 +216,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
     [pendingClients]
   )
 
-  if (loading) return <DashboardSkeleton />
+  if (isLoading) return <DashboardSkeleton />
   if (!data) return null
 
   return (
@@ -249,29 +241,33 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
 
       {/* Stats Grid */}
       <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
-        <StatCard 
-          title="Clientes" 
+        <StatCard
+          title="Clientes"
           value={stats?.totalClients ?? 0}
           Icon={Users}
           trend="Total registrados"
+          accent="#005691"
         />
-        <StatCard 
-          title="Activos" 
+        <StatCard
+          title="Activos"
           value={stats?.activeClients ?? 0}
           Icon={UserCheck}
           trend="Este mes"
+          accent="#10b981"
         />
-        <StatCard 
-          title="Pendientes" 
+        <StatCard
+          title="Pendientes"
           value={stats?.pendingPayments ?? 0}
           Icon={Clock}
           trend="Por cobrar"
+          accent="#f59e0b"
         />
-        <StatCard 
-          title="Hoy" 
+        <StatCard
+          title="Hoy"
           value={stats?.todayAttendances ?? 0}
           Icon={Calendar}
           trend="Asistencias"
+          accent="#00A8E8"
         />
       </div>
 
@@ -282,7 +278,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
             <TimeClockWidget />
           </div>
           <div className="lg:col-span-2">
-            <Card className="border-slate-200/60">
+            <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-500" />
@@ -290,17 +286,20 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {pendingClients.length === 0 
-                  ? <div className="text-center py-6">
-                      <p className="text-sm text-slate-500">Sin pagos pendientes</p>
+                {pendingClients.length === 0
+                  ? <div className="text-center py-8">
+                      <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-2">
+                        <UserCheck className="w-4 h-4 text-emerald-500" />
+                      </div>
+                      <p className="text-sm text-slate-400">Todo al día</p>
                     </div>
                   : <div className="divide-y divide-slate-100">
                       {displayPendingClients.map((item) => (
-                        <ClientItem 
-                          key={item.client.id} 
-                          client={item.client} 
-                          showStatus 
-                          status={item.status} 
+                        <ClientItem
+                          key={item.client.id}
+                          client={item.client}
+                          showStatus
+                          status={item.status}
                         />
                       ))}
                     </div>
@@ -315,11 +314,11 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
       {!isEmployee && (
         <div className="grid gap-4 lg:grid-cols-3">
           {/* Revenue */}
-          <Card className="border-slate-200/60">
+          <Card className="border-slate-100 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-emerald-500" />
-                Ingresos
+                Ingresos del mes
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -368,7 +367,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                           </div>
                           <div className="space-y-0.5 text-right">
                             <p className="text-[10px] text-slate-400 uppercase">Cobrado</p>
-                            <p className="text-sm font-bold text-emerald-600">
+                            <p className="text-sm font-semibold text-emerald-600">
                               {formatCurrency(group.collected)}
                             </p>
                           </div>
@@ -390,7 +389,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           </Card>
 
           {/* Recent Clients */}
-          <Card className="border-slate-200/60">
+          <Card className="border-slate-100 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Users className="w-4 h-4 text-slate-400" />
@@ -398,9 +397,10 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {recentClients.length === 0 
-                ? <div className="text-center py-6">
-                    <p className="text-sm text-slate-500">Sin clientes</p>
+              {recentClients.length === 0
+                ? <div className="text-center py-8 px-4">
+                    <Users className="w-8 h-8 text-slate-200 mx-auto mb-2" />
+                    <p className="text-sm text-slate-400">Aún no hay clientes registrados</p>
                   </div>
                 : <div className="divide-y divide-slate-100">
                     {recentClients.map((client) => (
@@ -412,7 +412,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           </Card>
 
           {/* Pending Payments */}
-          <Card className="border-slate-200/60">
+          <Card className="border-slate-100 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-500" />
@@ -420,17 +420,20 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {pendingClients.length === 0 
-                ? <div className="text-center py-6">
-                    <p className="text-sm text-slate-500">Sin pagos pendientes</p>
+              {pendingClients.length === 0
+                ? <div className="text-center py-8 px-4">
+                    <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-2">
+                      <UserCheck className="w-4 h-4 text-emerald-500" />
+                    </div>
+                    <p className="text-sm text-slate-400">Todo al día</p>
                   </div>
                 : <div className="divide-y divide-slate-100">
                     {displayPendingClients.map((item) => (
-                      <ClientItem 
-                        key={item.client.id} 
-                        client={item.client} 
-                        showStatus 
-                        status={item.status} 
+                      <ClientItem
+                        key={item.client.id}
+                        client={item.client}
+                        showStatus
+                        status={item.status}
                       />
                     ))}
                   </div>

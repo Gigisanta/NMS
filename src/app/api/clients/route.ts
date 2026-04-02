@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
 import { cachedFetch, CacheKeys, invalidateCachePattern } from '@/lib/api-utils'
 import { createClientSchema } from '@/schemas/client'
+import { ratelimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -169,6 +170,16 @@ export async function GET(request: NextRequest) {
 // POST /api/clients - Create new client
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anonymous'
+    const { success } = await ratelimit.limit(ip)
+    if (!success) {
+      return NextResponse.json(
+        { success: false, error: 'Demasiadas solicitudes, intenta más tarde' },
+        { status: 429 }
+      )
+    }
+
     const body = await request.json()
 
     // Validate request body with Zod schema

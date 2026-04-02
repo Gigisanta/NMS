@@ -245,7 +245,7 @@ export function UserManagement() {
 
   if (!isEmpleadora) {
     return (
-      <Card className="border-0 shadow-lg">
+      <Card className="border-slate-100 shadow-sm">
         <CardContent className="py-8 text-center">
           <p className="text-slate-500">No tienes permisos para ver esta sección</p>
         </CardContent>
@@ -254,7 +254,7 @@ export function UserManagement() {
   }
 
   return (
-    <Card className="border-0 shadow-lg">
+    <Card className="border-slate-100 shadow-sm">
       <CardHeader>
         <div className="flex items-center gap-3">
           <div className="p-2 bg-purple-100 rounded-lg">

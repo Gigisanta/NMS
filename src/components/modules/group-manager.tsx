@@ -1,20 +1,36 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { 
-  Plus, 
-  Check, 
-  X, 
+import {
+  Plus,
   Loader2,
   Users,
   Pencil,
   Trash2,
-  Settings
+  Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -44,9 +60,15 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const [newGroup, setNewGroup] = useState({ name: '', color: predefinedColors[0], schedule: '', description: '' })
+  const [newGroup, setNewGroup] = useState({
+    name: '',
+    color: predefinedColors[0],
+    schedule: '',
+    description: '',
+  })
   const [editGroup, setEditGroup] = useState<Group | null>(null)
 
   const handleCreate = async () => {
@@ -69,8 +91,8 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
         setShowCreate(false)
         setNewGroup({ name: '', color: predefinedColors[0], schedule: '', description: '' })
       }
-    } catch (error) {
-      console.error('Error creating group:', error)
+    } catch (err) {
+      console.error('Error creating group:', err)
       setError('Error al crear el grupo. Intenta de nuevo.')
     } finally {
       setSaving(false)
@@ -97,8 +119,8 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
         setEditingId(null)
         setEditGroup(null)
       }
-    } catch (error) {
-      console.error('Error updating group:', error)
+    } catch (err) {
+      console.error('Error updating group:', err)
       setError('Error al actualizar el grupo. Intenta de nuevo.')
     } finally {
       setSaving(false)
@@ -106,7 +128,6 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este grupo? Los clientes serán desasignados.')) return
     setDeletingId(id)
     try {
       const response = await fetch(`/api/groups/${id}`, { method: 'DELETE' })
@@ -114,12 +135,29 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       if (result.success) {
         onGroupsChange()
       }
-    } catch (error) {
-      console.error('Error deleting group:', error)
+    } catch (err) {
+      console.error('Error deleting group:', err)
       setError('Error al eliminar el grupo. Intenta de nuevo.')
     } finally {
       setDeletingId(null)
     }
+  }
+
+  const handleDeleteConfirm = () => {
+    if (confirmDeleteId !== null) {
+      handleDelete(confirmDeleteId)
+      setConfirmDeleteId(null)
+    }
+  }
+
+  const cancelCreate = () => {
+    setShowCreate(false)
+    setNewGroup({ name: '', color: predefinedColors[0], schedule: '', description: '' })
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditGroup(null)
   }
 
   return (
@@ -145,165 +183,243 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
             {groups.map((group) => (
               <div key={group.id} className="border rounded-lg p-3 bg-white">
                 {editingId === group.id ? (
-                  <div className="space-y-3">
-                    <div>
-                      <Label className="text-xs text-slate-500">Nombre</Label>
-                      <Input
-                        value={editGroup?.name || ''}
-                        onChange={(e) => setEditGroup(prev => prev ? { ...prev, name: e.target.value } : null)}
-                        className="h-8"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-slate-500">Horario</Label>
-                      <Input
-                        value={editGroup?.schedule || ''}
-                        onChange={(e) => setEditGroup(prev => prev ? { ...prev, schedule: e.target.value } : null)}
-                        placeholder="Ej: Lun-Mié 16:00"
-                        className="h-8"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-slate-500">Color</Label>
-                      <div className="flex gap-1.5 mt-1 flex-wrap">
-                        {predefinedColors.map((color) => (
-                          <button
-                            key={color}
-                            type="button"
-                            className={cn(
-                              'w-6 h-6 rounded-full border-2 transition-transform hover:scale-110',
-                              editGroup?.color === color ? 'border-slate-800 scale-110' : 'border-transparent'
-                            )}
-                            style={{ backgroundColor: color }}
-                            onClick={() => setEditGroup(prev => prev ? { ...prev, color } : null)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => { setEditingId(null); setEditGroup(null); }}>
-                        Cancelar
-                      </Button>
-                      <Button size="sm" onClick={handleUpdate} disabled={saving}>
-                        {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Guardar'}
-                      </Button>
-                    </div>
-                  </div>
+                  <GroupEditForm
+                    group={editGroup!}
+                    onSave={handleUpdate}
+                    onCancel={cancelEdit}
+                    saving={saving}
+                  />
                 ) : (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center"
-                        style={{ backgroundColor: `${group.color}20` }}
-                      >
-                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: group.color }} />
-                      </div>
-                      <div>
-                        <div className="font-medium text-sm" style={{ color: group.color }}>
-                          {group.name}
-                        </div>
-                        {group.schedule && (
-                          <div className="text-xs text-slate-500">{group.schedule}</div>
-                        )}
-                        <div className="text-xs text-slate-400 flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          {group.clientCount || 0} clientes
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => { setEditingId(group.id); setEditGroup(group); }}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-                        onClick={() => handleDelete(group.id)}
-                        disabled={deletingId === group.id}
-                      >
-                        {deletingId === group.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
+                  <GroupRow
+                    group={group}
+                    onEdit={() => { setEditingId(group.id); setEditGroup(group) }}
+                    onDelete={() => setConfirmDeleteId(group.id)}
+                    deletingId={deletingId}
+                  />
                 )}
               </div>
             ))}
 
-            {showCreate && (
-              <div className="border rounded-lg p-3 bg-slate-50 space-y-3">
-                <div>
-                  <Label className="text-xs text-slate-500">Nombre del grupo</Label>
-                  <Input
-                    value={newGroup.name}
-                    onChange={(e) => setNewGroup(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Ej: Grupo A"
-                    className="h-8"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs text-slate-500">Horario</Label>
-                  <Input
-                    value={newGroup.schedule}
-                    onChange={(e) => setNewGroup(prev => ({ ...prev, schedule: e.target.value }))}
-                    placeholder="Ej: Lun-Mié 16:00"
-                    className="h-8"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs text-slate-500">Color</Label>
-                  <div className="flex gap-1.5 mt-1 flex-wrap">
-                    {predefinedColors.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        className={cn(
-                          'w-6 h-6 rounded-full border-2 transition-transform hover:scale-110',
-                          newGroup.color === color ? 'border-slate-800 scale-110' : 'border-transparent'
-                        )}
-                        style={{ backgroundColor: color }}
-                        onClick={() => setNewGroup(prev => ({ ...prev, color }))}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => setShowCreate(false)}>
-                    Cancelar
-                  </Button>
-                  <Button size="sm" onClick={handleCreate} disabled={!newGroup.name.trim() || saving}>
-                    {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Crear'}
-                  </Button>
-                </div>
-              </div>
-            )}
+            {showCreate ? (
+              <GroupCreateForm
+                value={newGroup}
+                onChange={setNewGroup}
+                onSave={handleCreate}
+                onCancel={cancelCreate}
+                saving={saving}
+              />
+            ) : null}
           </div>
         </ScrollArea>
 
         <DialogFooter>
-          {!showCreate && editingId === null && (
-            <Button variant="outline" onClick={() => setShowCreate(true)} className="w-full">
+          {!showCreate && editingId === null ? (
+            <Button
+              variant="outline"
+              onClick={() => setShowCreate(true)}
+              className="w-full"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Nuevo Grupo
             </Button>
-          )}
-          {error && (
+          ) : null}
+          {error ? (
             <div className="text-sm text-red-500 bg-red-50 p-2 rounded mt-2 w-full">
               {error}
             </div>
-          )}
+          ) : null}
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function GroupRow({
+  group,
+  onEdit,
+  onDelete,
+  deletingId,
+}: {
+  group: Group
+  onEdit: () => void
+  onDelete: () => void
+  deletingId: string | null
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: group.color + '20' }}
+        >
+          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: group.color }} />
+        </div>
+        <div>
+          <div className="font-medium text-sm" style={{ color: group.color }}>
+            {group.name}
+          </div>
+          {group.schedule ? (
+            <div className="text-xs text-slate-500">{group.schedule}</div>
+          ) : null}
+          <div className="text-xs text-slate-400 flex items-center gap-1">
+            <Users className="w-3 h-3" />
+            {group.clientCount || 0} clientes
+          </div>
+        </div>
+      </div>
+      <div className="flex gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={onEdit}
+        >
+          <Pencil className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+          onClick={onDelete}
+          disabled={deletingId === group.id}
+        >
+          {deletingId === group.id ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Trash2 className="w-4 h-4" />
+          )}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function GroupEditForm({
+  group,
+  onSave,
+  onCancel,
+  saving,
+}: {
+  group: Group
+  onSave: () => void
+  onCancel: () => void
+  saving: boolean
+}) {
+  const [localGroup, setLocalGroup] = useState(group)
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <Label className="text-xs text-slate-500">Nombre</Label>
+        <Input
+          value={localGroup.name}
+          onChange={(e) => setLocalGroup({ ...localGroup, name: e.target.value })}
+          className="h-8"
+        />
+      </div>
+      <div>
+        <Label className="text-xs text-slate-500">Horario</Label>
+        <Input
+          value={localGroup.schedule || ''}
+          onChange={(e) => setLocalGroup({ ...localGroup, schedule: e.target.value })}
+          placeholder="Ej: Lun-Mié 16:00"
+          className="h-8"
+        />
+      </div>
+      <div>
+        <Label className="text-xs text-slate-500">Color</Label>
+        <div className="flex gap-1.5 mt-1 flex-wrap">
+          {predefinedColors.map((color) => (
+            <button
+              key={color}
+              type="button"
+              className={cn(
+                'w-6 h-6 rounded-full border-2 transition-transform hover:scale-110',
+                localGroup.color === color ? 'border-slate-800 scale-110' : 'border-transparent'
+              )}
+              style={{ backgroundColor: color }}
+              onClick={() => setLocalGroup({ ...localGroup, color })}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Button size="sm" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button size="sm" onClick={onSave} disabled={saving}>
+          {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Guardar'}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function GroupCreateForm({
+  value,
+  onChange,
+  onSave,
+  onCancel,
+  saving,
+}: {
+  value: { name: string; color: string; schedule: string; description: string }
+  onChange: (v: typeof value) => void
+  onSave: () => void
+  onCancel: () => void
+  saving: boolean
+}) {
+  return (
+    <div className="border rounded-lg p-3 bg-slate-50 space-y-3">
+      <div>
+        <Label className="text-xs text-slate-500">Nombre del grupo</Label>
+        <Input
+          value={value.name}
+          onChange={(e) => onChange({ ...value, name: e.target.value })}
+          placeholder="Ej: Grupo A"
+          className="h-8"
+        />
+      </div>
+      <div>
+        <Label className="text-xs text-slate-500">Horario</Label>
+        <Input
+          value={value.schedule}
+          onChange={(e) => onChange({ ...value, schedule: e.target.value })}
+          placeholder="Ej: Lun-Mié 16:00"
+          className="h-8"
+        />
+      </div>
+      <div>
+        <Label className="text-xs text-slate-500">Color</Label>
+        <div className="flex gap-1.5 mt-1 flex-wrap">
+          {predefinedColors.map((color) => (
+            <button
+              key={color}
+              type="button"
+              className={cn(
+                'w-6 h-6 rounded-full border-2 transition-transform hover:scale-110',
+                value.color === color ? 'border-slate-800 scale-110' : 'border-transparent'
+              )}
+              style={{ backgroundColor: color }}
+              onClick={() => onChange({ ...value, color })}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Button size="sm" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button
+          size="sm"
+          onClick={onSave}
+          disabled={!value.name.trim() || saving}
+        >
+          {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Crear'}
+        </Button>
+      </div>
+    </div>
   )
 }
 

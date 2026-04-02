@@ -195,7 +195,7 @@ export function PaymentSettings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
       </div>
     )
   }
@@ -203,7 +203,7 @@ export function PaymentSettings() {
   return (
     <div className="space-y-6">
       {/* General Payment Settings */}
-      <Card className="border-0 shadow-lg">
+      <Card className="border-slate-100 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-100 rounded-lg">

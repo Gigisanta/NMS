@@ -102,7 +102,7 @@ export function DataSettings() {
 
   if (!isEmpleadora) {
     return (
-      <Card className="border-0 shadow-lg">
+      <Card className="border-slate-100 shadow-sm">
         <CardContent className="py-8 text-center">
           <p className="text-slate-500">No tienes permisos para ver esta sección</p>
         </CardContent>
@@ -113,11 +113,11 @@ export function DataSettings() {
   return (
     <div className="space-y-6">
       {/* Data Export */}
-      <Card className="border-0 shadow-lg">
+      <Card className="border-slate-100 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-cyan-100 rounded-lg">
-              <Database className="w-5 h-5 text-cyan-600" />
+            <div className="p-2 rounded-lg" style={{ background: '#00A8E818' }}>
+              <Database className="w-5 h-5" style={{ color: '#00A8E8' }} />
             </div>
             <div>
               <CardTitle className="text-lg">Datos y Respaldo</CardTitle>
@@ -152,7 +152,7 @@ export function DataSettings() {
       </Card>
 
       {/* WhatsApp Integration */}
-      <Card className="border-0 shadow-lg">
+      <Card className="border-slate-100 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -193,7 +193,7 @@ export function DataSettings() {
       </Card>
 
       {/* System Reset */}
-      <Card className="border-0 shadow-lg border-red-200">
+      <Card className="border-red-200 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-red-100 rounded-lg">

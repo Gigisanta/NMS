@@ -1,10 +1,10 @@
-# 🏛️ Arquitectura del Sistema NMS
+# Arquitectura del Sistema NMS
 
 > Documentación técnica de la arquitectura del Natatory Management System
 
-## 📊 Visión General
+## Visión General
 
-NMS es una aplicación **Single Page Application (SPA)** construida sobre Next.js 15.5 con App Router, diseñada para gestionar natatorios y piscinas de manera integral.
+NMS es una aplicación **Single Page Application (SPA)** construida sobre Next.js 15.5 con React 19, usando **TanStack Query** para server state y **Zustand** para client state.
 
 ### Stack de Producción
 
@@ -15,168 +15,84 @@ NMS es una aplicación **Single Page Application (SPA)** construida sobre Next.j
 | Database | PostgreSQL 16 | Neon (Serverless) |
 | ORM | Prisma 6 | - |
 | Auth | NextAuth v4 (JWT) | Cookies httpOnly |
-| State | Zustand 5 | Client-side |
+| Server State | TanStack Query 5 | Client-side caching |
+| Client State | Zustand 5 | Client-side storage |
+| State Management | React Hook Form | Form state |
+| Validation | Zod 4 | Schema validation |
+| Rate Limiting | @upstash/ratelimit | Edge functions |
+| Error Tracking | Sentry | - |
+| Analytics | @vercel/analytics | - |
+| Bundle Analysis | npm run analyze | - |
 
 ### Principios de Diseño
 
 | Principio | Descripción |
 |-----------|-------------|
-| **SPA-First** | Toda la navegación ocurre dentro de `page.tsx` sin rutas adicionales |
+| **SPA-First** | Toda la navegación ocurre dentro de `page.tsx` usando `window.history.pushState` |
+| **TanStack Query** | Server state caching y sincronización |
+| **Zustand** | Client state con persistencia en localStorage |
 | **Mobile-First** | Diseño responsivo optimizado para dispositivos móviles |
 | **Type Safety** | TypeScript estricto en todo el código |
-| **Performance** | Lazy loading, memoización y caching implementados |
+| **Performance** | Lazy loading, memoización y caching |
 | **Security** | Autenticación obligatoria con roles y permisos |
 
-## 🏗️ Arquitectura de Alto Nivel
+## Arquitectura de Alto Nivel
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                         CLIENTE (Browser)                        │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
-│  │   React     │  │  Zustand    │  │   React Query Cache     │  │
-│  │  Components │  │   Store     │  │   (Server State)        │  │
-│  └──────┬──────┘  └──────┬──────┘  └───────────┬─────────────┘  │
-└─────────┼────────────────┼─────────────────────┼────────────────┘
-          │                │                     │
-          │                │                     │
-┌─────────┼────────────────┼─────────────────────┼────────────────┐
-│         │                │                     │                 │
-│  ┌──────▼──────┐  ┌──────▼──────┐  ┌──────────▼───────────┐     │
-│  │   Layout    │  │   Session   │  │    API Client        │     │
-│  │  Provider   │  │   Provider  │  │    (fetch)           │     │
-│  └──────┬──────┘  └──────┬──────┘  └──────────┬───────────┘     │
-│         │                │                     │                 │
-│         └────────────────┼─────────────────────┘                 │
-│                          │                                       │
-│                    NEXT.JS SERVER                                │
-│  ┌───────────────────────┼───────────────────────────────────┐  │
-│  │                       │                                   │  │
-│  │  ┌────────────────────▼────────────────────────────┐     │  │
-│  │  │              MIDDLEWARE (Auth)                   │     │  │
-│  │  │  - Verifica sesión JWT                           │     │  │
-│  │  │  - Redirige a login si no autenticado           │     │  │
-│  │  │  - Protege rutas API y páginas                  │     │  │
-│  │  └────────────────────┬────────────────────────────┘     │  │
-│  │                       │                                   │  │
-│  │  ┌────────────────────▼────────────────────────────┐     │  │
-│  │  │              API ROUTES                         │     │  │
-│  │  │  /api/clients    /api/groups                    │     │  │
-│  │  │  /api/subscriptions  /api/attendance            │     │  │
-│  │  │  /api/dashboard   /api/webhook/whatsapp         │     │  │
-│  │  └────────────────────┬────────────────────────────┘     │  │
-│  │                       │                                   │  │
-│  │  ┌────────────────────▼────────────────────────────┐     │  │
-│  │  │              PRISMA ORM                         │     │  │
-│  │  │  - Type-safe database queries                   │     │  │
-│  │  │  - Connection pooling via Neon                   │     │  │
-│  │  └────────────────────┬────────────────────────────┘     │  │
-│  │                       │                                   │  │
-│  └───────────────────────┼───────────────────────────────────┘  │
-│                          │                                       │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │                    React 19                              │    │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌────────────────┐ │    │
+│  │  │   Zustand    │  │ TanStack     │  │  React Hook    │ │    │
+│  │  │   Store      │  │ Query        │  │  Form          │ │    │
+│  │  │  (Client     │  │ (Server      │  │  (Form         │ │    │
+│  │  │   State)     │  │  State)      │  │   State)       │ │    │
+│  │  └──────────────┘  └──────────────┘  └────────────────┘ │    │
+│  └─────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘
+           │                   │                    │
+           │                   │                    │
+           ▼                   ▼                    ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      NEXT.JS SERVER (Vercel)                     │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │                   Middleware (Auth)                      │    │
+│  │  - Verifica sesión JWT                                   │    │
+│  │  - Redirige a login si no autenticado                   │    │
+│  │  - Rate limiting con @upstash/ratelimit                  │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                            │                                     │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │                   API Routes (Serverless)                 │    │
+│  │  /api/clients  /api/groups  /api/subscriptions           │    │
+│  │  /api/attendance  /api/invoices  /api/employees          │    │
+│  │  /api/expenses  /api/time-entries  /api/calendar          │    │
+│  │  /api/dashboard  /api/settings  /api/billing             │    │
+│  │  /api/webhook/whatsapp  /api/whatsapp/*                  │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                            │                                     │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │                   PRISMA ORM                              │    │
+│  │  - Type-safe database queries                            │    │
+│  │  - Connection pooling via Neon                           │    │
+│  │  - Binary data (bytea) for invoices                     │    │
+│  └─────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
 │                    POSTGRESQL (Neon)                             │
-│  ┌───────────────────────▼───────────────────────────────────┐  │
-│  │  users | clients | groups | subscriptions | attendances   │  │
-│  │  invoices | accounts | sessions | verification_tokens     │  │
-│  │  pricing_plans | settings                              │  │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ users | clients | groups | subscriptions | attendances   │  │
+│  │ invoices | accounts | sessions | time_entries            │  │
+│  │ expenses | calendar_events | whatsapp_messages            │  │
+│  │ pricing_plans | settings | notifications | activity_logs  │  │
 │  └───────────────────────────────────────────────────────────┘  │
-│                                                                   │
-└───────────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-## 📁 Estructura de Directorios Detallada
-
-### `/src/app` - App Router
-
-```
-src/app/
-├── (auth)/                    # Route Group para autenticación
-│   ├── layout.tsx             # Layout minimal para auth
-│   ├── login/
-│   │   └── page.tsx          # Página de login
-│   └── register/
-│       └── page.tsx          # Página de registro
-│
-├── api/                       # API Routes
-│   ├── auth/
-│   │   ├── [...nextauth]/    # NextAuth handler
-│   │   │   └── route.ts
-│   │   └── register/
-│   │       └── route.ts       # Registro de usuarios
-│   ├── clients/
-│   │   ├── route.ts          # GET/POST clientes
-│   │   └── [id]/
-│   │       └── route.ts       # GET/PUT/DELETE cliente
-│   ├── groups/
-│   │   ├── route.ts          # GET/POST grupos
-│   │   └── [id]/
-│   │       └── route.ts       # GET/PUT/DELETE grupo
-│   ├── subscriptions/
-│   │   ├── route.ts          # GET/POST suscripciones
-│   │   └── [id]/
-│   │       └── route.ts       # GET/PUT/DELETE suscripción
-│   ├── attendance/
-│   │   └── route.ts           # GET/POST asistencias
-│   ├── dashboard/
-│   │   └── route.ts           # GET estadísticas
-│   ├── webhook/
-│   │   └── whatsapp/
-│   │       └── route.ts       # Webhook WhatsApp
-│   └── route.ts               # Health check
-│
-├── layout.tsx                 # Layout raíz con providers
-├── page.tsx                   # Página principal (SPA)
-└── globals.css                # Estilos globales + Tailwind
-```
-
-### `/src/components` - Componentes React
-
-```
-src/components/
-├── ui/                        # shadcn/ui (NO MODIFICAR)
-│   ├── button.tsx
-│   ├── card.tsx
-│   ├── dialog.tsx
-│   ├── form.tsx
-│   ├── input.tsx
-│   ├── table.tsx
-│   └── ...                    # +40 componentes
-│
-├── auth/                      # Componentes de autenticación
-│   ├── login-form.tsx         # Formulario de login
-│   ├── register-form.tsx       # Formulario de registro
-│   └── user-menu.tsx          # Menú de usuario
-│
-├── layout/                    # Componentes de layout
-│   └── app-layout.tsx         # Layout principal con sidebar
-│
-├── modules/                   # Vistas de negocio
-│   ├── dashboard-view.tsx      # Dashboard con estadísticas
-│   ├── clients-view.tsx       # Gestión de clientes
-│   ├── client-form.tsx        # Formulario de cliente
-│   ├── client-profile.tsx      # Perfil de cliente
-│   ├── attendance-view.tsx     # Control de asistencia
-│   ├── payments-view.tsx       # Gestión de pagos
-│   ├── settings-view.tsx       # Configuración
-│   ├── group-selector.tsx      # Selector de grupos
-│   ├── group-badge.tsx         # Badge de grupo
-│   └── schedule-selector.tsx    # Selector de horarios
-│
-└── providers/                 # Context providers
-    └── session-provider.tsx    # Provider de NextAuth
-```
-
-### `/src/lib` - Utilidades y Configuración
-
-```
-src/lib/
-├── db.ts                      # Cliente Prisma singleton
-├── auth.ts                    # Configuración NextAuth
-├── auth-utils.ts             # Utilidades de auth (hash, roles)
-├── api-utils.ts               # Cache y utilidades de API
-└── utils.ts                   # Utilidades generales (cn, etc.)
-```
-
-## 🔄 Flujo de Datos
+## Flujo de Datos
 
 ### Flujo de Autenticación
 
@@ -203,34 +119,161 @@ src/lib/
 └─────────────┘     └─────────────┘     └─────────────┘
 ```
 
-### Flujo de Request API
+### Flujo de TanStack Query
 
 ```
 ┌─────────────┐
-│   Cliente   │
-│  (fetch)    │
+│   Componente│
+│   useQuery  │
 └──────┬──────┘
        │
        ▼
-┌─────────────────────────────────────────────────────────┐
-│                    MIDDLEWARE                            │
-│  - Verificar cookie de sesión                           │
-│  - Si no existe: 401 (API) o redirect (página)         │
-│  - Si existe: continuar                                 │
-└──────────────────────────┬──────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                    API ROUTE                             │
-│  1. auth() para obtener sesión                          │
-│  2. Verificar permisos según rol                        │
-│  3. Validar input con Zod                               │
-│  4. Ejecutar query con Prisma                           │
-│  5. Devolver respuesta JSON                             │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────┐
+│           TanStack Query                │
+│  ┌───────────────────────────────────┐  │
+│  │ Query Cache                       │  │
+│  │ - Stale-while-revalidate          │  │
+│  │ - Background refetching           │  │
+│  │ - Query invalidation              │  │
+│  └───────────────────────────────────┘  │
+└──────┬──────────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────────┐
+│           API Route (Serverless)         │
+│  1. auth() para obtener sesión          │
+│  2. Validar input con Zod              │
+│  3. Ejecutar query con Prisma           │
+│  4. Devolver respuesta JSON             │
+└─────────────────────────────────────────┘
 ```
 
-## 🔐 Sistema de Autenticación
+### Flujo de Client State (Zustand)
+
+```
+┌─────────────────────────────────────────┐
+│           Zustand Store                  │
+│  ┌───────────────────────────────────┐  │
+│  │ persist (localStorage)           │  │
+│  │ - currentView                    │  │
+│  │ - sidebarCollapsed               │  │
+│  │ - user preferences               │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+                    ▲
+                    │
+              setState()
+                    │
+                    ▼
+┌─────────────────────────────────────────┐
+│           React Components               │
+│  useAppStore((s) => s.currentView)       │
+└─────────────────────────────────────────┘
+```
+
+## Estructura de Directorios Detallada
+
+### `/src/app` - App Router
+
+```
+src/app/
+├── (auth)/                    # Route Group para autenticación
+│   ├── layout.tsx            # Layout minimal para auth
+│   ├── login/
+│   │   └── page.tsx         # Página de login
+│   └── register/
+│       └── page.tsx         # Página de registro
+│
+├── api/                       # API Routes (Serverless)
+│   ├── auth/
+│   │   ├── [...nextauth]/   # NextAuth handler
+│   │   └── register/        # Registro de usuarios
+│   ├── clients/             # CRUD clientes
+│   ├── groups/              # CRUD grupos
+│   ├── client-groups/       # Asignaciones muchos-a-muchos
+│   ├── subscriptions/       # Suscripciones mensuales
+│   ├── attendance/          # Control de asistencia
+│   ├── employees/           # Gestión de empleados
+│   ├── time-entries/        # Fichaje entrada/salida
+│   ├── expenses/            # Control de gastos
+│   ├── invoices/            # Facturas (con fileData)
+│   │   └── [id]/file/       # Descarga de archivos
+│   ├── calendar/            # Eventos del calendario
+│   ├── dashboard/           # Estadísticas
+│   ├── settings/            # Configuraciones
+│   ├── billing/             # ARCA billing
+│   ├── pricing-plans/       # Planes de precios
+│   ├── webhook/whatsapp/    # Webhook WhatsApp
+│   ├── whatsapp/            # Mensajes y config
+│   └── route.ts             # Health check
+│
+├── layout.tsx                 # Layout raíz con providers
+├── page.tsx                   # Página principal (SPA entry)
+└── globals.css               # Estilos globales + Tailwind
+```
+
+### `/src/components` - Componentes React
+
+```
+src/components/
+├── ui/                        # shadcn/ui (NO MODIFICAR)
+│   ├── button.tsx
+│   ├── card.tsx
+│   ├── dialog.tsx
+│   ├── form.tsx
+│   ├── input.tsx
+│   ├── table.tsx
+│   └── ... (40+ componentes)
+│
+├── auth/                      # Componentes de autenticación
+│   ├── login-form.tsx
+│   ├── register-form.tsx
+│   └── user-menu.tsx
+│
+├── layout/                    # Componentes de layout
+│   └── app-layout.tsx        # Layout principal con sidebar
+│
+├── modules/                   # Vistas de negocio (lazy-loaded)
+│   ├── dashboard-view.tsx
+│   ├── clients-view.tsx
+│   ├── client-form.tsx
+│   ├── client-profile.tsx
+│   ├── attendance-view.tsx
+│   ├── payments-view.tsx
+│   ├── group-selector.tsx
+│   └── schedule-selector.tsx
+│
+└── providers/                 # Context providers
+    └── session-provider.tsx
+```
+
+### `/src/lib` - Utilidades y Configuración
+
+```
+src/lib/
+├── db.ts                      # Cliente Prisma singleton
+├── auth.ts                    # Configuración NextAuth
+├── queryClient.ts            # TanStack Query config
+├── utils.ts                  # Utilidades (cn, format, etc.)
+└── ratelimit.ts              # Rate limiting config
+```
+
+### `/src/store` - Estado Global
+
+```
+src/store/
+└── index.ts                   # Zustand store con persistencia
+```
+
+### `/src/hooks` - Custom Hooks
+
+```
+src/hooks/
+├── use-optimized.ts           # useDebounce, useThrottle, etc.
+└── use-mobile.ts              # Detección de dispositivo móvil
+```
+
+## Sistema de Autenticación
 
 ### Arquitectura de Autenticación
 
@@ -240,9 +283,9 @@ src/lib/
 │                                                          │
 │  Providers:                                              │
 │  ┌─────────────────────────────────────────────────┐   │
-│  │  Credentials Provider                             │   │
+│  │  Credentials Provider                           │   │
 │  │  - Email + Password                              │   │
-│  │  - Verificación con bcrypt (12 rounds)           │   │
+│  │  - Verificación con bcrypt (12 rounds)          │   │
 │  └─────────────────────────────────────────────────┘   │
 │                                                          │
 │  Session Strategy: JWT                                   │
@@ -257,8 +300,8 @@ src/lib/
 
 | Rol | Descripción | Permisos |
 |-----|-------------|----------|
-| **EMPLEADORA** | Admin | Acceso completo: usuarios, clientes, grupos, pagos, configuración |
-| **EMPLEADO** | Staff | Ver clientes, registrar asistencia, ver reportes |
+| **EMPLEADORA** | Admin | Acceso completo: usuarios, clientes, grupos, pagos, configuración, empleados, gastos |
+| **EMPLEADO** | Staff | Ver clientes, registrar asistencia, fichar, ver reportes, dashboard |
 
 ### Middleware de Protección
 
@@ -268,13 +311,13 @@ src/lib/
 // - /login
 // - /register
 // - /api/auth/*
+// - /api/webhook/whatsapp
 // - Static files
 
-// Para API routes devuelve 401 si no autenticado
-// Para páginas redirige a /login con callbackUrl
+// Rate limiting con @upstash/ratelimit
 ```
 
-## 💾 Capa de Datos
+## Capa de Datos
 
 ### Neon PostgreSQL
 
@@ -283,38 +326,53 @@ El proyecto usa **Neon** como base de datos PostgreSQL serverless:
 - **Connection String**: Configurado como `DATABASE_URL` en Vercel
 - **SSL**: `sslmode=require` para conexiones seguras
 - **Pooling**: Neon maneja connection pooling automáticamente
+- **Binary Data**: Invoice.fileData (bytea) almacena archivos en PostgreSQL
 - **Branching**: Soporta ramas de base de datos para desarrollo
+
+### Invoice File Storage
+
+Los archivos de facturas se almacenan como **bytea** (binary) directamente en PostgreSQL:
+
+```prisma
+model Invoice {
+  id         String  @id @default(cuid())
+  clientId   String
+  fileData   Bytes?  @db.ByteA  // Archivo binario
+  fileName   String
+  fileSize   Int?
+  mimeType   String
+  // ...
+}
+```
 
 ### Patrones de Acceso a Datos
 
 ```typescript
-// Patrón Repository implícito en API routes
+// TanStack Query para server state
+const { data, isLoading } = useQuery({
+  queryKey: ['clients', { page, search }],
+  queryFn: () => fetchClients({ page, search }),
+  staleTime: 5 * 60 * 1000, // 5 minutos
+})
 
-// 1. Read
-export async function GET(request: NextRequest) {
-  const clients = await db.client.findMany({
-    include: { grupo: true },
-    orderBy: { createdAt: 'desc' },
-  })
-  return NextResponse.json({ success: true, data: clients })
-}
+// Mutación con invalidación
+const mutation = useMutation({
+  mutationFn: createClient,
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['clients'] })
+  },
+})
 
-// 2. Write con invalidación de cache
-export async function POST(request: NextRequest) {
-  const client = await db.client.create({ data: validatedData })
-  return NextResponse.json({ success: true, data: client })
-}
-
-// 3. Transacciones para operaciones complejas
+// Transacciones Prisma
 await db.$transaction([
   db.subscription.create({ data: subData }),
   db.attendance.create({ data: attendanceData }),
 ])
 ```
 
-## 🎨 Arquitectura de UI
+## Arquitectura de UI
 
-### Component Hierarchy
+### SPA Routing Pattern
 
 ```
 App (page.tsx)
@@ -323,9 +381,9 @@ App (page.tsx)
 │   │
 │   └── AppLayout
 │       │
-│       ├── Sidebar (navegación)
+│       ├── Sidebar (navegación con window.history.pushState)
 │       │   ├── Logo
-│       │   ├── NavItems
+│       │   ├── NavItems (dashboard | clientes | asistencia | ...)
 │       │   └── UserMenu
 │       │
 │       └── MainContent
@@ -338,6 +396,9 @@ App (page.tsx)
 │               ├── ClientsView
 │               ├── AttendanceView
 │               ├── PaymentsView
+│               ├── CalendarView
+│               ├── EmployeesView
+│               ├── ExpensesView
 │               └── SettingsView
 ```
 
@@ -352,11 +413,11 @@ App (page.tsx)
 │  - Cards en columna única                                │
 │  - Tablas con scroll horizontal                         │
 │                                                          │
-│  Tablet: 640px - 1024px (md)                            │
+│  Tablet: 640px - 1024px (md)                           │
 │  - Sidebar colapsado                                    │
 │  - Grid 2 columnas                                     │
 │                                                          │
-│  Desktop: > 1024px (lg)                                 │
+│  Desktop: > 1024px (lg)                                │
 │  - Sidebar expandido                                    │
 │  - Grid 4 columnas                                     │
 │  - Tablas completas                                     │
@@ -364,7 +425,7 @@ App (page.tsx)
 └─────────────────────────────────────────────────────────┘
 ```
 
-## 🌐 Deployment en Vercel
+## Deployment en Vercel
 
 ### Arquitectura de Deployment
 
@@ -373,10 +434,9 @@ GitHub Push → Vercel CI/CD → Build → Deploy
 
 Build Process:
 1. npm install
-2. prisma generate
-3. prisma db push --accept-data-loss (Neon)
-4. tsx prisma/seed.ts
-5. npm run build:standalone
+2. prisma migrate deploy
+3. prisma generate
+4. npm run build:standalone
 ```
 
 ### Environments
@@ -386,25 +446,34 @@ Build Process:
 | Production | Push a main | nms-giolivos-projects.vercel.app |
 | Preview | Pull Request | nms-giolivos-projects-git-*.vercel.app |
 
-## 📈 Escalabilidad y Future-Proofing
+### Integraciones Vercel
 
-### Decisiones Arquitectónicas para Escalabilidad
+| Integración | Propósito |
+|-------------|----------|
+| Sentry | Error tracking y monitoring |
+| @vercel/analytics | Analytics de uso |
+| Bundle Analyzer | npm run analyze |
+
+## Escalabilidad y Extensibilidad
+
+### Decisiones Arquitectónicas
 
 1. **Prisma ORM**: Permite migrar fácilmente a cualquier base de datos relacional
 2. **Neon PostgreSQL**: Serverless con branching y auto-scaling
-3. **Vercel Edge Network**: CDN global con low latency
-4. **Monolito → Microservicios**: La separación de API routes facilita extracción
+3. **TanStack Query**: Caching inteligente y sincronización de estado del servidor
+4. **Zustand**: Estado del cliente ligero y predecible
+5. **Vercel Edge Network**: CDN global con low latency
 
-### Extensibilidad
+### Extension Points
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    EXTENSION POINTS                    │
+│                    EXTENSION POINTS                     │
 │                                                          │
 │  1. Nuevos módulos de negocio                           │
 │     - Agregar vista en /components/modules/             │
 │     - Agregar API routes correspondientes                │
-│     - Actualizar navegación en AppLayout                │
+│     - Actualizar estado en Zustand store                │
 │                                                          │
 │  2. Nuevos proveedores de autenticación                 │
 │     - Agregar provider en auth.ts                       │
@@ -412,6 +481,7 @@ Build Process:
 │                                                          │
 │  3. Integraciones externas                               │
 │     - Webhooks en /api/webhook/                         │
+│     - APIs externas vía fetch                           │
 │                                                          │
 │  4. Nuevos tipos de entidades                           │
 │     - Actualizar schema.prisma                          │
@@ -424,5 +494,5 @@ Build Process:
 
 ---
 
-**Última actualización:** 2026-03-19
-**Versión:** 2.0.0
+**Última actualización:** 2026-04-01
+**Versión:** 3.0.0

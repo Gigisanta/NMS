@@ -22,6 +22,7 @@ import { formatFullName, formatTime, getPaymentStatusConfig, formatDate } from '
 import { useAppStore } from '@/store'
 import { GroupBadge } from './group-badge'
 import { GroupTabs } from './group-tabs'
+import { toast } from 'sonner'
 
 interface Group {
   id: string
@@ -91,12 +92,12 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
     >
       <td className="py-2 px-3">
         <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8 bg-gradient-to-br from-cyan-500 to-sky-600 ring-1 ring-white">
+          <Avatar className="h-8 w-8 ring-1 ring-white" style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}>
             <AvatarFallback className="text-white text-xs font-medium">
               {client.nombre[0]}{client.apellido[0]}
             </AvatarFallback>
           </Avatar>
-          <span className="font-medium text-slate-900 text-sm">
+          <span className="font-medium text-slate-900 text-sm truncate max-w-[140px]">
             {formatFullName(client.nombre, client.apellido)}
           </span>
         </div>
@@ -106,14 +107,10 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
       </td>
       <td className="py-2 px-3">
         <div className="flex items-center gap-2">
-          <div className="w-16 h-1.5 bg-slate-100 overflow-hidden">
-            <div 
-              className={`h-full ${
-                isLimitReached 
-                  ? 'bg-gradient-to-r from-red-400 to-red-500' 
-                  : 'bg-gradient-to-r from-cyan-500 to-sky-600'
-              }`}
-              style={{ width: `${progressPercent}%` }}
+          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${isLimitReached ? 'bg-red-400' : ''}`}
+              style={{ width: `${progressPercent}%`, ...(!isLimitReached ? { background: '#00A8E8' } : {}) }}
             />
           </div>
           <span className={`text-xs font-medium ${isLimitReached ? 'text-red-600' : 'text-slate-600'}`}>
@@ -128,7 +125,7 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
       </td>
       <td className="py-2 px-3 text-center">
         {todayCount > 0 && (
-          <span className="inline-flex items-center justify-center w-6 h-6 bg-emerald-100 text-emerald-700 text-xs font-medium">
+          <span className="inline-flex items-center justify-center w-6 h-6 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
             {todayCount}
           </span>
         )}
@@ -138,11 +135,8 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
           <Button
             size="sm"
             variant={isLimitReached ? "ghost" : "default"}
-            className={`h-8 gap-1 transition-all ${
-              isLimitReached 
-                ? 'text-slate-400 cursor-not-allowed' 
-                : 'bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700'
-            }`}
+            className={`h-8 gap-1 transition-all ${isLimitReached ? 'text-slate-400 cursor-not-allowed' : 'text-white'}`}
+            style={!isLimitReached ? { background: '#005691' } : {}}
             onClick={() => onMarkAttendance(client)}
             disabled={isLimitReached || isMarking}
           >
@@ -306,7 +300,7 @@ export function AttendanceView() {
           delete newUpdates[client.id]
           return newUpdates
         })
-        alert(result.error || 'Error al registrar asistencia')
+        toast.error(result.error || 'Error al registrar asistencia')
       }
     } catch (error) {
       console.error('Error marking attendance:', error)
@@ -334,7 +328,7 @@ export function AttendanceView() {
         setTodayAttendance(prev => prev.filter(a => a.id !== attendanceId))
         fetchData()
       } else {
-        alert(result.error || 'Error al eliminar asistencia')
+        toast.error(result.error || 'Error al eliminar asistencia')
       }
     } catch (error) {
       console.error('Error removing attendance:', error)
@@ -381,7 +375,7 @@ export function AttendanceView() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
       </div>
     )
   }
@@ -391,14 +385,14 @@ export function AttendanceView() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Asistencias</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Asistencias</h1>
           <p className="text-slate-500">
             {formatDate(new Date())} - {todayAttendance.length} asistencias registradas
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-slate-500 bg-white/80 px-4 py-2 border shadow-sm">
-          <Calendar className="w-4 h-4" />
-          {new Date().toLocaleDateString('es-AR', { weekday: 'long' })}
+        <div className="flex items-center gap-2 text-sm text-slate-600 bg-white px-4 py-2 rounded-lg border border-slate-100 shadow-sm">
+          <Calendar className="w-4 h-4" style={{ color: '#00A8E8' }} />
+          <span className="capitalize">{new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
         </div>
       </div>
 
@@ -413,22 +407,27 @@ export function AttendanceView() {
 
       {/* Clients Table */}
       {filteredClients.length === 0 ? (
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
-          <CardContent className="py-12">
-            <div className="flex flex-col items-center text-slate-500">
-              <Users className="w-12 h-12 mb-4 text-slate-300" />
-              <p className="text-lg font-medium">No hay clientes</p>
-              <p className="text-sm">
-                {selectedGrupo 
-                  ? `No hay clientes en el grupo seleccionado`
-                  : 'Agrega clientes para registrar asistencias'
-                }
-              </p>
+        <Card className="border-slate-100 shadow-sm">
+          <CardContent className="py-14">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-violet-50 flex items-center justify-center">
+                <Users className="w-7 h-7 text-violet-400" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-semibold text-slate-700">
+                  {selectedGrupo ? 'Sin alumnos en este grupo' : 'Sin alumnos registrados'}
+                </p>
+                <p className="text-xs text-slate-400 mt-1">
+                  {selectedGrupo
+                    ? 'Probá seleccionando otro grupo o quitando el filtro'
+                    : 'Agregá clientes para empezar a registrar asistencias'}
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur overflow-hidden">
+        <Card className="border-slate-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
@@ -466,7 +465,7 @@ export function AttendanceView() {
 
       {/* Today's Attendance List */}
       {recentAttendance.length > 0 && (
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
+        <Card className="border-slate-100 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg">Asistencias de Hoy</CardTitle>
             <CardDescription>Últimas registradas</CardDescription>

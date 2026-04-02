@@ -137,7 +137,7 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
       <DialogContent className="sm:max-w-[450px] rounded-2xl overflow-hidden p-0 border-none shadow-2xl">
         <div className="bg-[#005691] p-6 text-white relative">
           <div className="absolute top-0 right-0 w-32 h-32 -mr-12 -mt-12 bg-white/10 rounded-full blur-2xl" />
-          <DialogTitle className="text-xl font-bold relative z-10">
+          <DialogTitle className="text-xl font-semibold relative z-10">
             {expense ? 'Editar Registro de Gasto' : 'Registrar Nuevo Gasto'}
           </DialogTitle>
           <p className="text-white/70 text-sm mt-1 relative z-10">

@@ -4,18 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-NMS (Natatory Management System) is a Next.js 15 SPA for managing swimming pools. It provides CRM, attendance tracking, payment management, employee timeClock, and WhatsApp integration for a natatorium business.
+NMS (Natatory Management System) es un sistema de gestión de natatorio (piscinas) construido como SPA con Next.js 15. Proporciona CRM para clientes, seguimiento de asistencia, gestión de pagos, reloj de punto para empleados, y facturación ARCA para un negocio de natatoria.
 
 ## Tech Stack
 
-- **Framework**: Next.js 15.5 with App Router (SPA pattern)
-- **Database**: PostgreSQL via Neon (serverless)
-- **ORM**: Prisma 6
-- **Auth**: NextAuth v4 (Credentials provider, JWT sessions)
-- **UI**: shadcn/ui, Tailwind CSS 4, Framer Motion, Zustand
-- **Forms**: React Hook Form + Zod
-- **Testing**: Vitest (unit/integration), Playwright (e2e)
-- **Deployment**: Vercel
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Next.js | 15.5 | Framework React con App Router |
+| React | 19 | UI library |
+| TypeScript | 5.x | Type safety |
+| PostgreSQL | 15+ | Database (Neon serverless) |
+| Prisma | 6.x | ORM |
+| NextAuth | v4 | Authentication (Credentials + JWT) |
+| Tailwind CSS | 4.x | Styling |
+| shadcn/ui | latest | Component library |
+| Zustand | 5.x | Client state management |
+| TanStack Query | 5.x | Server state / data fetching |
+| React Hook Form | 7.x | Form handling |
+| Zod | 3.x | Schema validation |
+| Framer Motion | 11.x | Animations |
+| bcrypt | 5.x | Password hashing |
+| Vitest | 2.x | Unit/integration testing |
+| Playwright | 1.x | E2E testing |
 
 ## Common Commands
 
@@ -23,12 +33,14 @@ NMS (Natatory Management System) is a Next.js 15 SPA for managing swimming pools
 # Development
 npm run dev              # Start dev server (port 3000)
 npm run lint             # ESLint check
+npm run lint:fix         # ESLint auto-fix
 
 # Database
-npm run db:push          # Push schema without migration
-npm run db:generate       # Generate Prisma client
-npm run db:migrate        # Create migration (dev)
-npm run db:seed           # Run seed script (bun run prisma/seed.ts)
+npm run db:push          # Push schema (dev only - destructive!)
+npm run db:generate      # Generate Prisma client
+npm run db:migrate       # Create migration (dev)
+npm run db:studio        # Open Prisma Studio
+npm run db:seed          # Run seed script (bun run prisma/seed.ts)
 
 # Build & Production
 npm run build            # Standard Next.js build
@@ -46,12 +58,19 @@ npm run test:e2e:ui        # Playwright with UI
 ## Architecture
 
 ### SPA Routing Pattern
-The app uses a **single-page application** pattern. All navigation happens within `src/app/page.tsx` using React state (`currentView`). API routes serve data, but UI routing is entirely client-side.
+
+The app uses a **single-page application** pattern. All navigation happens within `src/app/page.tsx` using React state (`currentView`) with URL sync via `window.history.pushState`.
 
 ```typescript
 // src/app/page.tsx - Main entry point
 const [currentView, setCurrentView] = useState('dashboard')
 // Views: dashboard | clientes | asignaciones | facturacion | calendario | configuracion | empleados | gastos
+
+// URL sync pattern
+const navigateTo = (view: string) => {
+  setCurrentView(view)
+  window.history.pushState({}, '', `/${view === 'dashboard' ? '' : view}`)
+}
 ```
 
 ### Key Directories
@@ -62,7 +81,10 @@ const [currentView, setCurrentView] = useState('dashboard')
 | `src/app/api/` | API routes (serverless functions) |
 | `src/components/modules/` | Business views (lazy-loaded) |
 | `src/components/ui/` | shadcn/ui components |
+| `src/components/layout/` | Layout components (Sidebar, Header) |
 | `src/lib/` | Auth config, Prisma client, utilities |
+| `src/stores/` | Zustand stores |
+| `src/hooks/` | Custom React hooks |
 | `prisma/schema.prisma` | Database schema |
 
 ### API Route Pattern
@@ -71,11 +93,45 @@ API routes follow this pattern for data operations:
 
 ```typescript
 // src/app/api/[resource]/route.ts
-// - auth() from NextAuth to get session
-// - Zod for input validation
-// - Prisma for DB operations
-// - return NextResponse.json({ success, data })
+import { auth } from '@/lib/auth'
+import { z } from 'zod'
+import { NextResponse } from 'next/server'
+
+// GET - List items
+export async GET(req: Request) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  // ... Zod validation, Prisma query, return NextResponse.json({ success, data })
+}
+
+// POST - Create item
+export async POST(req: Request) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const body = await req.json()
+  // ... Zod validation, Prisma create, return NextResponse.json({ success, data })
+}
 ```
+
+### API Routes
+
+| Route | Purpose |
+|-------|---------|
+| `/api/clients` | Client CRUD operations |
+| `/api/client-groups` | Client-group assignments (many-to-many) |
+| `/api/subscriptions` | Monthly subscription/payment tracking |
+| `/api/invoices` | Invoice management with file upload |
+| `/api/invoices/[id]/file` | File download/upload for invoices |
+| `/api/billing` | ARCA billing/subscription sync |
+| `/api/dashboard` | Dashboard statistics |
+| `/api/groups` | Group/label management |
+| `/api/whatsapp/config` | WhatsApp Business integration |
+| `/api/employees` | Employee management |
+| `/api/attendance` | Attendance tracking |
+| `/api/expenses` | Expense management |
+| `/api/calendar` | Calendar events |
+| `/api/settings` | Business settings |
+| `/api/pricing-plans` | Pricing plan management |
 
 ### Authentication
 
@@ -84,9 +140,40 @@ API routes follow this pattern for data operations:
 - **Session**: JWT stored in httpOnly cookie (30-day TTL)
 - **Middleware**: Protects all routes except `/login`, `/register`, `/api/auth/*`
 
-### Database Schema (Prisma)
+### Middleware Public Paths
 
-Key models: `User`, `Client`, `Group`, `Subscription`, `Invoice`, `Attendance`, `TimeEntry`, `Expense`, `Settings`, `WhatsAppConfig`, `WhatsAppMessage`, `CalendarEvent`, `PricingPlan`, `Notification`, `ActivityLog`
+```typescript
+// src/middleware.ts
+export const config = {
+  matcher: ['/((?!login|register|api/auth|api/debug|_next/static|_next/image|favicon.ico|public|uploads|images).*)']
+}
+```
+
+These paths bypass authentication: `/login`, `/register`, `/api/auth/*`, `/api/debug`, `/favicon.ico`, `/_next/*`, `/public/*`, `/uploads/*`, `/images/*`
+
+## Database Schema (Prisma)
+
+### Core Models
+
+- **User** - Authentication users (EMPLEADORA, EMPLEADO roles)
+- **Client** - Customer profiles with contact info, notes, active status
+- **Group** - Labels/categories for clients (many-to-many with Client)
+- **Subscription** - Monthly plans linking clients to pricing plans
+- **Invoice** - Billing records with ARCA integration, fileData for PDF storage
+- **Attendance** - Swimming class attendance records
+- **TimeEntry** - Employee clock-in/out for time tracking
+- **Expense** - Business expense records
+- **Settings** - Business configuration (currency, timezone, etc.)
+- **WhatsAppConfig** - WhatsApp Business API configuration
+- **WhatsAppMessage** - Message history and templates
+- **CalendarEvent** - Scheduled events and class times
+- **PricingPlan** - Service plans (4/8/12 classes per month, individual)
+- **Notification** - System notifications
+- **ActivityLog** - Audit trail for important actions
+
+### Invoice File Storage
+
+Invoice files are stored as `bytea` (binary) directly in PostgreSQL via `Invoice.fileData`. The `Invoice.filePath` field is deprecated. This approach is serverless-compatible since there is no persistent filesystem on Vercel.
 
 ## Environment Variables
 
@@ -96,6 +183,27 @@ Key models: `User`, `Client`, `Group`, `Subscription`, `Invoice`, `Attendance`, 
 - `npm run db:seed` - Overwrites all data with seed data
 - `prisma db push --accept-data-loss` - Overwrites schema AND data
 - `npm run db:reset` - Drops and recreates database
+
+### Required Environment Variables
+
+```env
+# Database (Neon PostgreSQL)
+DATABASE_URL="postgresql://user:password@ep-xxx.ep-lively-breeze-a4lvgwtw-pooler.us-east-1.aws.neon.tech:5432/neondb?sslmode=require"
+
+# NextAuth
+NEXTAUTH_URL="http://localhost:3000"  # Development
+NEXTAUTH_SECRET="your-secret-here"   # Generate with: openssl rand -base64 32
+
+# WhatsApp Business API (optional)
+WHATSAPP_BUSINESS_ACCOUNT_ID=""
+WHATSAPP_ACCESS_TOKEN=""
+WHATSAPP_PHONE_NUMBER_ID=""
+
+# ARCA Billing (Argentina)
+ARCA_CUIT=""
+ARCA_SIGN_CERT=""
+ARCA_SIGN_KEY=""
+```
 
 ### Environment Files
 
@@ -110,7 +218,7 @@ Key models: `User`, `Client`, `Group`, `Subscription`, `Invoice`, `Attendance`, 
 - **Development**: Use a separate Neon project or local PostgreSQL
 - **Production**: `ep-lively-breeze-a4lvgwtw-pooler.us-east-1.aws.neon.tech`
 
-### Vercel Deployment
+## Vercel Deployment
 
 The `vercel.json` build command runs:
 ```
@@ -119,14 +227,7 @@ prisma generate → prisma migrate deploy → next build
 
 **Important**: Production builds use `migrate deploy` (safe) NOT `db push` (destructive).
 
-Production URL: https://nms-giolivos-projects.vercel.app
-
-### Schema Changes in Production
-
-1. Make schema changes locally first
-2. Create migration: `npm run db:migrate`
-3. Test in development
-4. Deploy to Vercel - migrations run automatically via `migrate deploy`
+Production URL: https://oroazul.maat.work
 
 ### Data Recovery
 
@@ -138,6 +239,13 @@ If data is lost:
 5. Export data from the restored branch
 
 **Prevention**: Always use separate development and production databases!
+
+## Schema Changes in Production
+
+1. Make schema changes locally first
+2. Create migration: `npm run db:migrate`
+3. Test in development
+4. Deploy to Vercel - migrations run automatically via `migrate deploy`
 
 ## Seed Data
 

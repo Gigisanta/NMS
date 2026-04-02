@@ -1,290 +1,152 @@
-# 🏊 NMS - Natatory Management System
+# NMS - Natatory Management System
 
-> Sistema de Gestión Integral para Natatorios y Piscinas
-
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Gigisanta/nms)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?style=flat-square&logo=prisma)](https://www.prisma.io/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
-[![License](https://img.shields.io/badge/License-Private-red?style=flat-square)](LICENSE)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-blue?style=flat-square&logo=postgresql)](https://neon.tech/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-Private-red?style=flat-square)]()
 
-## 📋 Descripción
+**Live Production:** [https://nms-giolivos-projects.vercel.app](https://nms-giolivos-projects.vercel.app)
 
-**NMS (Natatory Management System)** es una aplicación web completa diseñada para la gestión integral de natatorios, piscinas y centros acuáticos. Ofrece herramientas para la administración de clientes, control de asistencia, gestión de pagos y mucho más.
+---
 
-### ✨ Características Principales
+Sistema de gestión integral para natatorios y piscinas. Administra clientes, asistentes, pagos, facturación y WhatsApp en una única plataforma.
 
-| Módulo | Descripción |
+## Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| **Framework** | Next.js 15.5 + React 19 (App Router) |
+| **Language** | TypeScript 5 |
+| **Database** | PostgreSQL via Neon (serverless) |
+| **ORM** | Prisma 6 |
+| **Auth** | NextAuth v4 (Credentials + JWT) |
+| **UI** | shadcn/ui + Tailwind CSS 4 |
+| **State** | Zustand + TanStack Query |
+| **Forms** | React Hook Form + Zod |
+| **Animation** | Framer Motion 12 |
+| **Deployment** | Vercel |
+
+## Features
+
+| Module | Description |
 |--------|-------------|
-| 🏠 **Dashboard** | Vista general con estadísticas y métricas en tiempo real |
-| 👥 **CRM Clientes** | Gestión completa de clientes con perfiles detallados |
-| 🏷️ **Grupos** | Organización de clientes por grupos con colores y horarios |
-| ✅ **Asistencias** | Control de asistencia diario con historial |
-| 💳 **Pagos** | Gestión de suscripciones y control de pagos |
-| 📱 **WhatsApp** | Integración con webhook para automatizaciones |
-| 🔐 **Autenticación** | Sistema de roles (Admin/Staff) con NextAuth v4 |
+| **Dashboard** | Estadísticas en tiempo real, clientes recientes, pagos pendientes |
+| **CRM Clientes** | Perfiles completos, grupos, historial de asistencia y pagos |
+| **Asistencias** | Control diario con registro de entrada/salida por empleado |
+| **Pagos** | Suscripciones mensuales, estados de pago, recordatorios |
+| **Facturación** | Gestión de facturas con archivos adjuntos (almacenamiento en PostgreSQL) |
+| **WhatsApp** | Integración webhook para automatizaciones |
+| **Empleados** | Control de horario con reloj de punto |
+| **Gastos** | Registro de gastos del negocio |
+| **Calendario** | Eventos y programación de clases |
 
----
-
-## 🚀 Despliegue en Producción (Vercel)
-
-### URL de Producción
-**https://nms-giolivos-projects.vercel.app**
-
-### Configuración de Build
-
-El proyecto usa `vercel.json` con comandos específicos para Prisma y seed:
-
-```json
-{
-  "buildCommand": "npx prisma@6.11.1 generate && npx prisma@6.11.1 db push --skip-generate --accept-data-loss && npx tsx prisma/seed.ts && npm run build:standalone",
-  "outputDirectory": ".next",
-  "installCommand": "npm install",
-  "framework": "nextjs"
-}
-```
-
-### Variables de Entorno Requeridas
-
-| Variable | Descripción | Generada por |
-|---------|-------------|-------------|
-| `DATABASE_URL` | Connection string de PostgreSQL (Neon) | Dashboard de Neon |
-| `NEXTAUTH_SECRET` | Secret para JWT (32+ caracteres) | Generado automáticamente |
-| `NEXTAUTH_URL` | URL de la app (produccion) | Vercel (automático) |
-
----
-
-## 🏗️ Stack Tecnológico
-
-### Frontend
-| Tecnología | Versión | Propósito |
-|------------|---------|-----------|
-| [Next.js](https://nextjs.org/) | 15.5.x | Framework React con App Router |
-| [TypeScript](https://www.typescriptlang.org/) | 5.x | Tipado estático |
-| [Tailwind CSS](https://tailwindcss.com/) | 4.x | Estilos utilitarios |
-| [shadcn/ui](https://ui.shadcn.com/) | New York | Componentes UI |
-| [Framer Motion](https://www.framer.com/motion/) | 12.x | Animaciones |
-| [Zustand](https://zustand-demo.pmnd.rs/) | 5.x | Estado global |
-| [React Hook Form](https://react-hook-form.com/) | 7.x | Manejo de formularios |
-| [Zod](https://zod.dev/) | 4.x | Validación de esquemas |
-
-### Backend
-| Tecnología | Versión | Propósito |
-|------------|---------|-----------|
-| [Prisma](https://www.prisma.io/) | 6.x | ORM para PostgreSQL |
-| [PostgreSQL](https://www.postgresql.org/) | 16 (Neon) | Base de datos |
-| [NextAuth.js](https://next-auth.js.org/) | 4.x | Autenticación |
-| [bcryptjs](https://github.com/dcodeIO/bcrypt.js) | - | Hash de contraseñas |
-
-### Deployment
-| Tecnología | Servicio | Propósito |
-|------------|---------|-----------|
-| [Vercel](https://vercel.com/) | Cloud | Hosting y CD/CI |
-| [Neon](https://neon.tech/) | PostgreSQL | Base de datos serverless |
-
----
-
-## 📁 Estructura del Proyecto
-
-```
-nms/
-├── 📁 docs/                    # Documentación
-│   ├── AGENT.md               # Guía para agentes de código
-│   ├── ARCHITECTURE.md        # Arquitectura del sistema
-│   ├── API.md                 # Documentación de API
-│   └── DATABASE.md            # Esquema de base de datos
-│
-├── 📁 prisma/
-│   ├── schema.prisma          # Esquema de base de datos
-│   ├── seed.ts                # Datos de prueba (usuarios, planes, settings)
-│   └── migrations/             # Migraciones de Prisma
-│
-├── 📁 src/
-│   ├── 📁 app/                # Next.js App Router
-│   │   ├── 📁 (auth)/         # Rutas de autenticación
-│   │   ├── 📁 api/            # API Routes
-│   │   ├── layout.tsx         # Layout raíz
-│   │   └── page.tsx           # Página principal (SPA)
-│   │
-│   ├── 📁 components/
-│   │   ├── 📁 ui/             # Componentes shadcn/ui
-│   │   ├── 📁 auth/            # Componentes de auth
-│   │   ├── 📁 layout/          # Layout components
-│   │   └── 📁 modules/         # Vistas de negocio
-│   │
-│   ├── 📁 hooks/               # Custom hooks
-│   ├── 📁 lib/                 # Utilidades y configuración
-│   │   ├── db.ts               # Cliente Prisma singleton
-│   │   ├── auth.ts             # Configuración NextAuth
-│   │   └── api-utils.ts        # Cache para API
-│   ├── 📁 schemas/             # Esquemas Zod
-│   ├── 📁 store/               # Estado Zustand
-│   ├── 📁 types/               # Tipos TypeScript
-│   └── middleware.ts           # Middleware de auth
-│
-├── 📁 tests/
-│   └── README.md              # Documentación de tests
-│
-├── vercel.json                 # Configuración de Vercel
-├── package.json
-└── tsconfig.json
-```
-
----
-
-## 🔧 Scripts Disponibles
-
-### Desarrollo Local
+## Quick Start
 
 ```bash
-# Instalar dependencias
+# 1. Clonar y entrar al directorio
+git clone https://github.com/Gigisanta/nms.git
+cd nms
+
+# 2. Instalar dependencias
 npm install
 
-# Servidor de desarrollo
+# 3. Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus credenciales
+
+# 4. Iniciar servidor de desarrollo
 npm run dev
-
-# Verificar código con ESLint
-npm run lint
 ```
 
-### Base de Datos (Desarrollo Local)
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
+
+## Environment Variables
+
+Crea un archivo `.env` en la raíz del proyecto:
+
+```env
+# Base de datos (Neon PostgreSQL)
+DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
+
+# NextAuth
+NEXTAUTH_SECRET="genera-32-caracteres-minimo"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+### Obtener credenciales
+
+1. **Neon:** [https://neon.tech](https://neon.tech) → New Project → copia el connection string
+2. **NEXTAUTH_SECRET:** Genera con `openssl rand -base64 32`
+
+## Scripts
 
 ```bash
-# Aplicar cambios al schema (no crea migración)
-npx prisma db push
+# Desarrollo
+npm run dev              # Servidor dev en puerto 3000
+npm run lint             # Verificar código con ESLint
 
-# Generar cliente Prisma
-npx prisma generate
+# Base de datos
+npm run db:push          # Push schema (sin migración)
+npm run db:generate      # Generar cliente Prisma
+npm run db:migrate       # Crear migración (desarrollo)
+npm run db:seed          # Poblar con datos de prueba
 
-# Crear migración (para desarrollo)
-npx prisma migrate dev
-
-# Resetear base de datos
-npx prisma migrate reset
-
-# Ejecutar seed
-npx tsx prisma/seed.ts
+# Build
+npm run build            # Build estándar Next.js
+npm run build:standalone # Build standalone para Vercel
+npm run start            # Iniciar producción
 ```
 
-### Construcción
+## Usuarios de Prueba (después de seed)
 
-```bash
-# Build standalone (para Vercel)
-npm run build:standalone
+| Email | Password | Rol |
+|-------|----------|-----|
+| mariela@nms.com | mariela123 | EMPLEADORA (Admin) |
+| tomas@nms.com | tomas123 | EMPLEADO |
 
-# Build estándar
-npm run build
+## Documentation
+
+| Doc | Description |
+|-----|-------------|
+| [CLAUDE.md](./CLAUDE.md) | Guía para agentes de código |
+| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Arquitectura del sistema |
+| [docs/API.md](./docs/API.md) | Endpoints REST |
+| [docs/DATABASE.md](./docs/DATABASE.md) | Esquema de base de datos |
+| [docs/VERCEL.md](./docs/VERCEL.md) | Deployment en Vercel |
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── (auth)/           # Login, register
+│   ├── api/              # API routes (serverless)
+│   ├── layout.tsx        # Layout raíz
+│   └── page.tsx          # SPA entry point
+├── components/
+│   ├── ui/               # shadcn/ui components
+│   ├── modules/          # Vistas de negocio (lazy-loaded)
+│   └── layout/            # Sidebar, header, etc.
+├── lib/
+│   ├── db.ts             # Cliente Prisma singleton
+│   ├── auth.ts           # Configuración NextAuth
+│   └── api-utils.ts      # Utilidades API
+├── store/                # Estado Zustand
+├── schemas/              # Esquemas Zod
+└── types/                # Tipos TypeScript
 ```
 
-### Production
+## Deployment
 
-```bash
-# Servidor de producción (después de build)
-npm run start
-```
+El proyecto está configurado para deploy automático en Vercel:
 
----
-
-## 🔐 Sistema de Autenticación
-
-### Roles
-
-| Rol | Descripción | Permisos |
-|-----|-------------|----------|
-| **EMPLEADORA** | Administrador | Acceso completo al sistema |
-| **EMPLEADO** | Staff | Lectura y registro de asistencia |
-
-### Usuarios Creadas por Seed
-
-| Usuario | Email | Contraseña | Rol | employeeRole |
-|---------|-------|------------|-----|--------------|
-| Mariela | mariela@nms.com | mariela123 | EMPLEADORA | - |
-| Tomás | tomas@nms.com | tomas123 | EMPLEADO | ADMINISTRATIVO |
-| Camila | camila@nms.com | camila123 | EMPLEADO | ADMINISTRATIVO |
-
-### Plan de Precios Creados por Seed
-
-| Plan | Clases | Precio | Descripción |
-|------|--------|--------|-------------|
-| Mensual 4 clases | 4 | $5,000 | Plan básico |
-| Mensual 8 clases | 8 | $8,500 | Plan estándar |
-| Mensual 12 clases | 12 | $11,000 | Plan intensivo |
-| Clase individual | 1 | $1,500 | Una clase |
-
-### Configuraciones Creadas por Seed
-
-- `business.name`: NMS - Natatory Management System
-- `business.currency`: ARS
-- `business.timezone`: America/Argentina/Cordoba
-- `payment.defaultClasses`: 4
-- `payment.defaultPrice`: 5000
-- `payment.dueDay`: 10
-- `payment.autoStatus`: true
-- `notifications.paymentReminder`: true
-- `notifications.paymentReminderDays`: 3
-- `notifications.overdueNotification`: true
-
----
-
-## 🌐 Deployment en Vercel
-
-### URL de Producción
-**https://nms-giolivos-projects.vercel.app**
-
-### Flujo de Deployment
-
-1. Push a GitHub triggers build automático en Vercel
-2. Vercel ejecuta el build command configurado en `vercel.json`
-3. Prisma genera el cliente y hace `db push` a Neon
-4. Se ejecuta el seed para asegurar datos iniciales
-5. La app se despliega automáticamente
-
-### Configuración de Dominio
-
-El proyecto está configurado con el dominio de Vercel. Para dominio personalizado:
-1. Ir a Settings → Domains en el dashboard de Vercel
-2. Agregar el dominio personalizado
-3. Configurar DNS según las instrucciones
-
----
-
-## 📚 Documentación
-
-| Documento | Descripción |
-|-----------|-------------|
-| [AGENT.md](docs/AGENT.md) | Guía completa para agentes de código |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitectura del sistema |
-| [API.md](docs/API.md) | Documentación de endpoints REST |
-| [DATABASE.md](docs/DATABASE.md) | Esquema de base de datos |
-| [VERCEL.md](docs/VERCEL.md) | Guía de deployment en Vercel |
-
----
-
-## 🎨 Capturas de Pantalla
-
-### Dashboard
-Vista principal con estadísticas del negocio, clientes recientes y pagos pendientes.
-
-### Clientes
-Gestión completa de clientes con búsqueda, filtros y perfiles detallados.
-
-### Asistencias
-Control diario de asistencia con historial y estadísticas.
-
-### Pagos
-Gestión de suscripciones mensuales con estados de pago.
-
----
-
-## 🤝 Contribuir
-
-Ver [CONTRIBUTING.md](CONTRIBUTING.md) para guías de contribución.
-
----
-
-## 📝 Licencia
-
-Este proyecto es privado y de uso interno. Todos los derechos reservados.
+1. Push a GitHub → Vercel detecta y despliega
+2. Build command ejecuta: `prisma migrate deploy` → `prisma generate` → `next build`
+3. Production URL: [https://nms-giolivos-projects.vercel.app](https://nms-giolivos-projects.vercel.app)
 
 ---
 

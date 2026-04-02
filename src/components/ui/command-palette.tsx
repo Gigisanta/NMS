@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, forwardRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, forwardRef, useRef } from 'react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -22,6 +22,8 @@ interface CommandPaletteProps {
   commands: CommandItem[]
   placeholder?: string
   emptyMessage?: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 /**
@@ -31,10 +33,20 @@ export function CommandPalette({
   commands,
   placeholder = 'Buscar acciones...',
   emptyMessage = 'No se encontraron acciones',
+  open: controlledOpen,
+  onOpenChange,
 }: CommandPaletteProps) {
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const [search, setSearch] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const onOpenChangeRef = useRef(onOpenChange)
+  useEffect(() => { onOpenChangeRef.current = onOpenChange }, [onOpenChange])
+
+  const setOpen = useCallback((value: boolean) => {
+    setInternalOpen(value)
+    onOpenChangeRef.current?.(value)
+  }, [])
 
   // Filter commands by search
   const filteredCommands = useMemo(() => {
@@ -74,20 +86,20 @@ export function CommandPalette({
     ],
   })
 
-  // Execute command - defined before it's used
+  // Execute command
   const executeCommand = useCallback((cmd: CommandItem) => {
     setOpen(false)
     cmd.action()
-  }, [])
+  }, [setOpen])
 
-  // Reset state when opening - using a separate handler
+  // Reset state when opening
   const handleOpenChange = useCallback((isOpen: boolean) => {
     setOpen(isOpen)
     if (isOpen) {
       setSearch('')
       setSelectedIndex(0)
     }
-  }, [])
+  }, [setOpen])
 
   // Navigate with arrows
   useEffect(() => {

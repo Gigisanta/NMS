@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { auth } from '@/auth'
 import { invalidateClientCache } from '@/lib/api-utils'
+import { ratelimit } from '@/lib/rate-limit'
 
 // GET /api/invoices - List all invoices or filter by client
 export async function GET(request: NextRequest) {
@@ -66,6 +67,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'No autorizado' },
         { status: 401 }
+      )
+    }
+
+    // Rate limiting
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anonymous'
+    const { success } = await ratelimit.limit(ip)
+    if (!success) {
+      return NextResponse.json(
+        { success: false, error: 'Demasiadas solicitudes, intenta más tarde' },
+        { status: 429 }
       )
     }
 

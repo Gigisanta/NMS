@@ -201,7 +201,7 @@ export function WhatsAppSettings() {
 
   if (!isEmpleadora) {
     return (
-      <Card className="border-0 shadow-lg">
+      <Card className="border-slate-100 shadow-sm">
         <CardContent className="py-8 text-center">
           <p className="text-slate-500">No tienes permisos para ver esta sección</p>
         </CardContent>
@@ -212,7 +212,7 @@ export function WhatsAppSettings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
       </div>
     )
   }
@@ -220,7 +220,7 @@ export function WhatsAppSettings() {
   return (
     <div className="space-y-6">
       {/* Status Card */}
-      <Card className="border-0 shadow-lg">
+      <Card className="border-slate-100 shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -281,7 +281,7 @@ export function WhatsAppSettings() {
 
         {/* Connection Tab */}
         <TabsContent value="connection" className="space-y-4 mt-4">
-          <Card className="border-0 shadow-lg">
+          <Card className="border-slate-100 shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Credenciales de WhatsApp Business API</CardTitle>
               <CardDescription>
@@ -337,7 +337,7 @@ export function WhatsAppSettings() {
           </Card>
 
           {/* Webhook Configuration */}
-          <Card className="border-0 shadow-lg">
+          <Card className="border-slate-100 shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Configuración del Webhook</CardTitle>
               <CardDescription>
@@ -393,7 +393,7 @@ export function WhatsAppSettings() {
 
         {/* Automation Tab */}
         <TabsContent value="automation" className="space-y-4 mt-4">
-          <Card className="border-0 shadow-lg">
+          <Card className="border-slate-100 shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Automatizaciones</CardTitle>
               <CardDescription>
@@ -417,7 +417,7 @@ export function WhatsAppSettings() {
 
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <Download className="w-5 h-5 text-cyan-600" />
+                  <Download className="w-5 h-5" style={{ color: '#00A8E8' }} />
                   <div>
                     <p className="font-medium">Descargar Archivos</p>
                     <p className="text-sm text-slate-500">Descargar automáticamente fotos y documentos</p>
@@ -462,7 +462,7 @@ export function WhatsAppSettings() {
 
         {/* Messages Tab */}
         <TabsContent value="messages" className="space-y-4 mt-4">
-          <Card className="border-0 shadow-lg">
+          <Card className="border-slate-100 shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Personalizar Mensajes</CardTitle>
               <CardDescription>
@@ -524,7 +524,7 @@ export function WhatsAppSettings() {
 
         {/* Help Tab */}
         <TabsContent value="help" className="space-y-4 mt-4">
-          <Card className="border-0 shadow-lg">
+          <Card className="border-slate-100 shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Guía de Configuración</CardTitle>
               <CardDescription>
@@ -535,17 +535,17 @@ export function WhatsAppSettings() {
               <div className="space-y-4">
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium flex items-center gap-2">
-                    <span className="w-6 h-6 bg-cyan-100 text-cyan-700 rounded-full flex items-center justify-center text-sm">1</span>
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold" style={{ background: '#005691' }}>1</span>
                     Crear Cuenta de WhatsApp Business
                   </h4>
                   <p className="text-sm text-slate-600 mt-2 ml-8">
-                    Ve a <a href="https://business.facebook.com" target="_blank" className="text-cyan-600 hover:underline">Meta Business Suite</a> y crea una cuenta comercial si no tienes una.
+                    Ve a <a href="https://business.facebook.com" target="_blank" className="hover:underline font-medium" style={{ color: '#005691' }}>Meta Business Suite</a> y crea una cuenta comercial si no tienes una.
                   </p>
                 </div>
 
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium flex items-center gap-2">
-                    <span className="w-6 h-6 bg-cyan-100 text-cyan-700 rounded-full flex items-center justify-center text-sm">2</span>
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold" style={{ background: '#005691' }}>2</span>
                     Configurar WhatsApp Business API
                   </h4>
                   <p className="text-sm text-slate-600 mt-2 ml-8">
@@ -555,7 +555,7 @@ export function WhatsAppSettings() {
 
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium flex items-center gap-2">
-                    <span className="w-6 h-6 bg-cyan-100 text-cyan-700 rounded-full flex items-center justify-center text-sm">3</span>
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold" style={{ background: '#005691' }}>3</span>
                     Obtener Credenciales
                   </h4>
                   <ul className="text-sm text-slate-600 mt-2 ml-8 space-y-1 list-disc list-inside">
@@ -567,7 +567,7 @@ export function WhatsAppSettings() {
 
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium flex items-center gap-2">
-                    <span className="w-6 h-6 bg-cyan-100 text-cyan-700 rounded-full flex items-center justify-center text-sm">4</span>
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold" style={{ background: '#005691' }}>4</span>
                     Configurar Webhook
                   </h4>
                   <ul className="text-sm text-slate-600 mt-2 ml-8 space-y-1 list-disc list-inside">
@@ -580,7 +580,7 @@ export function WhatsAppSettings() {
 
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium flex items-center gap-2">
-                    <span className="w-6 h-6 bg-cyan-100 text-cyan-700 rounded-full flex items-center justify-center text-sm">5</span>
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold" style={{ background: '#005691' }}>5</span>
                     Probar Integración
                   </h4>
                   <p className="text-sm text-slate-600 mt-2 ml-8">
@@ -589,9 +589,9 @@ export function WhatsAppSettings() {
                 </div>
               </div>
 
-              <div className="p-4 bg-cyan-50 border border-cyan-200 rounded-lg">
-                <h4 className="font-medium text-cyan-800">💡 Tips</h4>
-                <ul className="text-sm text-cyan-700 mt-2 space-y-1 list-disc list-inside">
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                <h4 className="font-medium text-slate-800">💡 Tips</h4>
+                <ul className="text-sm text-slate-600 mt-2 space-y-1 list-disc list-inside">
                   <li>Los clientes se matchean automáticamente por número de teléfono</li>
                   <li>Asegúrate de que los números en el sistema coincidan con WhatsApp</li>
                   <li>Los comprobantes se guardan en la carpeta uploads</li>

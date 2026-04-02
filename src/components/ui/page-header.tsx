@@ -74,7 +74,7 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
             )}
             <div className="min-w-0">
               <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold text-slate-900 truncate">{title}</h1>
+                <h1 className="text-xl font-semibold text-slate-900 truncate">{title}</h1>
                 {badges}
               </div>
               {description && (
@@ -183,7 +183,7 @@ export function StatHeader({
     <div className="flex items-start justify-between">
       <div className="space-y-1">
         <p className="text-sm text-slate-500">{title}</p>
-        <p className="text-2xl font-bold text-slate-900">{value}</p>
+        <p className="text-2xl font-semibold text-slate-900">{value}</p>
         {change && (
           <p className={cn(
             'text-xs font-medium',

@@ -116,7 +116,7 @@ export function ReceiptUploadDialog({
       <DialogContent className="sm:max-w-[450px] rounded-2xl p-0 overflow-hidden border-none shadow-2xl">
         <div className="bg-[#005691] p-6 text-white relative">
           <div className="absolute top-0 right-0 w-32 h-32 -mr-12 -mt-12 bg-white/10 rounded-full blur-2xl" />
-          <DialogTitle className="text-xl font-bold relative z-10 flex items-center gap-2">
+          <DialogTitle className="text-xl font-semibold relative z-10 flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
             Confirmar Transferencia
           </DialogTitle>

@@ -198,19 +198,19 @@ export function TimeClockWidget() {
 
   if (loading) {
     return (
-      <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
+      <Card className="border-slate-100 shadow-sm">
         <CardContent className="p-6 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-cyan-600" />
+          <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
+    <Card className="border-slate-100 shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Timer className="w-5 h-5 text-cyan-600" />
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <Timer className="w-4 h-4" style={{ color: '#00A8E8' }} />
           Fichaje
         </CardTitle>
       </CardHeader>
@@ -261,11 +261,8 @@ export function TimeClockWidget() {
           <Button
             onClick={status?.isWorking ? handleClockOut : handleClockIn}
             disabled={processing}
-            className={`w-full h-12 text-base font-semibold gap-2 ${
-              status?.isWorking
-                ? 'bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700'
-                : 'bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700'
-            }`}
+            className="w-full h-12 text-base font-semibold gap-2 text-white"
+            style={{ background: status?.isWorking ? '#ef4444' : '#005691' }}
           >
             {processing ? (
               <Loader2 className="w-5 h-5 animate-spin" />

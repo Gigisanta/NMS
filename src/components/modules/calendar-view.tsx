@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Calendar as CalendarUI } from '@/components/ui/calendar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
@@ -35,6 +36,7 @@ export function CalendarView() {
   const [loading, setLoading] = useState(true)
   const [showEventForm, setShowEventForm] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [deletingEventId, setDeletingEventId] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -110,8 +112,6 @@ export function CalendarView() {
   }
 
   const handleDeleteEvent = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este evento?')) return
-
     try {
       const response = await fetch(`/api/calendar?id=${id}`, {
         method: 'DELETE',
@@ -122,6 +122,8 @@ export function CalendarView() {
       }
     } catch (error) {
       toast.error('Error al eliminar evento')
+    } finally {
+      setDeletingEventId(null)
     }
   }
 
@@ -129,7 +131,7 @@ export function CalendarView() {
     <div className="flex flex-col lg:flex-row h-[calc(100vh-120px)] gap-6">
       {/* Sidebar: Calendar & Date picker */}
       <div className="w-full lg:w-80 space-y-6 shrink-0">
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur">
+        <Card className="border-slate-100 shadow-sm bg-white">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-slate-500 uppercase tracking-wider">
               Calendario Global
@@ -154,7 +156,7 @@ export function CalendarView() {
         </Card>
 
         {/* Selected Date Events */}
-        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur flex-1 overflow-hidden flex flex-col min-h-0">
+        <Card className="border-slate-100 shadow-sm flex-1 overflow-hidden flex flex-col min-h-0">
           <CardHeader className="pb-3 border-b flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-lg">Eventos</CardTitle>
@@ -164,7 +166,8 @@ export function CalendarView() {
             </div>
             <Button
               size="icon"
-              className="rounded-full bg-blue-600 hover:bg-blue-700 h-8 w-8"
+              className="rounded-full h-8 w-8"
+              style={{ background: '#005691' }}
               onClick={() => setShowEventForm(true)}
               disabled={!selectedDate}
             >
@@ -175,9 +178,11 @@ export function CalendarView() {
             <div className="space-y-3">
               <AnimatePresence mode="popLayout">
                 {eventsForSelectedDate.length === 0 ? (
-                  <div className="text-center py-10 text-slate-400">
-                    <StickyNote className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                    <p className="text-xs">Sin eventos para este día</p>
+                  <div className="flex flex-col items-center py-10 gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center">
+                      <StickyNote className="w-5 h-5 text-slate-300" />
+                    </div>
+                    <p className="text-xs text-slate-400">Sin eventos para este día</p>
                   </div>
                 ) : (
                   eventsForSelectedDate.map((event) => (
@@ -194,7 +199,7 @@ export function CalendarView() {
                           {event.title}
                         </h4>
                         <button
-                          onClick={() => handleDeleteEvent(event.id)}
+                          onClick={() => setDeletingEventId(event.id)}
                           className="opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-2 p-1 text-slate-400 hover:text-red-500"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -214,11 +219,11 @@ export function CalendarView() {
 
       {/* Main Content: Full Month View */}
       <div className="flex-1 flex flex-col min-w-0">
-        <Card className="border-0 shadow-xl bg-white flex flex-col flex-1 overflow-hidden">
+        <Card className="border-slate-100 shadow-sm flex flex-col flex-1 overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between border-b pb-4 px-6 pt-6">
             <div className="flex items-center gap-4">
-              <CalendarIcon className="w-6 h-6 text-blue-600" />
-              <h2 className="text-2xl font-bold text-slate-900 capitalize">
+              <CalendarIcon className="w-5 h-5" style={{ color: '#00A8E8' }} />
+              <h2 className="text-lg font-semibold text-slate-900 capitalize">
                 {format(currentMonth, 'MMMM yyyy', { locale: es })}
               </h2>
             </div>
@@ -272,14 +277,15 @@ export function CalendarView() {
                   <div
                     key={day.toISOString()}
                     onClick={() => setSelectedDate(day)}
-                    className={`border-r border-b border-slate-100 p-1 min-h-[100px] transition-colors cursor-pointer hover:bg-slate-50/80 ${
-                      isSelected ? 'bg-blue-50/30' : ''
+                    className={`border-r border-b border-slate-100 p-1 min-h-[100px] transition-colors cursor-pointer hover:bg-slate-50 ${
+                      isSelected ? 'bg-cyan-50/40' : ''
                     }`}
                   >
                     <div className="flex justify-between items-center mb-1">
-                      <span className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full ${
-                        isToday ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600'
-                      }`}>
+                      <span
+                        className="text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full"
+                        style={isToday ? { background: '#005691', color: 'white' } : { color: '#475569' }}
+                      >
                         {format(day, 'd')}
                       </span>
                     </div>
@@ -362,7 +368,7 @@ export function CalendarView() {
               <Button
                 type="submit"
                 disabled={saving}
-                className="bg-blue-600 hover:bg-blue-700"
+                style={{ background: '#005691' }}
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Guardar Evento'}
               </Button>
@@ -370,6 +376,26 @@ export function CalendarView() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deletingEventId} onOpenChange={(open) => !open && setDeletingEventId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar evento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => deletingEventId && handleDeleteEvent(deletingEventId)}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

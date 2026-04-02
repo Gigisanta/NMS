@@ -1,8 +1,8 @@
-# 📡 API Documentation - NMS
+# API Documentation - NMS
 
 > Documentación completa de los endpoints de la API del Natatory Management System
 
-## 🔒 Autenticación
+## Autenticación
 
 Todos los endpoints (excepto los marcados como públicos) requieren autenticación mediante NextAuth con sesión JWT.
 
@@ -16,27 +16,18 @@ Cookie: authjs.session-token=<jwt_token>
 
 ```json
 // 401 Unauthorized
-{
-  "success": false,
-  "error": "No autenticado"
-}
+{ "success": false, "error": "No autenticado" }
 
 // 403 Forbidden
-{
-  "success": false,
-  "error": "Sin permisos"
-}
+{ "success": false, "error": "Sin permisos" }
 ```
 
-## 📋 Formato de Respuestas
+## Formato de Respuestas
 
 ### Respuesta Exitosa
 
 ```json
-{
-  "success": true,
-  "data": { ... }
-}
+{ "success": true, "data": { ... } }
 ```
 
 ### Respuesta con Paginación
@@ -45,27 +36,19 @@ Cookie: authjs.session-token=<jwt_token>
 {
   "success": true,
   "data": [...],
-  "pagination": {
-    "page": 1,
-    "limit": 20,
-    "total": 100,
-    "totalPages": 5
-  }
+  "pagination": { "page": 1, "limit": 20, "total": 100, "totalPages": 5 }
 }
 ```
 
 ### Respuesta de Error
 
 ```json
-{
-  "success": false,
-  "error": "Mensaje de error descriptivo"
-}
+{ "success": false, "error": "Mensaje de error descriptivo" }
 ```
 
 ---
 
-## 🔐 Autenticación
+## Autenticación
 
 ### POST `/api/auth/register`
 
@@ -95,9 +78,6 @@ Registra un nuevo usuario en el sistema.
 }
 ```
 
-**Errores:**
-- `400` - Datos inválidos o email ya registrado
-
 ---
 
 ### POST `/api/auth/[...nextauth]`
@@ -112,7 +92,7 @@ Endpoints de NextAuth para manejo de sesiones.
 
 ---
 
-## 👥 Clientes
+## Clientes
 
 ### GET `/api/clients`
 
@@ -127,7 +107,6 @@ Lista clientes con paginación y filtros.
 | `limit` | number | 20 | Items por página (max 50) |
 | `search` | string | - | Búsqueda por nombre, apellido, teléfono, DNI |
 | `grupoId` | string | - | Filtrar por grupo |
-| `withSubscription` | boolean | false | Incluir suscripción actual |
 
 **Response:**
 ```json
@@ -141,30 +120,13 @@ Lista clientes con paginación y filtros.
       "dni": "12345678",
       "telefono": "+5491112345678",
       "grupoId": "clx...",
-      "grupo": {
-        "id": "clx...",
-        "name": "Grupo A",
-        "color": "#06b6d4"
-      },
+      "grupo": { "id": "clx...", "name": "Grupo A", "color": "#06b6d4" },
       "preferredDays": "Lunes,Miércoles",
       "preferredTime": "10:00",
-      "notes": null,
-      "createdAt": "2026-02-26T10:00:00.000Z",
-      "currentSubscription": {
-        "id": "clx...",
-        "status": "AL_DIA",
-        "classesUsed": 2,
-        "classesTotal": 4,
-        "amount": 5000
-      }
+      "createdAt": "2026-02-26T10:00:00.000Z"
     }
   ],
-  "pagination": {
-    "page": 1,
-    "limit": 20,
-    "total": 100,
-    "totalPages": 5
-  }
+  "pagination": { "page": 1, "limit": 20, "total": 100, "totalPages": 5 }
 }
 ```
 
@@ -186,15 +148,9 @@ Crea un nuevo cliente con su suscripción inicial.
   "grupoId": "clx...",
   "preferredDays": "Lunes,Miércoles",
   "preferredTime": "10:00",
-  "notes": "Notas opcionales",
-  "classesTotal": 4
+  "notes": "Notas opcionales"
 }
 ```
-
-**Campos Requeridos:**
-- `nombre` (string, min 2 caracteres)
-- `apellido` (string, min 2 caracteres)
-- `telefono` (string, min 8 caracteres, único)
 
 **Response (201):**
 ```json
@@ -204,25 +160,10 @@ Crea un nuevo cliente con su suscripción inicial.
     "id": "clx...",
     "nombre": "Juan",
     "apellido": "Pérez",
-    "dni": "12345678",
-    "telefono": "+5491112345678",
-    "grupoId": "clx...",
-    "grupo": {
-      "id": "clx...",
-      "name": "Grupo A",
-      "color": "#06b6d4"
-    },
-    "preferredDays": "Lunes,Miércoles",
-    "preferredTime": "10:00",
-    "notes": "Notas opcionales",
-    "createdAt": "2026-02-26T10:00:00.000Z"
+    "telefono": "+5491112345678"
   }
 }
 ```
-
-**Errores:**
-- `400` - Campos requeridos faltantes o teléfono duplicado
-- `500` - Error interno del servidor
 
 ---
 
@@ -232,63 +173,6 @@ Obtiene un cliente específico con todos sus detalles.
 
 **Acceso:** Autenticado (EMPLEADORA, EMPLEADO)
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "clx...",
-    "nombre": "Juan",
-    "apellido": "Pérez",
-    "dni": "12345678",
-    "telefono": "+5491112345678",
-    "grupoId": "clx...",
-    "grupo": {
-      "id": "clx...",
-      "name": "Grupo A",
-      "color": "#06b6d4",
-      "description": "Niños principiantes",
-      "schedule": "Lunes y Miércoles 10:00"
-    },
-    "preferredDays": "Lunes,Miércoles",
-    "preferredTime": "10:00",
-    "notes": null,
-    "createdAt": "2026-02-26T10:00:00.000Z",
-    "updatedAt": "2026-02-26T10:00:00.000Z",
-    "subscriptions": [
-      {
-        "id": "clx...",
-        "month": 2,
-        "year": 2026,
-        "status": "AL_DIA",
-        "classesTotal": 4,
-        "classesUsed": 2,
-        "amount": 5000
-      }
-    ],
-    "invoices": [
-      {
-        "id": "clx...",
-        "imageUrl": "/receipt.jpg",
-        "verified": true,
-        "uploadedAt": "2026-02-26T10:00:00.000Z"
-      }
-    ],
-    "attendances": [
-      {
-        "id": "clx...",
-        "date": "2026-02-26T10:00:00.000Z",
-        "notes": null
-      }
-    ]
-  }
-}
-```
-
-**Errores:**
-- `404` - Cliente no encontrado
-- `500` - Error interno del servidor
-
 ---
 
 ### PUT `/api/clients/[id]`
@@ -296,38 +180,6 @@ Obtiene un cliente específico con todos sus detalles.
 Actualiza los datos de un cliente.
 
 **Acceso:** Autenticado (EMPLEADORA, EMPLEADO)
-
-**Request Body (todos los campos opcionales):**
-```json
-{
-  "nombre": "Juan Carlos",
-  "apellido": "Pérez",
-  "dni": "87654321",
-  "telefono": "+5491198765432",
-  "grupoId": "clx...",
-  "preferredDays": "Martes,Jueves",
-  "preferredTime": "16:00",
-  "notes": "Actualizado"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "clx...",
-    "nombre": "Juan Carlos",
-    "apellido": "Pérez",
-    // ... otros campos actualizados
-  }
-}
-```
-
-**Errores:**
-- `400` - Teléfono duplicado
-- `404` - Cliente no encontrado
-- `500` - Error interno del servidor
 
 ---
 
@@ -337,26 +189,9 @@ Elimina un cliente y todos sus datos relacionados.
 
 **Acceso:** Autenticado (EMPLEADORA)
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Cliente eliminado correctamente"
-}
-```
-
-**Errores:**
-- `404` - Cliente no encontrado
-- `500` - Error interno del servidor
-
-**Nota:** La eliminación es en cascada:
-- Elimina suscripciones asociadas
-- Elimina facturas asociadas
-- Elimina asistencias asociadas
-
 ---
 
-## 🏷️ Grupos
+## Grupos
 
 ### GET `/api/groups`
 
@@ -401,31 +236,6 @@ Crea un nuevo grupo.
 }
 ```
 
-**Campos Requeridos:**
-- `name` (string, único, max 50 caracteres)
-
-**Campos Opcionales:**
-- `color` (string, formato hex, default: "#06b6d4")
-- `description` (string, max 200 caracteres)
-- `schedule` (string, max 100 caracteres)
-
-**Response (201):**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "clx...",
-    "name": "Grupo Nuevo",
-    "color": "#8b5cf6",
-    "description": "Descripción del grupo",
-    "schedule": "Viernes 18:00",
-    "active": true,
-    "createdAt": "2026-02-26T10:00:00.000Z",
-    "updatedAt": "2026-02-26T10:00:00.000Z"
-  }
-}
-```
-
 ---
 
 ### GET `/api/groups/[id]`
@@ -433,23 +243,6 @@ Crea un nuevo grupo.
 Obtiene un grupo específico.
 
 **Acceso:** Autenticado (EMPLEADORA, EMPLEADO)
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "clx...",
-    "name": "Grupo A",
-    "color": "#06b6d4",
-    "description": "Niños principiantes",
-    "schedule": "Lunes y Miércoles 10:00",
-    "active": true,
-    "createdAt": "2026-02-26T10:00:00.000Z",
-    "updatedAt": "2026-02-26T10:00:00.000Z"
-  }
-}
-```
 
 ---
 
@@ -459,28 +252,6 @@ Actualiza un grupo existente.
 
 **Acceso:** Autenticado (EMPLEADORA)
 
-**Request Body (todos los campos opcionales):**
-```json
-{
-  "name": "Grupo Actualizado",
-  "color": "#10b981",
-  "description": "Nueva descripción",
-  "schedule": "Nuevo horario",
-  "active": false
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "clx...",
-    // ... campos actualizados
-  }
-}
-```
-
 ---
 
 ### DELETE `/api/groups/[id]`
@@ -489,17 +260,67 @@ Elimina un grupo (los clientes quedan sin grupo).
 
 **Acceso:** Autenticado (EMPLEADORA)
 
+---
+
+## Asignaciones Cliente-Grupo (ClientGroup)
+
+### GET `/api/client-groups`
+
+Lista todas las asignaciones de clientes a grupos.
+
+**Acceso:** Autenticado (EMPLEADORA, EMPLEADO)
+
+**Query Parameters:**
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `clientId` | string | Filtrar por cliente |
+| `groupId` | string | Filtrar por grupo |
+
 **Response:**
 ```json
 {
   "success": true,
-  "message": "Grupo eliminado correctamente"
+  "data": [
+    {
+      "id": "clx...",
+      "clientId": "clx...",
+      "groupId": "clx...",
+      "schedule": "Lunes 10:00",
+      "client": { "id": "clx...", "nombre": "Juan", "apellido": "Pérez" },
+      "group": { "id": "clx...", "name": "Grupo A", "color": "#06b6d4" }
+    }
+  ]
 }
 ```
 
 ---
 
-## 💳 Suscripciones
+### POST `/api/client-groups`
+
+Asigna un cliente a un grupo.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+**Request Body:**
+```json
+{
+  "clientId": "clx...",
+  "groupId": "clx...",
+  "schedule": "Lunes 10:00"
+}
+```
+
+---
+
+### DELETE `/api/client-groups/[id]`
+
+Elimina una asignación cliente-grupo.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+---
+
+## Suscripciones
 
 ### GET `/api/subscriptions`
 
@@ -508,12 +329,12 @@ Lista suscripciones con filtros.
 **Acceso:** Autenticado (EMPLEADORA, EMPLEADO)
 
 **Query Parameters:**
-| Parámetro | Tipo | Default | Descripción |
-|-----------|------|---------|-------------|
-| `clientId` | string | - | Filtrar por cliente |
-| `month` | number | mes actual | Mes (1-12) |
-| `year` | number | año actual | Año |
-| `status` | string | - | AL_DIA, PENDIENTE, DEUDOR |
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `clientId` | string | Filtrar por cliente |
+| `month` | number | Mes (1-12) |
+| `year` | number | Año |
+| `status` | string | AL_DIA, PENDIENTE, DEUDOR |
 
 **Response:**
 ```json
@@ -529,18 +350,11 @@ Lista suscripciones con filtros.
       "classesTotal": 4,
       "classesUsed": 2,
       "amount": 5000,
-      "notes": null,
-      "createdAt": "2026-02-26T10:00:00.000Z",
       "client": {
         "id": "clx...",
         "nombre": "Juan",
         "apellido": "Pérez",
-        "telefono": "+5491112345678",
-        "grupo": {
-          "id": "clx...",
-          "name": "Grupo A",
-          "color": "#06b6d4"
-        }
+        "grupo": { "id": "clx...", "name": "Grupo A", "color": "#06b6d4" }
       }
     }
   ]
@@ -563,25 +377,8 @@ Crea una nueva suscripción.
   "year": 2026,
   "classesTotal": 4,
   "amount": 5000,
+  "paymentMethod": "EFECTIVO",
   "notes": "Pago anticipado"
-}
-```
-
-**Response (201):**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "clx...",
-    "clientId": "clx...",
-    "month": 3,
-    "year": 2026,
-    "status": "PENDIENTE",
-    "classesTotal": 4,
-    "classesUsed": 0,
-    "amount": 5000,
-    "notes": "Pago anticipado"
-  }
 }
 ```
 
@@ -601,34 +398,13 @@ Actualiza una suscripción.
 
 **Acceso:** Autenticado (EMPLEADORA)
 
-**Request Body:**
-```json
-{
-  "status": "AL_DIA",
-  "classesUsed": 3,
-  "amount": 5000,
-  "notes": "Pagado el 15/02"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "clx...",
-    // ... campos actualizados
-  }
-}
-```
-
 ---
 
-## ✅ Asistencias
+## Asistencias
 
 ### GET `/api/attendance`
 
-Lista asistencias con filtros.
+Lista y registra asistencias.
 
 **Acceso:** Autenticado (EMPLEADORA, EMPLEADO)
 
@@ -653,12 +429,7 @@ Lista asistencias con filtros.
         "id": "clx...",
         "nombre": "Juan",
         "apellido": "Pérez",
-        "telefono": "+5491112345678",
-        "grupo": {
-          "id": "clx...",
-          "name": "Grupo A",
-          "color": "#06b6d4"
-        }
+        "grupo": { "id": "clx...", "name": "Grupo A", "color": "#06b6d4" }
       }
     }
   ]
@@ -681,24 +452,374 @@ Registra una nueva asistencia.
 }
 ```
 
-**Response (201):**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "clx...",
-    "clientId": "clx...",
-    "date": "2026-02-26T10:00:00.000Z",
-    "notes": "Llegó tarde"
-  }
-}
-```
-
 **Nota:** Al registrar asistencia, se incrementa automáticamente `classesUsed` en la suscripción actual.
 
 ---
 
-## 📊 Dashboard
+## Empleados
+
+### GET `/api/employees`
+
+Lista todos los empleados (usuarios con rol EMPLEADO).
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "clx...",
+      "name": "Tomás",
+      "email": "tomas@nms.com",
+      "role": "EMPLEADO",
+      "employeeRole": "ADMINISTRATIVO",
+      "hourlyRate": 1500.00,
+      "phone": "+5491112345678",
+      "active": true
+    }
+  ]
+}
+```
+
+---
+
+### POST `/api/employees`
+
+Crea un nuevo empleado.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+**Request Body:**
+```json
+{
+  "name": "Nuevo Empleado",
+  "email": "nuevo@nms.com",
+  "password": "password123",
+  "employeeRole": "PROFESOR",
+  "hourlyRate": 2000,
+  "phone": "+5491112345679"
+}
+```
+
+---
+
+### GET `/api/employees/[id]`
+
+Obtiene un empleado específico con sus fichajes.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+---
+
+### PUT `/api/employees/[id]`
+
+Actualiza un empleado.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+---
+
+## Fichajes (TimeEntries)
+
+### GET `/api/time-entries`
+
+Lista fichajes de empleados.
+
+**Acceso:** Autenticado (EMPLEADORA, EMPLEADO - solo propios)
+
+**Query Parameters:**
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `userId` | string | Filtrar por empleado |
+| `date` | string | Fecha (YYYY-MM-DD) |
+| `month` | number | Mes |
+| `year` | number | Año |
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "clx...",
+      "userId": "clx...",
+      "clockIn": "2026-02-26T08:00:00.000Z",
+      "clockOut": "2026-02-26T16:00:00.000Z",
+      "notes": null,
+      "user": {
+        "id": "clx...",
+        "name": "Tomás",
+        "email": "tomas@nms.com"
+      }
+    }
+  ]
+}
+```
+
+---
+
+### POST `/api/time-entries`
+
+Registra fichaje de entrada o salida.
+
+**Acceso:** Autenticado (EMPLEADORA, EMPLEADO - propios)
+
+**Request Body:**
+```json
+{
+  "userId": "clx...",
+  "clockIn": "2026-02-26T08:00:00.000Z",
+  "clockOut": "2026-02-26T16:00:00.000Z",
+  "notes": "Salió temprano"
+}
+```
+
+---
+
+## Gastos (Expenses)
+
+### GET `/api/expenses`
+
+Lista gastos con filtros.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+**Query Parameters:**
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `category` | string | FIJO, VARIABLE, SUELDO, PROVEEDOR, OTROS |
+| `month` | number | Mes |
+| `year` | number | Año |
+| `userId` | string | Filtrar por empleado (sueldos) |
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "clx...",
+      "description": "Alquiler piscina",
+      "amount": 150000,
+      "category": "FIJO",
+      "date": "2026-02-26T10:00:00.000Z",
+      "month": 2,
+      "year": 2026,
+      "supplier": "Inmobiliaria ABC",
+      "notes": null
+    }
+  ]
+}
+```
+
+---
+
+### POST `/api/expenses`
+
+Crea un nuevo gasto.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+**Request Body:**
+```json
+{
+  "description": "Compra de insumos",
+  "amount": 5000,
+  "category": "VARIABLE",
+  "date": "2026-02-26T10:00:00.000Z",
+  "month": 2,
+  "year": 2026,
+  "supplier": "Limpieza SA",
+  "notes": "Cloro y фильтры"
+}
+```
+
+---
+
+### GET `/api/expenses/[id]`
+
+Obtiene un gasto específico.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+---
+
+### PUT `/api/expenses/[id]`
+
+Actualiza un gasto.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+---
+
+### DELETE `/api/expenses/[id]`
+
+Elimina un gasto.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+---
+
+## Facturas (Invoices)
+
+### GET `/api/invoices`
+
+Lista facturas con filtros.
+
+**Acceso:** Autenticado (EMPLEADORA, EMPLEADO)
+
+**Query Parameters:**
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `clientId` | string | Filtrar por cliente |
+| `status` | string | PENDING, VERIFIED, REJECTED |
+| `month` | number | Mes |
+| `year` | number | Año |
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "clx...",
+      "clientId": "clx...",
+      "fileName": "comprobante_feb2026.jpg",
+      "fileSize": 102400,
+      "mimeType": "image/jpeg",
+      "verified": true,
+      "status": "VERIFIED",
+      "amount": 5000,
+      "issueDate": "2026-02-15T00:00:00.000Z",
+      "uploadedAt": "2026-02-26T10:00:00.000Z",
+      "client": {
+        "id": "clx...",
+        "nombre": "Juan",
+        "apellido": "Pérez"
+      }
+    }
+  ]
+}
+```
+
+---
+
+### POST `/api/invoices`
+
+Crea una factura (con archivo).
+
+**Acceso:** Autenticado (EMPLEADORA, EMPLEADO)
+
+**Request Body (multipart/form-data):**
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `clientId` | string | ID del cliente |
+| `file` | File | Archivo del comprobante |
+| `invoiceNumber` | string | Número de factura |
+| `amount` | number | Monto |
+| `issueDate` | string | Fecha de emisión |
+
+---
+
+### GET `/api/invoices/[id]`
+
+Obtiene una factura específica.
+
+**Acceso:** Autenticado (EMPLEADORA, EMPLEADO)
+
+---
+
+### PUT `/api/invoices/[id]`
+
+Actualiza una factura (verificación, estado).
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+---
+
+### DELETE `/api/invoices/[id]`
+
+Elimina una factura.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+---
+
+### GET `/api/invoices/[id]/file`
+
+Descarga el archivo binario de la factura.
+
+**Acceso:** Autenticado (EMPLEADORA, EMPLEADO)
+
+**Response:** Binary file data with appropriate Content-Type header.
+
+---
+
+### POST `/api/invoices/auto`
+
+Procesa automáticamente facturas de WhatsApp.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+---
+
+## Calendario
+
+### GET `/api/calendar`
+
+Lista eventos del calendario.
+
+**Acceso:** Autenticado (EMPLEADORA, EMPLEADO)
+
+**Query Parameters:**
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `start` | string | Fecha inicio (ISO) |
+| `end` | string | Fecha fin (ISO) |
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "clx...",
+      "title": "Clase de natacion",
+      "description": "Grupo principiantes",
+      "start": "2026-02-26T10:00:00.000Z",
+      "end": "2026-02-26T11:00:00.000Z",
+      "allDay": false,
+      "color": "#3b82f6"
+    }
+  ]
+}
+```
+
+---
+
+### POST `/api/calendar`
+
+Crea un nuevo evento.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+**Request Body:**
+```json
+{
+  "title": "Nuevo Evento",
+  "description": "Descripción",
+  "start": "2026-02-26T10:00:00.000Z",
+  "end": "2026-02-26T11:00:00.000Z",
+  "allDay": false,
+  "color": "#3b82f6"
+}
+```
+
+---
+
+## Dashboard
 
 ### GET `/api/dashboard`
 
@@ -706,7 +827,7 @@ Obtiene estadísticas generales del sistema.
 
 **Acceso:** Autenticado (EMPLEADORA, EMPLEADO)
 
-**Cache:** 1 minuto
+**Cache:** 1 minuto (TanStack Query)
 
 **Response:**
 ```json
@@ -721,36 +842,8 @@ Obtiene estadísticas generales del sistema.
       "todayAttendances": 15,
       "monthRevenue": 425000
     },
-    "recentClients": [
-      {
-        "id": "clx...",
-        "nombre": "Juan",
-        "apellido": "Pérez",
-        "telefono": "+5491112345678",
-        "createdAt": "2026-02-26T10:00:00.000Z",
-        "grupo": {
-          "id": "clx...",
-          "name": "Grupo A",
-          "color": "#06b6d4"
-        }
-      }
-    ],
-    "pendingClients": [
-      {
-        "status": "PENDIENTE",
-        "client": {
-          "id": "clx...",
-          "nombre": "María",
-          "apellido": "García",
-          "telefono": "+5491112345679",
-          "grupo": {
-            "id": "clx...",
-            "name": "Grupo B",
-            "color": "#8b5cf6"
-          }
-        }
-      }
-    ],
+    "recentClients": [...],
+    "pendingClients": [...],
     "currentMonth": 2,
     "currentYear": 2026
   }
@@ -759,78 +852,149 @@ Obtiene estadísticas generales del sistema.
 
 ---
 
-## 📱 Webhook WhatsApp
+## Configuración
 
-### POST `/api/webhook/whatsapp`
+### GET `/api/settings`
 
-Recibe mensajes de WhatsApp Business API.
+Lista configuraciones del sistema.
 
-**Acceso:** Público (verificación de firma recomendada)
+**Acceso:** Autenticado (EMPLEADORA)
 
-**Request Body (WhatsApp Business API format):**
+**Query Parameters:**
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `category` | string | general, payment, notifications, business |
+
+**Response:**
 ```json
 {
-  "entry": [
+  "success": true,
+  "data": [
     {
-      "id": "phone_number_id",
-      "changes": [
-        {
-          "value": {
-            "messaging_product": "whatsapp",
-            "metadata": {
-              "display_phone_number": "+5491112345678",
-              "phone_number_id": "clx..."
-            },
-            "contacts": [
-              {
-                "profile": {
-                  "name": "Juan Pérez"
-                },
-                "wa_id": "5491112345678"
-              }
-            ],
-            "messages": [
-              {
-                "from": "5491112345678",
-                "id": "wamid.xxx",
-                "timestamp": "1708963200",
-                "type": "text",
-                "text": {
-                  "body": "Hola, quiero información"
-                }
-              }
-            ]
-          },
-          "field": "messages"
-        }
-      ]
+      "id": "clx...",
+      "key": "business_name",
+      "value": "Natatorio Los Andes",
+      "category": "business"
     }
   ]
 }
 ```
 
-**Tipos de mensajes soportados:**
-- `text` - Mensaje de texto
-- `image` - Imagen (para comprobantes de pago)
-- `document` - Documento
+---
 
-**Response (200):**
+### POST `/api/settings`
+
+Crea o actualiza una configuración.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+**Request Body:**
 ```json
 {
-  "success": true,
-  "message": "Webhook procesado"
+  "key": "business_name",
+  "value": "Natatorio Los Andes",
+  "category": "business",
+  "description": "Nombre del negocio"
 }
 ```
 
-**Comportamiento:**
-1. Busca cliente por número de teléfono
-2. Si existe, registra interacción
-3. Si es imagen, puede crear factura pendiente de verificación
-4. Log de actividad para seguimiento
+---
+
+## Facturación ARCA
+
+### GET `/api/billing`
+
+Obtiene datos de facturación ARCA.
+
+**Acceso:** Autenticado (EMPLEADORA)
 
 ---
 
-## 🔧 Health Check
+## WhatsApp
+
+### POST `/api/webhook/whatsapp`
+
+Recibe mensajes de WhatsApp Business API.
+
+**Acceso:** Público (verificación de firma)
+
+**Request Body (WhatsApp Business API format):**
+```json
+{
+  "entry": [{
+    "id": "phone_number_id",
+    "changes": [{
+      "value": {
+        "messaging_product": "whatsapp",
+        "metadata": { "phone_number_id": "clx..." },
+        "contacts": [{ "profile": { "name": "Juan" }, "wa_id": "5491112345678" }],
+        "messages": [{
+          "from": "5491112345678",
+          "id": "wamid.xxx",
+          "timestamp": "1708963200",
+          "type": "text",
+          "text": { "body": "Hola" }
+        }]
+      }
+    }]
+  }]
+}
+```
+
+---
+
+### GET `/api/whatsapp/config`
+
+Obtiene configuración de WhatsApp.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+---
+
+### POST `/api/whatsapp/config`
+
+Guarda configuración de WhatsApp.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+---
+
+### GET `/api/whatsapp/messages`
+
+Lista mensajes de WhatsApp recibidos.
+
+**Acceso:** Autenticado (EMPLEADORA)
+
+---
+
+## Planes de Precios
+
+### GET `/api/pricing-plans`
+
+Lista planes de precios disponibles.
+
+**Acceso:** Autenticado (EMPLEADORA, EMPLEADO)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "clx...",
+      "name": "Mensual 4 clases",
+      "classes": 4,
+      "price": 5000,
+      "description": "4 clases mensuales",
+      "isDefault": true
+    }
+  ]
+}
+```
+
+---
+
+## Health Check
 
 ### GET `/api`
 
@@ -844,13 +1008,13 @@ Verifica que la API está funcionando.
   "success": true,
   "message": "NMS API is running",
   "version": "1.0.0",
-  "timestamp": "2026-02-26T10:00:00.000Z"
+  "timestamp": "2026-04-01T00:00:00.000Z"
 }
 ```
 
 ---
 
-## 📝 Códigos de Estado HTTP
+## Códigos de Estado HTTP
 
 | Código | Descripción |
 |--------|-------------|
@@ -860,29 +1024,21 @@ Verifica que la API está funcionando.
 | `401` | Unauthorized - No autenticado |
 | `403` | Forbidden - Sin permisos |
 | `404` | Not Found - Recurso no encontrado |
+| `429` | Too Many Requests - Rate limit excedido |
 | `500` | Internal Server Error - Error del servidor |
 
 ---
 
-## 🔄 Cache y Invalidación
+## Rate Limiting
 
-### Endpoints con Cache
+Algunos endpoints públicos están protegidos con rate limiting usando @upstash/ratelimit:
 
-| Endpoint | TTL | Cache Key Pattern |
-|----------|-----|-------------------|
-| `/api/dashboard` | 1 min | `dashboard:stats` |
-| `/api/groups` | 5 min | `groups:all` |
-| `/api/clients` | 1 min | `clients:{params}` |
-
-### Invalidación Automática
-
-El cache se invalida automáticamente cuando:
-- Se crea/actualiza/elimina un cliente → Invalida `clients:*`, `dashboard:*`
-- Se crea/actualiza un grupo → Invalida `groups:*`
-- Se registra asistencia → Invalida `dashboard:*`, `attendance:*`
-- Se actualiza suscripción → Invalida `clients:*`, `dashboard:*`
+| Endpoint | Límite |
+|----------|--------|
+| `/api/auth/register` | 5 requests / minuto |
+| `/api/webhook/whatsapp` | 60 requests / minuto |
 
 ---
 
-**Última actualización:** 2026-02-26
-**Versión:** 1.0.0
+**Última actualización:** 2026-04-01
+**Versión:** 2.0.0

@@ -17,10 +17,13 @@ interface LoginFormProps {
 
 export function LoginForm({ callbackUrl = '/' }: LoginFormProps) {
   const router = useRouter()
-  
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(
+    // Read error from URL on mount (NextAuth redirects with ?error=... on failure)
+    typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('error') : null
+  )
   const [loading, setLoading] = useState(false)
 
 const handleSubmit = async (e: React.FormEvent) => {
@@ -28,15 +31,11 @@ const handleSubmit = async (e: React.FormEvent) => {
     setError(null)
     setLoading(true)
 
-    console.log('Attempting to sign in with:', { email, password: '****' })
-
     const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
     })
-
-    console.log('Login result:', result)
     
     if (result?.error) {
         setError(result.error || 'Credenciales inválidas')

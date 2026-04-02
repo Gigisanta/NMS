@@ -174,9 +174,10 @@ const TabButton = memo(function TabButton({
       className={cn(
         'flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all',
         active
-          ? 'bg-gradient-to-r from-cyan-500 to-sky-600 text-white shadow-md'
+          ? 'text-white shadow-sm'
           : 'text-slate-600 hover:bg-slate-100'
       )}
+      style={active ? { background: '#005691' } : {}}
     >
       <Icon className="w-4 h-4" />
       {label}
@@ -436,7 +437,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
       </div>
     )
   }
@@ -452,14 +453,14 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b bg-white/50 backdrop-blur sticky top-0 z-10">
+      <div className="p-4 border-b bg-white sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
               <X className="w-5 h-5" />
             </Button>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">{clientFullName}</h2>
+              <h2 className="text-xl font-semibold text-slate-900">{clientFullName}</h2>
               <div className="flex items-center gap-2 mt-1">
                 <GroupBadge group={client.grupo} size="sm" />
                 <Badge className={cn(statusConfig.color, 'border')}>
@@ -471,7 +472,8 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
           <Button 
             onClick={handleSave} 
             disabled={saving}
-            className="gap-2 bg-gradient-to-r from-cyan-500 to-sky-600"
+            className="gap-2"
+            style={{ background: '#005691' }}
           >
             {saving ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -508,10 +510,10 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         {activeTab === 'info' && (
           <div className="space-y-6">
             {/* Datos personales */}
-            <Card className="border-0 shadow-md">
+            <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <User className="w-4 h-4 text-cyan-600" />
+                  <User className="w-4 h-4 text-[#00A8E8]" />
                   Datos Personales
                 </CardTitle>
               </CardHeader>
@@ -571,13 +573,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                         variant="ghost"
                         size="sm"
                         className="h-7 text-xs gap-1"
-                        onClick={() => {
-                          // Show a simple dropdown or selector to add groups
-                          const groupId = availableGroups[0].id
-                          if (window.confirm(`¿Agregar a ${availableGroups[0].name}?`)) {
-                            addClientToGroup(groupId)
-                          }
-                        }}
+                        onClick={() => addClientToGroup(availableGroups[0].id)}
                       >
                         <Plus className="w-3 h-3" />
                         Agregar
@@ -616,10 +612,10 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             </Card>
 
             {/* Horario preferido */}
-            <Card className="border-0 shadow-md">
+            <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-cyan-600" />
+                  <Clock className="w-4 h-4 text-[#00A8E8]" />
                   Horario Preferido
                 </CardTitle>
                 <CardDescription>
@@ -636,10 +632,10 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             </Card>
 
             {/* Notas */}
-            <Card className="border-0 shadow-md">
+            <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-cyan-600" />
+                  <FileText className="w-4 h-4 text-[#00A8E8]" />
                   Notas y Observaciones
                 </CardTitle>
               </CardHeader>
@@ -658,10 +654,10 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         {activeTab === 'subscription' && (
           <div className="space-y-6">
             {/* Clases del mes actual */}
-            <Card className="border-0 shadow-md">
+            <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-cyan-600" />
+                  <Calendar className="w-4 h-4 text-[#00A8E8]" />
                   Clases de {new Date(currentDate.year, currentDate.month - 1).toLocaleDateString('es-AR', { month: 'long' })}
                 </CardTitle>
               </CardHeader>
@@ -689,7 +685,8 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                       variant={formData.billingPeriod === 'FULL' ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => updateFormData('billingPeriod', 'FULL')}
-                      className={formData.billingPeriod === 'FULL' ? 'bg-cyan-600 hover:bg-cyan-700' : ''}
+                      className={formData.billingPeriod === 'FULL' ? 'text-white' : ''}
+                      style={formData.billingPeriod === 'FULL' ? { background: '#005691' } : {}}
                     >
                       Mes completo
                     </Button>
@@ -697,7 +694,8 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                       variant={formData.billingPeriod === 'HALF' ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => updateFormData('billingPeriod', 'HALF')}
-                      className={formData.billingPeriod === 'HALF' ? 'bg-cyan-600 hover:bg-cyan-700' : ''}
+                      className={formData.billingPeriod === 'HALF' ? 'text-white' : ''}
+                      style={formData.billingPeriod === 'HALF' ? { background: '#005691' } : {}}
                     >
                       1/2 mes
                     </Button>
@@ -715,7 +713,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
-                    <span className="text-2xl font-bold w-12 text-center">
+                    <span className="text-2xl font-semibold w-12 text-center">
                       {formData.classesTotal}
                     </span>
                     <Button
@@ -731,7 +729,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Clases usadas</span>
-                  <span className="text-2xl font-bold text-slate-400">
+                  <span className="text-2xl font-semibold text-slate-400">
                     {currentSubscription?.classesUsed || 0}
                   </span>
                 </div>
@@ -740,8 +738,8 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                 <div className="space-y-2">
                   <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-cyan-500 to-sky-600 rounded-full transition-all duration-500"
-                      style={{ width: `${progressPercent}%` }}
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ background: '#00A8E8', width: `${progressPercent}%` }}
                     />
                   </div>
                   <div className="flex justify-between text-xs text-slate-500">
@@ -767,10 +765,10 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         {activeTab === 'inscription' && (
           <div className="space-y-6">
             {/* Cuota 1 - Primera cuota de inscripción */}
-            <Card className="border-0 shadow-md">
+            <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-cyan-600" />
+                  <CreditCard className="w-4 h-4 text-[#00A8E8]" />
                   Cuota 1 - Primera Inscripción
                 </CardTitle>
                 <CardDescription>
@@ -892,7 +890,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => window.open(invoice.filePath, '_blank')}
+                      onClick={() => window.open(`/api/invoices/${invoice.id}/file`, '_blank')}
                     >
                       <Receipt className="w-4 h-4" />
                     </Button>
@@ -902,10 +900,10 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             </Card>
 
             {/* Cuota 2 - Segunda cuota de inscripción */}
-            <Card className="border-0 shadow-md">
+            <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-cyan-600" />
+                  <CreditCard className="w-4 h-4 text-[#00A8E8]" />
                   Cuota 2 - Segunda Inscripción
                 </CardTitle>
                 <CardDescription>
@@ -1027,7 +1025,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => window.open(invoice.filePath, '_blank')}
+                      onClick={() => window.open(`/api/invoices/${invoice.id}/file`, '_blank')}
                     >
                       <Receipt className="w-4 h-4" />
                     </Button>
@@ -1051,10 +1049,10 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         {activeTab === 'history' && (
           <div className="space-y-6">
             {/* Historial de asistencias */}
-            <Card className="border-0 shadow-md">
+            <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-cyan-600" />
+                  <Clock className="w-4 h-4 text-[#00A8E8]" />
                   Últimas Asistencias
                 </CardTitle>
               </CardHeader>
@@ -1074,10 +1072,10 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             </Card>
 
             {/* Historial de suscripciones */}
-            <Card className="border-0 shadow-md">
+            <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-cyan-600" />
+                  <Calendar className="w-4 h-4 text-[#00A8E8]" />
                   Historial de Suscripciones
                 </CardTitle>
               </CardHeader>

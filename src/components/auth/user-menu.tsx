@@ -35,16 +35,17 @@ export function UserMenu() {
     : user.email[0].toUpperCase()
 
   const roleLabel = user.role === 'EMPLEADORA' ? 'Admin' : 'Empleado'
-  const roleColor = user.role === 'EMPLEADORA' 
-    ? 'bg-gradient-to-r from-cyan-500 to-sky-600' 
-    : 'bg-slate-500'
+  const roleColor = user.role === 'EMPLEADORA' ? '' : 'bg-slate-500'
+  const roleStyle = user.role === 'EMPLEADORA'
+    ? { background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }
+    : {}
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 gap-2 px-2 hover:bg-slate-100">
           <Avatar className="h-8 w-8 ring-2 ring-white shadow-md">
-            <AvatarFallback className={`${roleColor} text-white text-xs font-medium`}>
+            <AvatarFallback className={`${roleColor} text-white text-xs font-medium`} style={roleStyle}>
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -61,7 +62,8 @@ export function UserMenu() {
             <p className="text-xs text-slate-500">{user.email}</p>
             <Badge 
               variant="outline" 
-              className={`w-fit mt-1 text-xs ${user.role === 'EMPLEADORA' ? 'border-cyan-500 text-cyan-600' : 'border-slate-400 text-slate-600'}`}
+              className="w-fit mt-1 text-xs"
+              style={user.role === 'EMPLEADORA' ? { borderColor: '#00A8E8', color: '#005691' } : { borderColor: '#94a3b8', color: '#475569' }}
             >
               {roleLabel}
             </Badge>

@@ -31,7 +31,7 @@ export function SettingsView() {
   if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-cyan-600" />
+        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
       </div>
     )
   }
@@ -39,8 +39,8 @@ export function SettingsView() {
   const isEmpleadora = session?.user?.role === 'EMPLEADORA'
 
   return (
-    <div className="space-y-6 p-6">
-      <Card className="border-0 shadow-lg">
+    <div className="space-y-6">
+      <Card className="border-slate-100 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-slate-100 rounded-lg">
@@ -57,7 +57,7 @@ export function SettingsView() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-2 h-auto p-2 bg-white rounded-lg shadow">
+        <TabsList className="flex flex-wrap gap-1 h-auto p-1.5 bg-white rounded-xl border border-slate-100 shadow-sm">
           <TabsTrigger value="profile" className="flex items-center gap-2 px-3 py-2">
             <User className="w-4 h-4" />
             <span className="hidden sm:inline">Mi Perfil</span>

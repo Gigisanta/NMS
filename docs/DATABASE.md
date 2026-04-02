@@ -1,14 +1,14 @@
-# 🗄️ Database Documentation - NMS
+# Database Documentation - NMS
 
 > Documentación completa del esquema de base de datos y patrones de acceso a datos
 
-## 📊 Visión General
+## Visión General
 
-NMS utiliza **Prisma ORM** con **PostgreSQL (Neon)** como base de datos en producción. El esquema está diseñado para ser escalable y permite migrar fácilmente a otras bases de datos relacionales.
+NMS utiliza **Prisma ORM** con **PostgreSQL (Neon)** como base de datos en producción. El esquema soporta archivos binarios (bytea) para facturas y relaciones muchos-a-muchos entre clientes y grupos.
 
-**Nota:** El schema.prisma está configurado para PostgreSQL. En desarrollo local, puedes usar `DATABASE_URL` con una conexión local o de Neon.
+**Nota:** El schema.prisma está configurado para PostgreSQL. En desarrollo local, usa `DATABASE_URL` con conexión a Neon o PostgreSQL local.
 
-## 🔧 Configuración
+## Configuración
 
 ### Variables de Entorno
 
@@ -23,118 +23,140 @@ DATABASE_URL="postgresql://user:password@ep-xxx-xxx-123456.us-east-2.aws.neon.te
 ### Comandos Prisma
 
 ```bash
-# Aplicar cambios al schema (sin crear migración) - Útil para desarrollo rápido
-npx prisma db push
+# Aplicar migraciones en producción (SEGURO)
+npm run db:migrate
 
 # Generar cliente Prisma después de cambios en schema
-npx prisma generate
+npm run db:generate
+
+# Push schema sin crear migración (solo desarrollo)
+npx prisma db push
 
 # Crear migración (para desarrollo con control de versiones)
-npx prisma migrate dev
+npm run db:migrate
 
-# Aplicar migraciones en producción
-npx prisma migrate deploy
-
-# Resetear base de datos (⚠️ CUIDADO: Borra todos los datos)
+# Resetear base de datos (CUIDADO: Borra todos los datos)
 npx prisma migrate reset
 
 # Ejecutar seed (crea usuarios iniciales y configuraciones)
-npx tsx prisma/seed.ts
+bun run prisma/seed.ts
 ```
 
 ---
 
-## 📋 Diagrama Entidad-Relación
+## Diagrama Entidad-Relación
 
 ```
 ┌─────────────────┐       ┌─────────────────┐
 │      User       │       │     Group       │
 ├─────────────────┤       ├─────────────────┤
 │ id (PK)         │       │ id (PK)         │
-│ name            │       │ name (UQ)       │
-│ email (UQ)      │       │ color           │
-│ password         │       │ description     │
-│ role            │       │ schedule        │
-│ active          │       │ active          │
-│ employeeRole     │       │ createdAt       │
-│ phone           │       │ updatedAt       │
-└────────┬────────┘       └────────┬────────┘
-         │                         │
-         │ 1:N                     │ 1:N
-         │                         │
+│ email (UQ)      │       │ name (UQ)       │
+│ password        │       │ color           │
+│ role            │       │ description     │
+│ employeeRole    │       │ schedule        │
+│ hourlyRate      │       │ active          │
+│ active          │       └────────┬────────┘
+└────────┬────────┘                │
+         │ 1:N                     │ N:M
          ▼                         ▼
 ┌─────────────────┐       ┌─────────────────┐
-│    Account      │       │     Client      │
-│    Session      │       ├─────────────────┤
-│ (NextAuth)      │       │ id (PK)         │
-└─────────────────┘       │ nombre          │
-                         │ apellido        │
-                         │ dni             │
-                         │ telefono (UQ)   │
-                         │ grupoId (FK)───►│
-                         └────────┬────────┘
-                                  │
-                ┌─────────────────┼─────────────────┐
-                │ 1:N             │ 1:N             │ 1:N
-                ▼                 ▼                 ▼
-       ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-       │  Subscription   │ │    Invoice      │ │   Attendance    │
-       ├─────────────────┤ ├─────────────────┤ ├─────────────────┤
-       │ id (PK)         │ │ id (PK)         │ │ id (PK)         │
-       │ clientId (FK)   │ │ clientId (FK)   │ │ clientId (FK)   │
-       │ month           │ │ imageUrl        │ │ date            │
-       │ year            │ │ verified        │ │ notes           │
-       │ status          │ │ uploadedAt      │ │ createdAt       │
-       │ classesTotal    │ └─────────────────┘ └─────────────────┘
-       │ classesUsed     │
-       │ amount          │
-       └─────────────────┘
+│   TimeEntry     │       │  ClientGroup    │
+│   (fichaje)     │       │ (junction)     │
+├─────────────────┤       ├─────────────────┤
+│ id (PK)         │       │ id (PK)         │
+│ userId (FK)     │       │ clientId (FK)  │
+│ clockIn         │       │ groupId (FK)   │
+│ clockOut         │       │ schedule        │
+└─────────────────┘       └────────┬────────┘
+                                    │
+         ┌───────────────────────────�┘
+         │ N:1                     │ N:1
+         ▼                         ▼
+┌─────────────────┐       ┌─────────────────┐
+│    Client       │       │     Group       │
+├─────────────────┤       └─────────────────┘
+│ id (PK)         │
+│ nombre          │
+│ telefono (UQ)   │
+│ grupoId (FK)    │
+│ monthlyAmount   │
+│ registrationFee │
+└────────┬────────┘
+         │
+         │ 1:N             │ 1:N             │ 1:N
+         ▼                 ▼                 ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│  Subscription   │ │    Invoice      │ │   Attendance    │
+├─────────────────┤ ├─────────────────┤ ├─────────────────┤
+│ id (PK)         │ │ id (PK)         │ │ id (PK)         │
+│ clientId (FK)   │ │ clientId (FK)   │ │ clientId (FK)   │
+│ month            │ │ fileData (bytea)│ │ date            │
+│ year            │ │ fileName        │ └─────────────────┘
+│ status          │ │ fileSize        │
+│ classesTotal    │ │ mimeType        │
+│ classesUsed     │ │ verified        │
+└─────────────────┘ │ status          │
+                    └─────────────────┘
 
 ┌─────────────────┐
-│  PricingPlan    │
+│  WhatsAppMessage│
 ├─────────────────┤
 │ id (PK)         │
-│ name (UQ)       │
-│ classes         │
-│ price           │
-│ description     │
-│ isDefault       │
+│ fromPhone       │
+│ matchedClientId │
+│ status          │
 └─────────────────┘
 
 ┌─────────────────┐
-│   Settings      │
+│    Expense      │
 ├─────────────────┤
 │ id (PK)         │
-│ key (UQ)        │
-│ value           │
-│ category        │
 │ description     │
+│ amount          │
+│ category        │
+│ date            │
+│ userId (FK)     │
+└─────────────────┘
+
+┌─────────────────┐
+│  CalendarEvent  │
+├─────────────────┤
+│ id (PK)         │
+│ title           │
+│ start           │
+│ end             │
+│ allDay          │
+│ color           │
 └─────────────────┘
 ```
 
 ---
 
-## 📝 Modelos
+## Modelos
 
-### User (Usuarios)
-
-Modelo para autenticación y gestión de usuarios del sistema.
+### User (Usuarios/Empleados)
 
 ```prisma
 model User {
-  id           String   @id @default(cuid())
+  id           String       @id @default(cuid())
   name         String?
-  email        String   @unique
+  email        String       @unique
   password     String
-  role         Role     @default(EMPLEADO)
-  employeeRole String?  // Ej: "ADMINISTRATIVO", "PROFESOR"
+  role         Role         @default(EMPLEADO)
+  employeeRole String?      // "ADMINISTRATIVO", "PROFESOR"
+  hourlyRate   Decimal?     @db.Decimal(10, 2)
   phone        String?
-  active       Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  active       Boolean      @default(true)
+  image        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   accounts     Account[]
   sessions     Session[]
+  timeEntries  TimeEntry[]
+  expenses     Expense[]
+  clientsUpdated Client[] @relation("ClientUpdates")
 
   @@map("users")
 }
@@ -143,27 +165,16 @@ model User {
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
 | `id` | String | PK, CUID | Identificador único |
-| `name` | String? | Opcional | Nombre del usuario |
 | `email` | String | Único | Email para login |
 | `password` | String | - | Hash bcrypt (12 rounds) |
 | `role` | Role | Default: EMPLEADO | Rol del usuario |
-| `employeeRole` | String? | Opcional | Rol específico (ej: ADMINISTRATIVO) |
-| `phone` | String? | Opcional | Teléfono de contacto |
+| `employeeRole` | String? | Opcional | Rol específico (ej: ADMINISTRATIVO, PROFESOR) |
+| `hourlyRate` | Decimal? | Opcional | Salario por hora para empleados |
 | `active` | Boolean | Default: true | Usuario activo/inactivo |
-
-**Enum Role:**
-```prisma
-enum Role {
-  EMPLEADORA  // Admin - Acceso completo
-  EMPLEADO    // Staff - Acceso limitado
-}
-```
 
 ---
 
 ### Group (Grupos)
-
-Etiquetas/categorías reutilizables para organizar clientes.
 
 ```prisma
 model Group {
@@ -177,46 +188,67 @@ model Group {
   updatedAt   DateTime @updatedAt
 
   clients     Client[]
+  clientGroups ClientGroup[]
 
   @@map("groups")
 }
 ```
 
-| Campo | Tipo | Restricciones | Descripción |
-|-------|------|---------------|-------------|
-| `id` | String | PK, CUID | Identificador único |
-| `name` | String | Único, max 50 chars | Nombre del grupo |
-| `color` | String | Default: #06b6d4 | Color hex para UI |
-| `description` | String? | Opcional, max 200 chars | Descripción |
-| `schedule` | String? | Opcional, max 100 chars | Horario del grupo |
-| `active` | Boolean | Default: true | Grupo activo/inactivo |
+---
+
+### ClientGroup (Relación Muchos-a-Muchos)
+
+```prisma
+model ClientGroup {
+  id        String   @id @default(cuid())
+  clientId  String
+  groupId   String
+  schedule  String?  // Override del schedule del grupo para este cliente
+  createdAt DateTime @default(now())
+
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, groupId])
+  @@index([clientId])
+  @@index([groupId])
+  @@map("client_groups")
+}
+```
+
+**Importante:** La relación entre Client y Group es **muchos-a-muchos** a través de esta tabla de unión.
 
 ---
 
 ### Client (Clientes)
 
-Clientes del natatorio con información personal y preferencias.
-
 ```prisma
 model Client {
-  id             String   @id @default(cuid())
-  nombre         String
-  apellido       String
-  dni            String?
-  telefono       String   @unique
-  grupoId        String?
-  preferredDays  String?
-  preferredTime  String?
-  notes          String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default(cuid())
+  nombre          String
+  apellido        String
+  dni             String?
+  telefono        String?
+  grupoId         String?
+  preferredDays   String?
+  preferredTime   String?
+  notes           String?
+  monthlyAmount   Decimal?  @db.Decimal(10, 2)
+  registrationFeePaid1 Boolean @default(false)
+  registrationFeePaid2 Boolean @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  updatedByUserId String?
 
   grupo          Group?          @relation(fields: [grupoId], references: [id], onDelete: SetNull)
+  updatedByUser  User?    @relation("ClientUpdates", fields: [updatedByUserId])
   subscriptions  Subscription[]
   invoices       Invoice[]
   attendances    Attendance[]
+  clientGroups   ClientGroup[]
 
   @@index([grupoId])
+  @@index([apellido, nombre])
   @@map("clients")
 }
 ```
@@ -224,26 +256,16 @@ model Client {
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
 | `id` | String | PK, CUID | Identificador único |
-| `nombre` | String | Requerido, min 2 chars | Nombre del cliente |
-| `apellido` | String | Requerido, min 2 chars | Apellido del cliente |
-| `dni` | String? | Opcional | Documento de identidad |
-| `telefono` | String | Único, min 8 chars | Teléfono (usado para WhatsApp) |
-| `grupoId` | String? | FK → Group.id | Grupo asignado |
-| `preferredDays` | String? | Opcional | Días preferidos (comma-separated) |
-| `preferredTime` | String? | Opcional | Hora preferida |
-| `notes` | String? | Opcional | Notas adicionales |
-
-**Relaciones:**
-- `grupo` → Group (N:1, onDelete: SetNull)
-- `subscriptions` → Subscription[] (1:N)
-- `invoices` → Invoice[] (1:N)
-- `attendances` → Attendance[] (1:N)
+| `nombre` | String | Requerido | Nombre del cliente |
+| `telefono` | String? | Opcional | Teléfono (usado para WhatsApp) |
+| `grupoId` | String? | FK → Group.id | Grupo principal (deprecated, usar ClientGroup) |
+| `monthlyAmount` | Decimal? | Opcional | Monto mensual personalizado |
+| `registrationFeePaid1` | Boolean | Default: false | Primera cuota de inscripción pagada |
+| `registrationFeePaid2` | Boolean | Default: false | Segunda cuota de inscripción pagada |
 
 ---
 
 ### Subscription (Suscripciones)
-
-Control de pagos y clases por mes.
 
 ```prisma
 model Subscription {
@@ -251,46 +273,101 @@ model Subscription {
   clientId       String
   month          Int
   year           Int
-  status         SubscriptionStatus @default(PENDIENTE)
+  status         String   @default("PENDIENTE")
+  paymentMethod  String?  // EFECTIVO, TRANSFERENCIA, MERCADO_PAGO
+  billingPeriod  String   @default("FULL") // FULL or HALF
+  isBilled       Boolean  @default(false)
   classesTotal   Int      @default(4)
   classesUsed    Int      @default(0)
-  amount         Float?
+  amount         Decimal?  @db.Decimal(10, 2)
   notes          String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  invoices       Invoice[]
   client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
-  @@unique([clientId, month, year])
+  @@unique([clientId, month, year, billingPeriod])
+  @@index([status])
+  @@index([clientId, status])
+  @@index([month, year])
   @@map("subscriptions")
 }
 ```
 
-| Campo | Tipo | Restricciones | Descripción |
-|-------|------|---------------|-------------|
-| `id` | String | PK, CUID | Identificador único |
-| `clientId` | String | FK → Client.id | Cliente asociado |
-| `month` | Int | 1-12 | Mes de la suscripción |
-| `year` | Int | 2020-2100 | Año de la suscripción |
-| `status` | SubscriptionStatus | PENDIENTE | Estado del pago |
-| `classesTotal` | Int | Default: 4 | Total de clases del mes |
-| `classesUsed` | Int | Default: 0 | Clases utilizadas |
-| `amount` | Float? | Opcional | Monto abonado |
+**Índices:**
+- `[clientId, status]` - Para filtrar clientes morosos
+- `[month, year]` - Para reportes mensuales
 
-**Restricción Única:** Un cliente solo puede tener una suscripción por mes/año.
+**Billing Period:** Permite suscripciones de mes completo (FULL) o media quota (HALF) para altas a mitad de mes.
 
-**Estados de Status:**
-| Estado | Descripción |
-|--------|-------------|
-| `AL_DIA` | Pago al día |
-| `PENDIENTE` | Pago pendiente |
-| `DEUDOR` | Pago atrasado |
+---
+
+### Invoice (Facturas con FileData)
+
+```prisma
+model Invoice {
+  id           String   @id @default(cuid())
+  clientId     String
+  subscriptionId String?
+
+  // File information
+  fileName     String   @default("unknown")
+  filePath     String   @default("/uploads/placeholder")
+  fileSize     Int?
+  mimeType     String   @default("application/pdf")
+
+  // File data stored directly in PostgreSQL (bytea)
+  fileData     Bytes?   @db.ByteA
+
+  // Legacy field (deprecated)
+  imageUrl     String?
+
+  // Invoice metadata
+  invoiceNumber String?
+  amount       Decimal?  @db.Decimal(10, 2)
+  currency     String   @default("ARS")
+  issueDate    DateTime?
+  dueDate      DateTime?
+
+  // Categorization
+  type         String   @default("PAYMENT")
+  category     String?
+  description  String?
+
+  // Status
+  verified     Boolean  @default(false)
+  status       String   @default("PENDING")
+
+  // Source tracking
+  source       String   @default("MANUAL")
+  externalRef  String?
+
+  // Relations
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  uploadedAt   DateTime @default(now())
+  updatedAt    DateTime @default(now())
+  uploadedBy   String?
+
+  @@index([subscriptionId])
+  @@index([clientId])
+  @@index([issueDate])
+  @@index([status])
+  @@map("invoices")
+}
+```
+
+**Almacenamiento de Archivos:**
+- Los archivos se almacenan como `bytea` (binary) directamente en PostgreSQL
+- `fileData` contiene los bytes del archivo
+- `fileSize` y `mimeType` para metadata
+- Descarga via `/api/invoices/[id]/file`
 
 ---
 
 ### Attendance (Asistencias)
-
-Registro de asistencia de clientes.
 
 ```prisma
 model Attendance {
@@ -302,93 +379,145 @@ model Attendance {
 
   client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
+  @@index([clientId])
+  @@index([date])
+  @@index([clientId, date])
   @@map("attendances")
 }
 ```
 
-| Campo | Tipo | Restricciones | Descripción |
-|-------|------|---------------|-------------|
-| `id` | String | PK, CUID | Identificador único |
-| `clientId` | String | FK → Client.id | Cliente asociado |
-| `date` | DateTime | Default: now() | Fecha y hora de asistencia |
-| `notes` | String? | Opcional | Notas sobre la asistencia |
+**Índices:**
+- `[clientId, date]` - Para historial de cliente y reportes diarios
 
 ---
 
-### Invoice (Facturas/Comprobantes)
-
-Comprobantes de pago subidos por clientes.
+### TimeEntry (Fichaje de Empleados)
 
 ```prisma
-model Invoice {
+model TimeEntry {
   id         String   @id @default(cuid())
-  clientId   String
-  imageUrl   String
-  verified   Boolean  @default(false)
-  uploadedAt DateTime @default(now())
+  userId     String
+  clockIn    DateTime
+  clockOut   DateTime?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  client     Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("invoices")
+  @@index([userId])
+  @@index([clockIn])
+  @@index([userId, clockIn])
+  @@map("time_entries")
 }
 ```
 
-| Campo | Tipo | Restricciones | Descripción |
-|-------|------|---------------|-------------|
-| `id` | String | PK, CUID | Identificador único |
-| `clientId` | String | FK → Client.id | Cliente asociado |
-| `imageUrl` | String | Requerido | URL de la imagen |
-| `verified` | Boolean | Default: false | Si fue verificado por admin |
-| `uploadedAt` | DateTime | Default: now() | Fecha de subida |
+**Índices:**
+- `[userId, clockIn]` - Para reportes de fichaje por empleado y rango de fechas
 
 ---
 
-### PricingPlan (Planes de Precios)
-
-Planes de suscripción disponibles.
+### Expense (Gastos)
 
 ```prisma
-model PricingPlan {
+model Expense {
   id          String   @id @default(cuid())
-  name        String   @unique
-  classes     Int
-  price       Float
-  description String?
-  isDefault   Boolean  @default(false)
+  description String
+  amount      Decimal    @db.Decimal(10, 2)
+  category    ExpenseCategory
+  date        DateTime @default(now())
+  month       Int?
+  year        Int?
+  userId      String?
+  supplier    String?
+  notes       String?
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@map("pricing_plans")
-}
-```
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
----
-
-### Settings (Configuraciones)
-
-Configuraciones del sistema almacenadas como clave-valor.
-
-```prisma
-model Settings {
-  id          String   @id @default(cuid())
-  key         String   @unique
-  value       String
-  category    String?
-  description String?
-
-  @@map("settings")
+  @@index([category])
+  @@index([date])
+  @@index([userId])
+  @@map("expenses")
 }
 ```
 
 **Categorías:**
-- `business` - Configuraciones del negocio
-- `payment` - Configuraciones de pago
-- `notifications` - Configuraciones de notificaciones
+```prisma
+enum ExpenseCategory {
+  FIJO      // Alquiler, Luz, Impuestos
+  VARIABLE  // Insumos, Reparaciones
+  SUELDO    // Pago de sueldos
+  PROVEEDOR // Pagos a proveedores
+  OTROS     // Otros gastos
+}
+```
+
+---
+
+### CalendarEvent (Eventos del Calendario)
+
+```prisma
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  start       DateTime
+  end         DateTime?
+  allDay      Boolean  @default(false)
+  color       String?  @default("#3b82f6")
+  userId      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([start])
+  @@index([end])
+  @@index([userId])
+  @@map("calendar_events")
+}
+```
+
+---
+
+### WhatsAppMessage (Mensajes de WhatsApp)
+
+```prisma
+model WhatsAppMessage {
+  id              String   @id @default(cuid())
+  messageId       String   @unique
+  fromPhone       String
+  fromName        String?
+  messageType     String
+  content         String?
+  mediaId         String?
+  mediaUrl        String?
+  matchedClientId String?
+  matchedBy       String?
+  invoiceId       String?
+  subscriptionId  String?
+  status          String   @default("received")
+  responseSent    Boolean  @default(false)
+  errorMessage    String?
+  processedAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([fromPhone])
+  @@index([status])
+  @@index([createdAt])
+  @@index([fromPhone, createdAt])
+  @@index([matchedClientId])
+  @@map("whatsapp_messages")
+}
+```
+
+**Índices:**
+- `[matchedClientId]` - Para buscar mensajes por cliente matcheado
+- `[fromPhone, createdAt]` - Para historial por número de teléfono
 
 ---
 
 ### Modelos de NextAuth
-
-Modelos requeridos por NextAuth para persistencia de sesiones.
 
 ```prisma
 model Account {
@@ -403,7 +532,6 @@ model Account {
   token_type        String?
   scope             String?
   id_token          String?
-  session_state     String?
 
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -433,203 +561,129 @@ model VerificationToken {
 
 ---
 
-## 🔍 Patrones de Consulta
+## Índices
 
-### Consultas Básicas
+### Índices Definidos en el Schema
+
+```prisma
+// TimeEntry (fichaje empleados)
+@@index([userId])
+@@index([clockIn])
+@@index([userId, clockIn])
+
+// Subscription
+@@index([status])
+@@index([clientId, status])
+@@index([month, year])
+
+// Attendance
+@@index([clientId])
+@@index([date])
+@@index([clientId, date])
+
+// WhatsAppMessage
+@@index([fromPhone])
+@@index([status])
+@@index([createdAt])
+@@index([fromPhone, createdAt])
+@@index([matchedClientId])
+
+// Expense
+@@index([category])
+@@index([date])
+@@index([userId])
+
+// ClientGroup
+@@index([clientId])
+@@index([groupId])
+
+// Client
+@@index([grupoId])
+@@index([apellido, nombre])
+
+// CalendarEvent
+@@index([start])
+@@index([end])
+@@index([userId])
+
+// Invoice
+@@index([subscriptionId])
+@@index([clientId])
+@@index([issueDate])
+@@index([status])
+```
+
+### Resumen de Índices
+
+| Modelo | Índice | Propósito |
+|--------|--------|-----------|
+| TimeEntry | `[userId, clockIn]` | Reportes de fichaje por empleado y rango |
+| Subscription | `[clientId, status]` | Filtrar clientes morosos |
+| Attendance | `[clientId, date]` | Historial de cliente |
+| WhatsAppMessage | `[matchedClientId]` | Buscar por cliente matcheado |
+| Expense | `[category]` | Reportes por categoría |
+
+---
+
+## Patrones de Consulta
+
+### TanStack Query Usage
+
+```typescript
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { queryClient } from '@/lib/queryClient'
+
+// Consulta con cache
+const { data, isLoading } = useQuery({
+  queryKey: ['clients', { page, search }],
+  queryFn: () => fetchClients({ page, search }),
+  staleTime: 5 * 60 * 1000, // 5 minutos
+})
+
+// Mutación con invalidación
+const mutation = useMutation({
+  mutationFn: createClient,
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['clients'] })
+    queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+  },
+})
+```
+
+### Prisma Queries
 
 ```typescript
 import { db } from '@/lib/db'
 
-// Obtener todos los clientes
-const clients = await db.client.findMany()
-
-// Obtener cliente por ID
+// Cliente con relaciones
 const client = await db.client.findUnique({
-  where: { id: 'clx...' }
-})
-
-// Obtener cliente con relaciones
-const clientWithRelations = await db.client.findUnique({
   where: { id: 'clx...' },
   include: {
     grupo: true,
-    subscriptions: {
-      orderBy: { createdAt: 'desc' },
-      take: 5
-    }
-  }
-})
-```
-
-### Consultas con Filtros
-
-```typescript
-// Buscar clientes por nombre
-const clients = await db.client.findMany({
-  where: {
-    OR: [
-      { nombre: { contains: 'Juan' } },
-      { apellido: { contains: 'Juan' } }
-    ]
+    clientGroups: { include: { group: true } },
+    subscriptions: { orderBy: { createdAt: 'desc' }, take: 5 }
   }
 })
 
-// Clientes con pagos pendientes
+// Clientes con suscripciones pendientes
 const pendingClients = await db.subscription.findMany({
-  where: {
-    month: currentMonth,
-    year: currentYear,
-    status: { in: ['PENDIENTE', 'DEUDOR'] }
-  },
-  include: {
-    client: {
-      include: { grupo: true }
-    }
-  }
-})
-```
-
-### Consultas Optimizadas
-
-```typescript
-// Seleccionar solo campos necesarios
-const clients = await db.client.findMany({
-  select: {
-    id: true,
-    nombre: true,
-    apellido: true,
-    telefono: true,
-    grupo: {
-      select: {
-        id: true,
-        name: true,
-        color: true
-      }
-    }
-  }
+  where: { status: { in: ['PENDIENTE', 'DEUDOR'] } },
+  include: { client: { include: { grupo: true } } }
 })
 
-// Ejecutar consultas en paralelo
-const [total, clients] = await Promise.all([
-  db.client.count(),
-  db.client.findMany({ take: 20 })
-])
-```
-
-### Transacciones
-
-```typescript
-// Crear cliente con suscripción inicial
+// Transacción para crear cliente con grupo
 const result = await db.$transaction(async (tx) => {
-  const client = await tx.client.create({
-    data: { nombre, apellido, telefono }
+  const client = await tx.client.create({ data: { nombre, telefono } })
+  await tx.clientGroup.create({
+    data: { clientId: client.id, groupId }
   })
-
-  await tx.subscription.create({
-    data: {
-      clientId: client.id,
-      month: currentMonth,
-      year: currentYear,
-      status: 'PENDIENTE'
-    }
-  })
-
   return client
 })
 ```
 
-### Agregaciones
-
-```typescript
-// Contar clientes por grupo
-const clientsByGroup = await db.client.groupBy({
-  by: ['grupoId'],
-  _count: { id: true }
-})
-
-// Sumar ingresos del mes
-const revenue = await db.subscription.aggregate({
-  where: {
-    month: currentMonth,
-    year: currentYear,
-    status: 'AL_DIA'
-  },
-  _sum: { amount: true }
-})
-```
-
 ---
 
-## 📈 Índices
-
-### Índices Definidos
-
-```prisma
-model Client {
-  // ...
-  @@index([grupoId])
-}
-
-model Subscription {
-  // ...
-  @@unique([clientId, month, year])
-}
-```
-
-### Índices Recomendados para Producción
-
-```prisma
-model Client {
-  @@index([telefono])    // Búsqueda por teléfono (ya es único)
-  @@index([nombre])      // Búsqueda por nombre
-  @@index([apellido])    // Búsqueda por apellido
-}
-
-model Subscription {
-  @@index([clientId, month, year])  // Búsqueda de suscripción actual
-  @@index([status])                 // Filtros por estado
-}
-
-model Attendance {
-  @@index([clientId])   // Historial por cliente
-  @@index([date])       // Asistencias por fecha
-}
-```
-
----
-
-## 🔄 Migración desde SQLite
-
-Si estás migrando desde una base de datos SQLite existente:
-
-### 1. Exportar datos de SQLite
-
-```bash
-# Usar sqlite3 para exportar
-sqlite3 database.db ".dump" > backup.sql
-```
-
-### 2. Actualizar connection string
-
-```env
-# Antigua (SQLite)
-DATABASE_URL="file:./db/custom.db"
-
-# Nueva (PostgreSQL/Neon)
-DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
-```
-
-### 3. Ejecutar db push con Prisma 6
-
-```bash
-npx prisma db push --accept-data-loss
-```
-
-**Nota:** `--accept-data-loss` es necesario cuando ya tienes datos en la base de datos PostgreSQL y el schema difiere.
-
----
-
-## 🧪 Seed Data
+## Seed Data
 
 El archivo `prisma/seed.ts` genera datos iniciales idempotentes:
 
@@ -650,164 +704,64 @@ El archivo `prisma/seed.ts` genera datos iniciales idempotentes:
 | Mensual 12 clases | 12 | $11,000 |
 | Clase individual | 1 | $1,500 |
 
-### Configuraciones
-
-10 configuraciones iniciales para negocio, pagos y notificaciones.
-
-### Ejecutar Seed
-
-```bash
-# En desarrollo
-npx tsx prisma/seed.ts
-
-# En producción (automático via vercel.json)
-# El build command incluye el seed
-```
-
-### Skipping Seed en Producción
-
-Para evitar re-ejecutar seed en cada deployment:
-
-```env
-SKIP_SEED=true
-NODE_ENV=production
-```
-
 ---
 
-## 🛡️ Buenas Prácticas
+## Buenas Prácticas
 
 ### 1. Usar Transacciones
 
 ```typescript
-// ✅ Correcto - Operaciones atómicas
+// Correcto - Operaciones atómicas
 await db.$transaction([
   db.subscription.update({ where: { id }, data: { classesUsed: { increment: 1 } } }),
   db.attendance.create({ data: { clientId, date: new Date() } })
 ])
-
-// ❌ Incorrecto - Operaciones separadas
-await db.subscription.update(...)
-await db.attendance.create(...)
 ```
 
 ### 2. Seleccionar Solo Campos Necesarios
 
 ```typescript
-// ✅ Correcto
+// Correcto
 const client = await db.client.findUnique({
   where: { id },
-  select: { id: true, nombre: true, apellido: true }
-})
-
-// ❌ Ineficiente para listas largas
-const client = await db.client.findUnique({
-  where: { id },
-  include: { subscriptions: true, invoices: true, attendances: true }
+  select: { id: true, nombre: true, telefono: true }
 })
 ```
 
-### 3. Usar Paginación
+### 3. Usar Índices
 
 ```typescript
-// ✅ Correcto
-const clients = await db.client.findMany({
-  skip: (page - 1) * limit,
-  take: limit
+// Consultas que usan índices definidos
+const attendances = await db.attendance.findMany({
+  where: { clientId, date: { gte: startDate, lte: endDate } }
 })
-
-// ❌ Cargar todo en memoria
-const allClients = await db.client.findMany()
 ```
 
 ### 4. Consultas Paralelas
 
 ```typescript
-// ✅ Correcto - Paralelo
-const [clients, groups, stats] = await Promise.all([
+// Paralelo - Correcto
+const [clients, stats] = await Promise.all([
   db.client.findMany(),
-  db.group.findMany(),
   db.subscription.count()
 ])
-
-// ❌ Secuencial
-const clients = await db.client.findMany()
-const groups = await db.group.findMany()
-const stats = await db.subscription.count()
 ```
 
 ---
 
-## 🔧 Troubleshooting
-
-### Error: "Unique constraint failed"
-
-```typescript
-// Verificar antes de crear
-const existing = await db.client.findUnique({
-  where: { telefono }
-})
-if (existing) {
-  throw new Error('Teléfono ya registrado')
-}
-```
-
-### Error: "Foreign key constraint failed"
-
-```typescript
-// Verificar que la entidad relacionada existe
-const group = await db.group.findUnique({
-  where: { id: grupoId }
-})
-if (!group) {
-  throw new Error('Grupo no encontrado')
-}
-```
-
-### Error: "Transaction timeout"
-
-```typescript
-// Aumentar timeout en transacciones largas
-await db.$transaction(
-  async (tx) => { /* ... */ },
-  { timeout: 10000 } // 10 segundos
-)
-```
-
----
-
-## 🌐 Neon (PostgreSQL Serverless)
+## Neon (PostgreSQL Serverless)
 
 El proyecto usa [Neon](https://neon.tech/) como base de datos PostgreSQL serverless.
 
-### Beneficios de Neon
+### Beneficios
 
 - **Serverless**: Escala automáticamente
 - **Branching**: Ramas de base de datos como Git
-- **Auto-suspend**: Se suspende cuando no hay tráfico (ahorra créditos)
-- **Compatible**: 100% PostgreSQL compatible
-
-### Connection String
-
-```
-postgresql://user:password@ep-xxx-xxx-123456.us-east-2.aws.neon.tech/nms?sslmode=require
-```
-
-### Configuración de Neon con Prisma
-
-```prisma
-// schema.prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
-}
-```
+- **Auto-suspend**: Se suspende cuando no hay tráfico
+- **Binary Support**: Soporte completo para bytea
+- **100% PostgreSQL**: Compatible con Prisma
 
 ---
 
-**Última actualización:** 2026-03-19
-**Versión:** 2.0.0
+**Última actualización:** 2026-04-01
+**Versión:** 3.0.0

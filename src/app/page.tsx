@@ -3,7 +3,9 @@
 // NMS v0.2.4 - Deployment test
 import { useState, lazy, Suspense, useCallback, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from '@/lib/queryClient'
 import { AppLayout } from '@/components/layout/app-layout'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Loader2 } from 'lucide-react'
@@ -18,6 +20,10 @@ const CalendarView = lazy(() => import('@/components/modules/calendar-view').the
 const SettingsView = lazy(() => import('@/components/modules/settings-view').then(m => ({ default: m.SettingsView })))
 const EmployeesView = lazy(() => import('@/components/modules/employees-view').then(m => ({ default: m.EmployeesView })))
 const ExpensesView = lazy(() => import('@/components/modules/expenses-view').then(m => ({ default: m.ExpensesView })))
+
+// Valid view paths
+const VALID_VIEWS = ['dashboard', 'clientes', 'asistencias', 'pagos', 'facturacion', 'calendario', 'configuracion', 'empleados', 'gastos'] as const
+type ValidView = typeof VALID_VIEWS[number]
 
 // Loading skeleton for views
 function ViewSkeleton() {
@@ -41,12 +47,27 @@ function ViewSkeleton() {
 function Home() {
   const { status, data: session } = useSession()
   const router = useRouter()
-  const [currentView, setCurrentView] = useState('dashboard')
-  
+  const pathname = usePathname()
+  const [currentView, setCurrentView] = useState<ValidView>('dashboard')
+
   // Stable callback reference
   const handleNavigate = useCallback((view: string) => {
-    setCurrentView(view)
+    setCurrentView(view as ValidView)
   }, [])
+
+  // Sincronizar currentView con URL al montar
+  useEffect(() => {
+    const path = pathname === '/' ? 'dashboard' : pathname.slice(1)
+    if (VALID_VIEWS.includes(path as ValidView)) {
+      setCurrentView(path as ValidView)
+    }
+  }, [pathname])
+
+  // Cuando cambia currentView, actualizar URL sin reload
+  useEffect(() => {
+    const newUrl = currentView === 'dashboard' ? '/' : `/${currentView}`
+    window.history.pushState({}, '', newUrl)
+  }, [currentView])
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -123,4 +144,11 @@ function Home() {
   )
 }
 
-export default Home
+// Wrapped page component with QueryClientProvider
+export default function Page() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Home />
+    </QueryClientProvider>
+  )
+}

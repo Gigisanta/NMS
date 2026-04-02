@@ -75,12 +75,12 @@ export function RegisterForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-xl border-0">
+    <Card className="w-full max-w-md mx-auto border-slate-100 shadow-sm">
       <CardHeader className="text-center pb-2">
-        <div className="mx-auto w-16 h-16 bg-gradient-to-br from-cyan-500 to-sky-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+        <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}>
           <UserPlus className="w-8 h-8 text-white" />
         </div>
-        <CardTitle className="text-xl font-bold text-slate-900">
+        <CardTitle className="text-xl font-semibold text-slate-900">
           Crear Cuenta
         </CardTitle>
         <CardDescription>
@@ -156,7 +156,8 @@ export function RegisterForm() {
           
           <Button
             type="submit"
-            className="w-full h-11 gap-2 bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-600 hover:to-sky-700 shadow-lg shadow-cyan-500/25"
+            className="w-full h-11 gap-2 text-white"
+            style={{ background: '#005691' }}
             disabled={loading}
           >
             {loading ? (
@@ -176,7 +177,8 @@ export function RegisterForm() {
             <span className="text-slate-500">¿Ya tienes cuenta? </span>
             <Link 
               href="/login" 
-              className="text-cyan-600 hover:text-cyan-700 font-medium"
+              className="font-medium hover:underline"
+              style={{ color: '#005691' }}
             >
               Iniciar sesión
             </Link>

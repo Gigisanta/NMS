@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client'
 import { cachedFetch, CacheKeys, invalidateCachePattern } from '@/lib/api-utils'
 import { updateClientSchema } from '@/schemas/client'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
+import { ratelimit } from '@/lib/rate-limit'
 
 // GET /api/clients/[id] - Get single client with all details
 export async function GET(
@@ -87,6 +88,16 @@ export async function PUT(
     const session = await auth()
     if (!session) {
       return NextResponse.json({ success: false, error: 'No autenticado' }, { status: 401 })
+    }
+
+    // Rate limiting
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anonymous'
+    const { success } = await ratelimit.limit(ip)
+    if (!success) {
+      return NextResponse.json(
+        { success: false, error: 'Demasiadas solicitudes, intenta más tarde' },
+        { status: 429 }
+      )
     }
 
     const body = await request.json()
@@ -372,6 +383,16 @@ export async function DELETE(
     const session = await auth()
     if (!session?.user) {
       return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
+    }
+
+    // Rate limiting
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anonymous'
+    const { success } = await ratelimit.limit(ip)
+    if (!success) {
+      return NextResponse.json(
+        { success: false, error: 'Demasiadas solicitudes, intenta más tarde' },
+        { status: 429 }
+      )
     }
 
     // Check if client exists

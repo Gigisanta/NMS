@@ -159,7 +159,7 @@ export function ExpensesView() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Administración de Gastos</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Administración de Gastos</h1>
           <p className="text-slate-500">Gestiona los costos operativos, sueldos y proveedores.</p>
         </div>
         <Button 
@@ -175,63 +175,30 @@ export function ExpensesView() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-[#005691] to-[#00A8E8] text-white overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-white/10 rounded-full blur-2xl" />
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <Banknote className="w-5 h-5" />
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        {[
+          { title: 'Total Mes', value: stats.total, Icon: Banknote, accent: '#005691', trend: 'Egresos registrados' },
+          { title: 'Sueldos', value: stats.sueldos, Icon: Users, accent: '#8b5cf6', trend: 'Personal y honorarios' },
+          { title: 'Proveedores', value: stats.proveedores, Icon: Truck, accent: '#10b981', trend: 'Insumos y servicios' },
+          { title: 'Fijos', value: stats.fijos, Icon: Filter, accent: '#00A8E8', trend: 'Alquiler e impuestos' },
+        ].map((stat) => (
+          <div key={stat.title} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider truncate">{stat.title}</p>
+                <p className="text-lg font-semibold text-slate-900 mt-1 tabular-nums truncate">{formatCurrency(stat.value)}</p>
+                <p className="text-xs text-slate-400 mt-1">{stat.trend}</p>
               </div>
-              <Badge className="bg-white/20 text-white border-none">Total Mes</Badge>
-            </div>
-            <p className="text-3xl font-bold">{formatCurrency(stats.total)}</p>
-            <p className="text-xs text-white/70 mt-1">Egresos totales registrados</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-md bg-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
-                <Users className="w-5 h-5" />
+              <div className="p-2.5 rounded-lg shrink-0 mt-0.5" style={{ background: `${stat.accent}18` }}>
+                <stat.Icon className="w-4 h-4" style={{ color: stat.accent }} />
               </div>
-              <Badge variant="outline" className="text-purple-600 border-purple-200 bg-purple-50">Sueldos</Badge>
             </div>
-            <p className="text-2xl font-bold text-slate-900">{formatCurrency(stats.sueldos)}</p>
-            <p className="text-xs text-slate-500 mt-1">Personal y honorarios</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-md bg-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
-                <Truck className="w-5 h-5" />
-              </div>
-              <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50">Proveedores</Badge>
-            </div>
-            <p className="text-2xl font-bold text-slate-900">{formatCurrency(stats.proveedores)}</p>
-            <p className="text-xs text-slate-500 mt-1">Insumos y servicios externos</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-md bg-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                <Filter className="w-5 h-5" />
-              </div>
-              <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">Fijos</Badge>
-            </div>
-            <p className="text-2xl font-bold text-slate-900">{formatCurrency(stats.fijos)}</p>
-            <p className="text-xs text-slate-500 mt-1">Alquiler e impuestos</p>
-          </CardContent>
-        </Card>
+          </div>
+        ))}
       </div>
 
       {/* Filters & Search */}
-      <Card className="border-0 shadow-sm bg-white overflow-hidden">
+      <Card className="border-slate-100 shadow-sm bg-white overflow-hidden">
         <CardContent className="p-4">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
@@ -278,7 +245,7 @@ export function ExpensesView() {
                   <SelectValue placeholder="Año" />
                 </SelectTrigger>
                 <SelectContent>
-                  {[2024, 2025, 2026].map(year => (
+                  {[new Date().getFullYear() - 1, new Date().getFullYear(), new Date().getFullYear() + 1].map(year => (
                     <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                   ))}
                 </SelectContent>
@@ -289,14 +256,14 @@ export function ExpensesView() {
       </Card>
 
       {/* Expenses Table/List */}
-      <Card className="border-0 shadow-md bg-white overflow-hidden">
+      <Card className="border-slate-100 shadow-sm bg-white overflow-hidden">
         <CardHeader className="pb-0">
           <CardTitle className="text-lg font-semibold text-slate-800">Detalle de Egresos</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="w-8 h-8 text-[#00A8E8] animate-spin" />
+              <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
               <p className="text-slate-500 text-sm">Cargando gastos...</p>
             </div>
           ) : filteredExpenses.length === 0 ? (
@@ -364,7 +331,7 @@ export function ExpensesView() {
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <span className="text-sm font-bold text-slate-900">
+                          <span className="text-sm font-semibold text-slate-900">
                             {formatCurrency(expense.amount)}
                           </span>
                         </td>

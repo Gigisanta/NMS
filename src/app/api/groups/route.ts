@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { cachedFetch, CacheKeys, invalidateCache } from '@/lib/api-utils'
+import { z } from 'zod'
+import { ratelimit } from '@/lib/rate-limit'
+
+const createGroupSchema = z.object({
+  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  description: z.string().optional(),
+  schedule: z.string().optional(),
+})
 
 // GET /api/groups - List all groups with client counts
 export async function GET() {
@@ -56,19 +65,22 @@ export async function GET() {
 // POST /api/groups - Create new group
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { name, color, description, schedule } = body
-
-    if (!name) {
+    // Rate limiting
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anonymous'
+    const { success } = await ratelimit.limit(ip)
+    if (!success) {
       return NextResponse.json(
-        { success: false, error: 'El nombre es requerido' },
-        { status: 400 }
+        { success: false, error: 'Demasiadas solicitudes, intenta más tarde' },
+        { status: 429 }
       )
     }
 
+    const body = await request.json()
+    const validated = createGroupSchema.parse(body)
+
     // Check if group with same name exists
     const existing = await db.group.findFirst({
-      where: { name }
+      where: { name: validated.name }
     })
 
     if (existing) {
@@ -80,10 +92,10 @@ export async function POST(request: NextRequest) {
 
     const group = await db.group.create({
       data: {
-        name,
-        color: color || '#06b6d4',
-        description,
-        schedule,
+        name: validated.name,
+        color: validated.color || '#06b6d4',
+        description: validated.description,
+        schedule: validated.schedule,
       },
       select: {
         id: true,
@@ -107,6 +119,12 @@ export async function POST(request: NextRequest) {
       }
     })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: 'Datos inválidos', details: error.issues },
+        { status: 400 }
+      )
+    }
     console.error('Error creating group:', error)
     return NextResponse.json(
       { success: false, error: 'Error al crear grupo' },
