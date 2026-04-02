@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
+import { invalidateClientCache, invalidateCachePattern } from '@/lib/api-utils'
 
 // POST /api/billing - Process billing for multiple subscriptions
 export async function POST(request: NextRequest) {
@@ -61,6 +62,10 @@ export async function POST(request: NextRequest) {
         }),
       },
     })
+
+    // BOLT: Invalidate subscriptions, clients and dashboard cache after billing update
+    invalidateClientCache()
+    invalidateCachePattern('dashboard')
 
     return NextResponse.json({
       success: true,
