@@ -231,14 +231,18 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null)
+    console.log('[InvoiceUpload] File input changed', e.target.files?.[0]?.name)
     const file = e.target.files?.[0]
     if (file) {
+      console.log('[InvoiceUpload] Setting file:', file.name, file.size, file.type)
       setFormData(prev => ({ ...prev, file }))
     }
   }, [])
 
   const handleUpload = useCallback(async () => {
+    console.log('[InvoiceUpload] handleUpload called', { formData, clientId })
     if (!formData.file && !formData.invoiceNumber && !formData.amount) {
+      console.log('[InvoiceUpload] No file or data, returning early')
       return
     }
 
