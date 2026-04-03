@@ -23,3 +23,7 @@
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
+
+## 2026-03-04 - Optimizing Bulk Inserts and Sequential Checks
+**Learning:** Checking for the existence of records in a loop or sequentially before creation (e.g., in a monthly subscription generation task) is highly inefficient. Parallelizing the existence checks and using `createMany` for missing records significantly reduces database load and execution time.
+**Action:** Parallelize initial data fetching with `Promise.all` and use `db.model.createMany` for batch insertions. Combine with `cachedFetch` to avoid re-running these checks on every GET request.
