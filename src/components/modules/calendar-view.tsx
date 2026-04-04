@@ -200,7 +200,7 @@ export function CalendarView() {
                         </h4>
                         <button
                           onClick={() => setDeletingEventId(event.id)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 top-2 p-1 text-slate-400 hover:text-red-500"
+                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity absolute right-2 top-2 p-1 text-slate-400 hover:text-red-500"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
