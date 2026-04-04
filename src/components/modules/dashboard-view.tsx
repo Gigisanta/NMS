@@ -96,7 +96,7 @@ const StatCard = memo(function StatCard({
 
   return (
     <div
-      className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm card-lift"
+      className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm card-lift"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
@@ -240,7 +240,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-4 stagger-in">
+      <div className="grid gap-2 sm:gap-3 grid-cols-2 md:grid-cols-4 stagger-in">
         <StatCard
           title="Clientes"
           value={stats?.totalClients ?? 0}
@@ -273,7 +273,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
 
       {/* Employee View */}
       {isEmployee && (
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <div className="lg:col-span-1">
             <TimeClockWidget />
           </div>
@@ -312,7 +312,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
 
       {/* Admin View */}
       {!isEmployee && (
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {/* Revenue */}
           <Card className="border-slate-100 shadow-sm card-lift">
             <CardHeader className="pb-2">

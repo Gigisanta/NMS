@@ -175,14 +175,14 @@ export function ExpensesView() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 stagger-in">
+      <div className="grid gap-2 sm:gap-3 grid-cols-2 lg:grid-cols-4 stagger-in">
         {[
           { title: 'Total Mes', value: stats.total, Icon: Banknote, accent: '#005691', trend: 'Egresos registrados' },
           { title: 'Sueldos', value: stats.sueldos, Icon: Users, accent: '#8b5cf6', trend: 'Personal y honorarios' },
           { title: 'Proveedores', value: stats.proveedores, Icon: Truck, accent: '#10b981', trend: 'Insumos y servicios' },
           { title: 'Fijos', value: stats.fijos, Icon: Filter, accent: '#00A8E8', trend: 'Alquiler e impuestos' },
         ].map((stat) => (
-          <div key={stat.title} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
+          <div key={stat.title} className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider truncate">{stat.title}</p>
@@ -281,12 +281,12 @@ export function ExpensesView() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50/50 border-b border-slate-100">
-                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Descripción</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Categoría</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Destino</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Monto</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider"></th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Descripción</th>
+                    <th className="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Categoría</th>
+                    <th className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Destino</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Monto</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -298,7 +298,7 @@ export function ExpensesView() {
                         key={expense.id} 
                         className="hover:bg-[rgba(0,168,232,0.04)] transition-colors duration-150 group"
                       >
-                        <td className="px-6 py-4">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4">
                           <p className="text-sm font-medium text-slate-900">
                             {new Date(expense.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}
                           </p>
@@ -306,17 +306,24 @@ export function ExpensesView() {
                             {new Date(expense.date).toLocaleDateString('es-AR', { year: 'numeric' })}
                           </p>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4">
                           <p className="text-sm font-medium text-slate-900">{expense.description}</p>
                           {expense.notes && <p className="text-xs text-slate-500 truncate max-w-[200px]">{expense.notes}</p>}
+                          {/* Mobile: show category badge inline */}
+                          <div className="sm:hidden mt-1">
+                            <Badge className={`${cat.color} border shadow-none font-medium text-[10px] h-5`}>
+                              <Icon className="w-2.5 h-2.5 mr-0.5" />
+                              {cat.label}
+                            </Badge>
+                          </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4">
                           <Badge className={`${cat.color} border shadow-none font-medium text-[11px] h-6`}>
                             <Icon className="w-3 h-3 mr-1" />
                             {cat.label}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-600">
+                        <td className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 text-sm text-slate-600">
                           {expense.category === 'SUELDO' ? (
                             <div className="flex items-center gap-2">
                               <div className="w-6 h-6 rounded-full bg-purple-50 flex items-center justify-center text-[10px] font-bold text-purple-600 border border-purple-100">
@@ -330,12 +337,12 @@ export function ExpensesView() {
                             <span className="text-slate-400 inline-block px-2 py-0.5 rounded-md bg-slate-50 text-[10px]">General</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
                           <span className="text-sm font-semibold text-slate-900">
                             {formatCurrency(expense.amount)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-[#005691] transition-colors">

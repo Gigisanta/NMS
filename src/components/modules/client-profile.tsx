@@ -520,7 +520,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label>Nombre</Label>
                     <Input
@@ -536,7 +536,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2">
                       <Phone className="w-3 h-3" />
@@ -665,13 +665,13 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Monto mensual */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Monto mensual</span>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm text-slate-600 shrink-0">Monto mensual</span>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-slate-500">$</span>
                     <Input
                       type="number"
-                      className="w-32 text-right"
+                      className="w-28 sm:w-32 text-right"
                       value={formData.amount || ''}
                       onChange={(e) => updateFormData('amount', parseFloat(e.target.value) || 0)}
                       placeholder="0"
@@ -680,9 +680,9 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                 </div>
 
                 {/* Billing Period */}
-                <div className="flex items-center justify-between">
+                <div className="space-y-2">
                   <span className="text-sm text-slate-600">Periodo de facturación</span>
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button
                       variant={formData.billingPeriod === 'FULL' ? 'default' : 'outline'}
                       size="sm"
@@ -706,22 +706,22 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Clases contratadas</span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-10 w-10 rounded-full"
                       onClick={decrementClasses}
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
-                    <span className="text-2xl font-semibold w-12 text-center">
+                    <span className="text-2xl font-semibold w-10 text-center tabular-nums">
                       {formData.classesTotal}
                     </span>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-10 w-10 rounded-full"
                       onClick={incrementClasses}
                     >
                       <ChevronRight className="w-4 h-4" />

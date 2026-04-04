@@ -92,20 +92,31 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
     >
       <td className="py-2 px-3">
         <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8 ring-1 ring-white" style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}>
+          <Avatar className="h-8 w-8 ring-1 ring-white shrink-0" style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}>
             <AvatarFallback className="text-white text-xs font-medium">
               {client.nombre[0]}{client.apellido[0]}
             </AvatarFallback>
           </Avatar>
-          <span className="font-medium text-slate-900 text-sm truncate max-w-[140px]">
-            {formatFullName(client.nombre, client.apellido)}
-          </span>
+          <div className="min-w-0">
+            <span className="font-medium text-slate-900 text-sm truncate block max-w-[140px]">
+              {formatFullName(client.nombre, client.apellido)}
+            </span>
+            {/* Mobile subtitle: group + classes */}
+            <div className="sm:hidden flex items-center gap-1.5 mt-0.5">
+              {client.grupo && (
+                <span className="text-[10px] text-slate-500 truncate">{client.grupo.name}</span>
+              )}
+              <span className={`text-[10px] font-medium ${isLimitReached ? 'text-red-500' : 'text-slate-400'}`}>
+                · {classesUsed}/{classesTotal}
+              </span>
+            </div>
+          </div>
         </div>
       </td>
-      <td className="py-2 px-3">
+      <td className="hidden sm:table-cell py-2 px-3">
         <GroupBadge group={client.grupo} size="sm" />
       </td>
-      <td className="py-2 px-3">
+      <td className="hidden sm:table-cell py-2 px-3">
         <div className="flex items-center gap-2">
           <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <div
@@ -118,7 +129,7 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
           </span>
         </div>
       </td>
-      <td className="py-2 px-3">
+      <td className="hidden md:table-cell py-2 px-3">
         <Badge className={`${statusConfig.color} border text-xs py-0.5`}>
           {statusConfig.label}
         </Badge>
@@ -135,7 +146,7 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
           <Button
             size="sm"
             variant={isLimitReached ? "ghost" : "default"}
-            className={`h-8 gap-1 transition-all ${isLimitReached ? 'text-slate-400 cursor-not-allowed' : 'text-white'}`}
+            className={`h-9 sm:h-8 gap-1 transition-all ${isLimitReached ? 'text-slate-400 cursor-not-allowed' : 'text-white'}`}
             style={!isLimitReached ? { background: '#005691' } : {}}
             onClick={() => onMarkAttendance(client)}
             disabled={isLimitReached || isMarking}
@@ -152,7 +163,7 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
             <Button
               size="sm"
               variant="outline"
-              className="h-8 gap-1 text-slate-500 hover:text-red-600 hover:bg-red-50 border-slate-200"
+              className="h-9 sm:h-8 gap-1 text-slate-500 hover:text-red-600 hover:bg-red-50 border-slate-200"
               onClick={() => onRemoveAttendance(todayAttendanceId)}
               disabled={isRemoving || isMarking}
             >
@@ -433,9 +444,9 @@ export function AttendanceView() {
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Alumno</th>
-                  <th className="text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Grupo</th>
-                  <th className="text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Clases</th>
-                  <th className="text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Estado</th>
+                  <th className="hidden sm:table-cell text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Grupo</th>
+                  <th className="hidden sm:table-cell text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Clases</th>
+                  <th className="hidden md:table-cell text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Estado</th>
                   <th className="text-center py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Hoy</th>
                   <th className="text-center py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Acción</th>
                 </tr>

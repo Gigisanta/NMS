@@ -45,6 +45,14 @@ const navigation = [
   { id: 'configuracion', name: 'Configuración', icon: Settings, adminOnly: true, shortcut: '8' },
 ]
 
+// Primary nav items for mobile bottom bar (always visible)
+const mobileNavItems = [
+  { id: 'dashboard', name: 'Inicio', icon: LayoutDashboard },
+  { id: 'clientes', name: 'Clientes', icon: Users },
+  { id: 'asistencias', name: 'Asistencia', icon: ClipboardCheck },
+  { id: 'pagos', name: 'Pagos', icon: CreditCard },
+]
+
 /* ============================================
    WATER WAVES SVG PATTERN
    ============================================ */
@@ -174,7 +182,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
       <aside
         style={{ willChange: 'transform' }}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-[min(288px,85vw)] transform transition-transform duration-300 ease-in-out lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -241,7 +249,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden h-9 w-9"
+              className="lg:hidden h-10 w-10"
               style={{ color: '#4A5568' }}
               onClick={() => setSidebarOpen(false)}
             >
@@ -354,9 +362,9 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
       {/* Main content */}
       <div className="lg:pl-[300px]">
         {/* Top bar - Oro Azul Premium con ondas */}
-        <header className="sticky top-0 z-30 h-20">
-          <div 
-            className="flex items-center justify-between h-full mx-4 mt-4 relative overflow-hidden"
+        <header className="sticky top-0 z-30 h-14 sm:h-16 lg:h-20">
+          <div
+            className="flex items-center justify-between h-full mx-2 sm:mx-3 lg:mx-4 mt-2 sm:mt-3 lg:mt-4 relative overflow-hidden"
             style={{
               background: 'linear-gradient(135deg, rgba(0, 86, 145, 0.03) 0%, rgba(0, 168, 232, 0.05) 100%)',
               border: '1px solid rgba(0, 168, 232, 0.12)',
@@ -367,13 +375,13 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
             <WaterWavesPattern />
             
             {/* Content */}
-            <div className="flex items-center justify-between w-full px-4 sm:px-6 relative z-10">
+            <div className="flex items-center justify-between w-full px-3 sm:px-4 lg:px-6 relative z-10">
               {/* Left side */}
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="lg:hidden h-9 w-9 shrink-0"
+                  className="lg:hidden h-10 w-10 shrink-0"
                   style={{ color: '#005691' }}
                   onClick={() => setSidebarOpen(true)}
                 >
@@ -404,7 +412,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
               <div className="flex items-center gap-3 sm:gap-5">
                 {/* Search en mobile */}
                 <button
-                  className="lg:hidden h-9 w-9 flex items-center justify-center rounded-lg transition-colors hover:bg-slate-100"
+                  className="lg:hidden h-10 w-10 flex items-center justify-center rounded-lg transition-colors hover:bg-slate-100"
                   style={{ color: '#005691' }}
                   onClick={() => setCommandPaletteOpen(true)}
                 >
@@ -423,10 +431,76 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
         </header>
 
         {/* Page content with fade animation */}
-        <main className="p-6 lg:p-8 min-h-[calc(100vh-6rem)] animate-fade-slide-up">
+        <main className="p-4 sm:p-6 lg:p-8 pb-20 lg:pb-8 min-h-[calc(100vh-6rem)] animate-fade-slide-up">
           {children}
         </main>
       </div>
+
+      {/* Mobile FAB — Nuevo Cliente (only on 'clientes' view) */}
+      {onNewClient && currentView === 'clientes' && (
+        <button
+          onClick={() => {
+            onNewClient()
+            onViewChange('clientes')
+          }}
+          className="lg:hidden fixed right-4 z-30 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95"
+          style={{
+            bottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px) + 1rem)',
+            background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
+            boxShadow: '0 4px 20px rgba(0, 86, 145, 0.4)',
+          }}
+          aria-label="Nuevo cliente"
+        >
+          <Plus className="w-6 h-6 text-white" />
+        </button>
+      )}
+
+      {/* Mobile Bottom Navigation */}
+      <nav
+        className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-100"
+        style={{
+          paddingBottom: 'env(safe-area-inset-bottom)',
+          boxShadow: '0 -1px 12px rgba(0,86,145,0.08)',
+        }}
+      >
+        <div className="flex items-stretch h-14">
+          {mobileNavItems.map((item) => {
+            const Icon = item.icon
+            const isActive = currentView === item.id
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  if (currentView !== item.id) setLoadBarKey(k => k + 1)
+                  onViewChange(item.id)
+                }}
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-colors"
+                style={{ color: isActive ? '#005691' : '#94a3b8' }}
+                aria-label={item.name}
+              >
+                {isActive && (
+                  <span
+                    className="absolute top-0 inset-x-[28%] h-0.5 rounded-b-full"
+                    style={{ background: 'linear-gradient(90deg, #005691, #00A8E8)' }}
+                  />
+                )}
+                <Icon className={`w-5 h-5 transition-transform duration-150 ${isActive ? 'scale-110' : ''}`} />
+                <span className={`text-[10px] ${isActive ? 'font-semibold' : 'font-medium'}`}>{item.name}</span>
+              </button>
+            )
+          })}
+          {/* More — opens full sidebar */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors"
+            style={{ color: '#94a3b8' }}
+            aria-label="Más opciones"
+          >
+            <Menu className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Más</span>
+          </button>
+        </div>
+      </nav>
 
       {/* Command Palette */}
       <CommandPalette

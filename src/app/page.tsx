@@ -56,10 +56,16 @@ function Home() {
   const router = useRouter()
   const pathname = usePathname()
   const [currentView, setCurrentView] = useState<ValidView>('dashboard')
+  const [openNewClient, setOpenNewClient] = useState(false)
 
   // Stable callback reference
   const handleNavigate = useCallback((view: string) => {
     setCurrentView(view as ValidView)
+  }, [])
+
+  const handleNewClient = useCallback(() => {
+    setCurrentView('clientes')
+    setOpenNewClient(true)
   }, [])
 
   // Sincronizar currentView con URL al montar
@@ -118,7 +124,7 @@ function Home() {
       case 'dashboard':
         return <DashboardView onNavigate={handleNavigate} />
       case 'clientes':
-        return <ClientsView onViewChange={handleNavigate} />
+        return <ClientsView onViewChange={handleNavigate} openNewClient={openNewClient} onNewClientHandled={() => setOpenNewClient(false)} />
       case 'asistencias':
         return <AttendanceView />
       case 'pagos':
@@ -143,7 +149,7 @@ function Home() {
   }
 
   return (
-    <AppLayout currentView={currentView} onViewChange={handleNavigate}>
+    <AppLayout currentView={currentView} onViewChange={handleNavigate} onNewClient={handleNewClient}>
       <Suspense fallback={<ViewSkeleton />}>
         <div key={currentView} className="animate-fade-slide-up">
           {renderView()}

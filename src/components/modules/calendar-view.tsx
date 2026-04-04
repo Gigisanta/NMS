@@ -128,9 +128,9 @@ export function CalendarView() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-[calc(100vh-120px)] gap-6">
+    <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
       {/* Sidebar: Calendar & Date picker */}
-      <div className="w-full lg:w-80 space-y-6 shrink-0">
+      <div className="w-full lg:w-80 space-y-4 sm:space-y-6 shrink-0">
         <Card className="border-slate-100 shadow-sm bg-white">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-slate-500 uppercase tracking-wider">
@@ -262,7 +262,7 @@ export function CalendarView() {
                 </span>
               ))}
             </div>
-            <div className="flex-1 grid grid-cols-7 grid-rows-6 auto-rows-fr min-h-[600px]">
+            <div className="flex-1 grid grid-cols-7 grid-rows-6 auto-rows-fr min-h-[400px] sm:min-h-[600px]">
               {/* Fill initial empty days */}
               {Array.from({ length: startOfMonth(currentMonth).getDay() }).map((_, i) => (
                 <div key={`empty-${i}`} className="border-r border-b border-slate-100 bg-slate-50/20" />
@@ -315,7 +315,7 @@ export function CalendarView() {
 
       {/* Event Dialog */}
       <Dialog open={showEventForm} onOpenChange={setShowEventForm}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Añadir Evento / Notita</DialogTitle>
             <DialogDescription>

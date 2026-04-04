@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent } from '@/components/ui/card'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Loader2, Check, Calendar, Clock, FileText, User, Phone, Hash, DollarSign, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ScheduleSelector } from './schedule-selector'
@@ -43,8 +41,6 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState<'personal' | 'schedule' | 'subscription'>('personal')
-
-  // Additional groups selected (beyond the primary grupoId)
   const [additionalGroups, setAdditionalGroups] = useState<string[]>([])
 
   const [formData, setFormData] = useState({
@@ -64,9 +60,9 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
   })
 
   const sections = [
-    { id: 'personal', label: 'Datos Personales', icon: User },
+    { id: 'personal', label: 'Datos', icon: User },
     { id: 'schedule', label: 'Horario', icon: Clock },
-    { id: 'subscription', label: 'Suscripción', icon: Calendar },
+    { id: 'subscription', label: 'Plan', icon: Calendar },
   ]
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,10 +71,7 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
     setError(null)
 
     try {
-      const url = client?.id
-        ? `/api/clients/${client.id}`
-        : '/api/clients'
-
+      const url = client?.id ? `/api/clients/${client.id}` : '/api/clients'
       const response = await fetch(url, {
         method: client?.id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -101,10 +94,8 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
       const result = await response.json()
 
       if (result.success) {
-        // If creating a new client and additional groups were selected, create ClientGroup entries
         if (!client?.id && additionalGroups.length > 0) {
           const clientId = result.data.id
-          // Create ClientGroup entries for each additional group
           await Promise.all(
             additionalGroups.map(groupId =>
               fetch('/api/client-groups', {
@@ -127,17 +118,14 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
     }
   }
 
-  // Toggle an additional group selection
   const toggleAdditionalGroup = (groupId: string) => {
     setAdditionalGroups(prev =>
-      prev.includes(groupId)
-        ? prev.filter(id => id !== groupId)
-        : [...prev, groupId]
+      prev.includes(groupId) ? prev.filter(id => id !== groupId) : [...prev, groupId]
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {error && (
         <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100">
           {error}
@@ -155,26 +143,24 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
               onClick={() => setActiveSection(section.id as typeof activeSection)}
               className={cn(
                 'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-all',
-                activeSection === section.id
-                  ? 'shadow-sm text-white'
-                  : 'text-[#4A5568] hover:bg-white/50'
+                activeSection === section.id ? 'shadow-sm text-white' : 'text-[#4A5568] hover:bg-white/50'
               )}
               style={activeSection === section.id ? {
                 background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
               } : {}}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-4 h-4 shrink-0" />
               <span className="hidden sm:inline">{section.label}</span>
             </button>
           )
         })}
       </div>
 
-      <ScrollArea className="h-[400px] pr-4">
-        {/* Personal Info Section */}
+      {/* Content — no fixed height, outer card handles scrolling */}
+      <div className="min-h-0">
         {activeSection === 'personal' && (
-          <div className="space-y-4 pt-2">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <User className="w-3 h-3 text-slate-400" />
@@ -185,8 +171,6 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                   onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   placeholder="Juan"
                   required
-                  className="transition-all"
-                  style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
                 />
               </div>
               <div className="space-y-2">
@@ -196,41 +180,33 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                   onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
                   placeholder="Pérez"
                   required
-                  className="transition-all"
-                  style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Hash className="w-3 h-3 text-slate-400" />
-                DNI
-              </Label>
-              <Input
-                value={formData.dni || ''}
-                onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
-                placeholder="12345678"
-                className="transition-all"
-                style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Phone className="w-3 h-3" style={{ color: '#00A8E8' }} />
-                Teléfono
-              </Label>
-              <Input
-                value={formData.telefono}
-                onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                placeholder="3512345678"
-                className="transition-all"
-                style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
-              />
-              <p className="text-xs" style={{ color: '#86868b' }}>
-                Opcional - Número sin espacios ni guiones
-              </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Hash className="w-3 h-3 text-slate-400" />
+                  DNI
+                </Label>
+                <Input
+                  value={formData.dni || ''}
+                  onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                  placeholder="12345678"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Phone className="w-3 h-3" style={{ color: '#00A8E8' }} />
+                  Teléfono
+                </Label>
+                <Input
+                  value={formData.telefono}
+                  onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                  placeholder="3512345678"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -242,12 +218,9 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                   className={cn(
                     'px-3 py-2 text-sm rounded-xl border-2 transition-all',
                     !formData.grupoId
-                      ? 'border-[#00A8E8] text-[#005691]'
+                      ? 'border-[#00A8E8] text-[#005691] bg-[rgba(0,168,232,0.1)]'
                       : 'border-[rgba(0,168,232,0.2)] hover:border-[rgba(0,168,232,0.4)]'
                   )}
-                  style={!formData.grupoId ? {
-                    background: 'rgba(0, 168, 232, 0.1)',
-                  } : {}}
                 >
                   Sin grupo
                 </button>
@@ -258,9 +231,7 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                     onClick={() => setFormData({ ...formData, grupoId: group.id })}
                     className={cn(
                       'px-3 py-2 text-sm rounded-xl border-2 transition-all',
-                      formData.grupoId === group.id
-                        ? 'shadow-md'
-                        : 'border-[rgba(0,168,232,0.2)] hover:border-[rgba(0,168,232,0.4)]'
+                      formData.grupoId === group.id ? 'shadow-md' : 'border-[rgba(0,168,232,0.2)] hover:border-[rgba(0,168,232,0.4)]'
                     )}
                     style={formData.grupoId === group.id ? {
                       backgroundColor: `${group.color}15`,
@@ -274,11 +245,10 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
               </div>
             </div>
 
-            {/* Additional Groups (only for new clients) */}
-            {!client?.id && (
+            {!client?.id && groups.filter(g => g.id !== formData.grupoId).length > 0 && (
               <div className="space-y-2">
                 <Label>Grupos Adicionales</Label>
-                <p className="text-xs text-slate-500">Selecciona grupos adicionales si el cliente asiste a más de un horario</p>
+                <p className="text-xs text-slate-500">Para clientes que asisten a más de un horario</p>
                 <div className="flex flex-wrap gap-2">
                   {groups
                     .filter(group => group.id !== formData.grupoId)
@@ -289,9 +259,7 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                         onClick={() => toggleAdditionalGroup(group.id)}
                         className={cn(
                           'px-3 py-2 text-sm rounded-xl border-2 transition-all',
-                          additionalGroups.includes(group.id)
-                            ? 'shadow-md'
-                            : 'border-[rgba(0,168,232,0.2)] hover:border-[rgba(0,168,232,0.4)]'
+                          additionalGroups.includes(group.id) ? 'shadow-md' : 'border-[rgba(0,168,232,0.2)] hover:border-[rgba(0,168,232,0.4)]'
                         )}
                         style={additionalGroups.includes(group.id) ? {
                           backgroundColor: `${group.color}15`,
@@ -304,32 +272,6 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                       </button>
                     ))}
                 </div>
-                {additionalGroups.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {additionalGroups.map(groupId => {
-                      const group = groups.find(g => g.id === groupId)
-                      return group ? (
-                        <span
-                          key={groupId}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs"
-                          style={{
-                            backgroundColor: `${group.color}20`,
-                            color: group.color,
-                          }}
-                        >
-                          {group.name}
-                          <button
-                            type="button"
-                            onClick={() => toggleAdditionalGroup(groupId)}
-                            className="hover:opacity-70"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ) : null
-                    })}
-                  </div>
-                )}
               </div>
             )}
 
@@ -342,69 +284,51 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                 value={formData.notes || ''}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Notas sobre el cliente..."
-                className="min-h-[80px] resize-none transition-all"
-                style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
+                className="min-h-[80px] resize-none"
               />
             </div>
           </div>
         )}
 
-        {/* Schedule Section */}
         {activeSection === 'schedule' && (
-          <div className="pt-2">
-            <ScheduleSelector
-              preferredDays={formData.preferredDays}
-              preferredTime={formData.preferredTime}
-              onChange={(days, time) => setFormData({
-                ...formData,
-                preferredDays: days,
-                preferredTime: time
-              })}
-            />
-          </div>
+          <ScheduleSelector
+            preferredDays={formData.preferredDays}
+            preferredTime={formData.preferredTime}
+            onChange={(days, time) => setFormData({ ...formData, preferredDays: days, preferredTime: time })}
+          />
         )}
 
-        {/* Subscription Section */}
         {activeSection === 'subscription' && (
-          <div className="space-y-6 pt-2">
-            {/* Monthly Amount */}
+          <div className="space-y-5">
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <DollarSign className="w-3 h-3" style={{ color: '#00A8E8' }} />
-                Monto Mensual del Plan *
+                Monto Mensual *
               </Label>
               <div className="flex items-center gap-2">
-                <span className="text-lg font-medium" style={{ color: '#1A1A1A' }}>$</span>
+                <span className="text-lg font-medium text-slate-700">$</span>
                 <Input
                   type="number"
                   value={formData.monthlyAmount || ''}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    monthlyAmount: e.target.value ? parseFloat(e.target.value) : null 
-                  })}
+                  onChange={(e) => setFormData({ ...formData, monthlyAmount: e.target.value ? parseFloat(e.target.value) : null })}
                   placeholder="0.00"
                   required
-                  className="text-lg font-semibold transition-all h-12"
-                  style={{ borderColor: 'rgba(0, 168, 232, 0.3)' }}
+                  className="text-lg font-semibold h-12"
                 />
               </div>
-              <p className="text-xs" style={{ color: '#86868b' }}>
-                Monto que el cliente debe pagar cada mes.
-              </p>
             </div>
 
-            {/* Billing Period Selector */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Calendar className="w-3 h-3" style={{ color: '#00A8E8' }} />
                 Periodo de Facturación
               </Label>
-              <div className="flex gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, billingPeriod: 'FULL' })}
                   className={cn(
-                    'flex-1 py-3 px-4 rounded-xl border-2 transition-all text-sm font-medium',
+                    'py-3 px-4 rounded-xl border-2 transition-all text-sm font-medium',
                     formData.billingPeriod === 'FULL'
                       ? 'border-[#00A8E8] text-[#005691] bg-[rgba(0,168,232,0.1)]'
                       : 'border-[rgba(0,168,232,0.2)] text-slate-600 hover:border-[rgba(0,168,232,0.4)]'
@@ -416,153 +340,107 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                   type="button"
                   onClick={() => setFormData({ ...formData, billingPeriod: 'HALF' })}
                   className={cn(
-                    'flex-1 py-3 px-4 rounded-xl border-2 transition-all text-sm font-medium',
+                    'py-3 px-4 rounded-xl border-2 transition-all text-sm font-medium',
                     formData.billingPeriod === 'HALF'
                       ? 'border-[#00A8E8] text-[#005691] bg-[rgba(0,168,232,0.1)]'
                       : 'border-[rgba(0,168,232,0.2)] text-slate-600 hover:border-[rgba(0,168,232,0.4)]'
                   )}
                 >
-                  Media quota (1/2 mes)
+                  1/2 mes
                 </button>
               </div>
-              <p className="text-xs" style={{ color: '#86868b' }}>
-                Para clientes que se inscriben a mitad del mes.
-              </p>
             </div>
 
-            {/* Registration Fee - Cuota 1 Toggle */}
-            <div className="flex items-center justify-between p-4 rounded-xl border" style={{ background: 'rgba(0, 168, 232, 0.05)' }}>
-              <div>
-                <Label className="text-sm font-medium" style={{ color: '#1A1A1A' }}>Cuota 1 - Inscripción</Label>
-                <p className="text-xs" style={{ color: '#86868b' }}>
-                  Primera cuota de inscripción ($25.000)
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setFormData({
-                  ...formData,
-                  registrationFeePaid1: !formData.registrationFeePaid1
-                })}
-                className={cn(
-                  'relative inline-flex h-8 w-14 items-center rounded-full transition-all',
-                  formData.registrationFeePaid1
-                    ? 'bg-[#34C759]'
-                    : 'bg-[rgba(0,168,232,0.3)]'
-                )}
-              >
-                <span
-                  className={cn(
-                    'inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all',
-                    formData.registrationFeePaid1 ? 'translate-x-7' : 'translate-x-1'
-                  )}
-                />
-              </button>
-            </div>
-
-            {/* Registration Fee - Cuota 2 Toggle */}
-            <div className="flex items-center justify-between p-4 rounded-xl border" style={{ background: 'rgba(0, 168, 232, 0.05)' }}>
-              <div>
-                <Label className="text-sm font-medium" style={{ color: '#1A1A1A' }}>Cuota 2 - Inscripción</Label>
-                <p className="text-xs" style={{ color: '#86868b' }}>
-                  Segunda cuota de inscripción ($25.000)
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setFormData({
-                  ...formData,
-                  registrationFeePaid2: !formData.registrationFeePaid2
-                })}
-                className={cn(
-                  'relative inline-flex h-8 w-14 items-center rounded-full transition-all',
-                  formData.registrationFeePaid2
-                    ? 'bg-[#34C759]'
-                    : 'bg-[rgba(0,168,232,0.3)]'
-                )}
-              >
-                <span
-                  className={cn(
-                    'inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all',
-                    formData.registrationFeePaid2 ? 'translate-x-7' : 'translate-x-1'
-                  )}
-                />
-              </button>
-            </div>
-
-            <div className="space-y-4">
+            <div className="space-y-3">
               <Label className="flex items-center gap-2">
                 <Hash className="w-3 h-3" style={{ color: '#00A8E8' }} />
                 Clases contratadas
               </Label>
-              <div className="flex items-center gap-4 bg-white/50 p-4 rounded-xl border border-[rgba(0,168,232,0.1)]">
+              <div className="flex items-center gap-4 bg-white/50 p-4 rounded-xl border border-[rgba(0,168,232,0.15)]">
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="h-10 w-10 rounded-full border-2"
+                  className="h-10 w-10 rounded-full border-2 shrink-0"
                   style={{ borderColor: 'rgba(0, 168, 232, 0.3)', color: '#005691' }}
                   onClick={() => setFormData({ ...formData, classesTotal: Math.max(1, formData.classesTotal - 1) })}
                 >
-                  <span className="text-lg">−</span>
+                  <span className="text-lg leading-none">−</span>
                 </Button>
                 <div className="flex-1 text-center">
-                  <span className="text-2xl font-semibold text-[#005691]">{formData.classesTotal}</span>
+                  <span className="text-3xl font-semibold text-[#005691]">{formData.classesTotal}</span>
                   <span className="text-sm text-slate-500 ml-2">clases/mes</span>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="h-10 w-10 rounded-full border-2"
+                  className="h-10 w-10 rounded-full border-2 shrink-0"
                   style={{ borderColor: 'rgba(0, 168, 232, 0.3)', color: '#005691' }}
                   onClick={() => setFormData({ ...formData, classesTotal: Math.min(30, formData.classesTotal + 1) })}
                 >
-                  <span className="text-lg">+</span>
+                  <span className="text-lg leading-none">+</span>
                 </Button>
               </div>
             </div>
 
-            <div className="p-4 bg-amber-50 rounded-lg border border-amber-100">
+            <div className="space-y-3">
+              <Label>Cuotas de Inscripción</Label>
+              {[
+                { key: 'registrationFeePaid1' as const, label: 'Cuota 1' },
+                { key: 'registrationFeePaid2' as const, label: 'Cuota 2' },
+              ].map(({ key, label }) => (
+                <div key={key} className="flex items-center justify-between p-3 rounded-xl border" style={{ background: 'rgba(0, 168, 232, 0.05)' }}>
+                  <div>
+                    <p className="text-sm font-medium">{label} — Inscripción ($25.000)</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, [key]: !formData[key] })}
+                    className={cn(
+                      'relative inline-flex h-7 w-12 items-center rounded-full transition-all shrink-0',
+                      formData[key] ? 'bg-[#34C759]' : 'bg-[rgba(0,168,232,0.3)]'
+                    )}
+                  >
+                    <span className={cn(
+                      'inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-all',
+                      formData[key] ? 'translate-x-6' : 'translate-x-1'
+                    )} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
               <p className="text-xs text-amber-700">
                 <Calendar className="w-3 h-3 inline mr-1" />
-                {client?.id 
-                  ? 'Se actualizará la suscripción del mes actual'
-                  : 'Se creará una suscripción pendiente para el mes actual'
-                }
+                Se creará una suscripción pendiente para el mes actual
               </p>
             </div>
           </div>
         )}
-      </ScrollArea>
+      </div>
 
-        <div className="flex gap-3 pt-4" style={{ borderTop: '1px solid rgba(0, 168, 232, 0.1)' }}>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            className="flex-1 rounded-full"
-            style={{ 
-              borderColor: 'rgba(0, 168, 232, 0.3)',
-              color: '#005691'
-            }}
-            disabled={loading}
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            className="flex-1 rounded-full text-white"
-            style={{
-              background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
-              boxShadow: '0 4px 15px rgba(0, 168, 232, 0.3)',
-            }}
-            disabled={loading}
-          >
-            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {client?.id ? 'Guardar Cambios' : 'Crear Cliente'}
-          </Button>
-        </div>
+      <div className="flex gap-3 pt-2 border-t border-slate-100">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="flex-1"
+          disabled={loading}
+        >
+          Cancelar
+        </Button>
+        <Button
+          type="submit"
+          className="flex-1 text-white"
+          style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}
+          disabled={loading}
+        >
+          {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          {client?.id ? 'Guardar Cambios' : 'Crear Cliente'}
+        </Button>
+      </div>
     </form>
   )
 }

@@ -144,8 +144,8 @@ export function BillingView() {
         </div>
       </div>
 
-      <div className="grid gap-3 grid-cols-1 md:grid-cols-3 stagger-in">
-        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
+      <div className="grid gap-2 sm:gap-3 grid-cols-2 md:grid-cols-3 stagger-in">
+        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">ARCA (AFIP)</p>
@@ -161,7 +161,7 @@ export function BillingView() {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Mercado Pago</p>
@@ -177,7 +177,7 @@ export function BillingView() {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Pendientes</p>
@@ -246,10 +246,10 @@ export function BillingView() {
                     />
                   </TableHead>
                   <TableHead>Cliente</TableHead>
-                  <TableHead>DNI</TableHead>
+                  <TableHead className="hidden sm:table-cell">DNI</TableHead>
                   <TableHead>Monto</TableHead>
-                  <TableHead>Método</TableHead>
-                  <TableHead>Estado Fact.</TableHead>
+                  <TableHead className="hidden sm:table-cell">Método</TableHead>
+                  <TableHead>Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -272,12 +272,16 @@ export function BillingView() {
                       </TableCell>
                       <TableCell className="font-medium max-w-[160px]">
                         <span className="truncate block">{formatFullName(sub.client.nombre, sub.client.apellido)}</span>
+                        {/* Mobile: show method as subtitle */}
+                        <span className="sm:hidden text-[10px] text-slate-400 uppercase tracking-wider">
+                          {sub.paymentMethod || 'Manual'}
+                        </span>
                       </TableCell>
-                      <TableCell className="text-slate-500 text-sm">{sub.client.dni || '---'}</TableCell>
+                      <TableCell className="hidden sm:table-cell text-slate-500 text-sm">{sub.client.dni || '---'}</TableCell>
                       <TableCell className="font-semibold text-slate-700">
                         {formatCurrency(sub.amount || 0)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <Badge variant="secondary" className="font-normal text-[10px] uppercase tracking-wider">
                           {sub.paymentMethod || 'Manual'}
                         </Badge>

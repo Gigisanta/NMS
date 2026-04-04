@@ -673,7 +673,7 @@ export function EmployeesView() {
           { title: 'Administrativos', value: stats.administrativos, Icon: Briefcase, accent: '#00A8E8' },
           { title: 'Limpieza', value: stats.limpieza, Icon: UserCheck, accent: '#10b981' },
         ].map((stat) => (
-          <div key={stat.title} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
+          <div key={stat.title} className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{stat.title}</p>
