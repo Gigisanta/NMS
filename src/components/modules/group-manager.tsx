@@ -90,6 +90,9 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
         onGroupsChange()
         setShowCreate(false)
         setNewGroup({ name: '', color: predefinedColors[0], schedule: '', description: '' })
+        setError(null)
+      } else {
+        setError(result.error || 'Error al crear el grupo')
       }
     } catch (err) {
       console.error('Error creating group:', err)

@@ -45,6 +45,7 @@ import {
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { queryClient } from '@/lib/queryClient'
 
 interface Invoice {
   id: string
@@ -161,8 +162,8 @@ const InvoiceItem = memo(function InvoiceItem({
         {statusConfig.label}
       </Badge>
 
-      {/* Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Actions — always visible on touch, fade-in on hover for desktop */}
+      <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
         <Button
           variant="ghost"
           size="icon"
@@ -290,6 +291,8 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
         })
         setDialogOpen(false)
         onInvoiceChange()
+        // Invalidar caché de TanStack Query para actualizar dashboard instantáneamente
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       } else {
         console.error('Error uploading invoice:', result.error)
         setError(result.error || 'Error al subir la factura')
@@ -313,6 +316,8 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
 
       if (result.success) {
         onInvoiceChange()
+        // Invalidar caché de TanStack Query para actualizar dashboard instantáneamente
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       }
     } catch (error) {
       console.error('Error deleting invoice:', error)
@@ -333,6 +338,8 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
 
       if (result.success) {
         onInvoiceChange()
+        // Invalidar caché de TanStack Query para actualizar dashboard instantáneamente
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       }
     } catch (error) {
       console.error('Error updating invoice:', error)
@@ -362,7 +369,7 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
               Subir Factura
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md max-h-[90dvh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Subir Factura o Comprobante</DialogTitle>
               <DialogDescription>
@@ -390,7 +397,7 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
               </div>
 
               {/* Invoice number */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>Número de Comprobante</Label>
                   <Input
@@ -430,7 +437,7 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
               </div>
 
               {/* Dates */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>Fecha de Emisión</Label>
                   <Input

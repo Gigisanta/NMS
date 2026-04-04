@@ -31,6 +31,7 @@ import { GroupTabs } from './group-tabs'
 import { useAppStore } from '@/store'
 import { ReceiptUploadDialog } from './payments/receipt-upload-dialog'
 import { formatCurrency } from '@/lib/utils'
+import { queryClient } from '@/lib/queryClient'
 
 
 interface Group {
@@ -115,7 +116,8 @@ export function PaymentsView() {
         setSubscriptions(prev =>
           prev.map(s => s.id === subscriptionId ? { ...s, status: newStatus, paymentMethod: paymentMethod || s.paymentMethod } : s)
         )
-        useAppStore.getState().invalidateDashboard?.()
+        // Invalidar caché de TanStack Query para actualizar dashboard instantáneamente
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       }
     } catch (error) {
       console.error('Error updating subscription:', error)
@@ -172,7 +174,7 @@ export function PaymentsView() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm card-lift"
+            className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm card-lift"
           >
             <div className="flex items-start justify-between gap-2">
               <div>
@@ -267,14 +269,14 @@ export function PaymentsView() {
               </div>
             </div>
           ) : (
-            <ScrollArea className="h-[calc(100vh-450px)] min-h-[400px]">
+            <ScrollArea className="h-[300px] sm:h-[calc(100vh-450px)] sm:min-h-[400px]">
               <Table>
                 <TableHeader className="sticky top-0 bg-slate-50/95 backdrop-blur z-10">
                   <TableRow>
                     <TableHead>Cliente</TableHead>
-                    <TableHead>Grupo</TableHead>
+                    <TableHead className="hidden sm:table-cell">Grupo</TableHead>
                     <TableHead>Estado</TableHead>
-                    <TableHead>Clases</TableHead>
+                    <TableHead className="hidden md:table-cell">Clases</TableHead>
                     <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -311,10 +313,16 @@ export function PaymentsView() {
                                   {formatFullName(sub.client.nombre, sub.client.apellido)}
                                 </p>
                                 <p className="text-xs text-slate-500">{sub.client.telefono}</p>
+                                {/* Mobile: show group inline */}
+                                {sub.client.grupo && (
+                                  <span className="sm:hidden text-[10px] font-medium" style={{ color: sub.client.grupo.color || '#00A8E8' }}>
+                                    {sub.client.grupo.name}
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             <GroupBadge group={sub.client.grupo} size="sm" />
                           </TableCell>
                           <TableCell>
@@ -322,7 +330,7 @@ export function PaymentsView() {
                               {statusConfig.label}
                             </Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden md:table-cell">
                             <span className="text-sm font-medium">
                               {sub.classesUsed}/{sub.classesTotal}
                             </span>
@@ -334,22 +342,24 @@ export function PaymentsView() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="h-8 text-xs text-emerald-600 hover:bg-emerald-50"
+                                    className="h-9 sm:h-8 text-xs text-emerald-600 hover:bg-emerald-50"
                                     onClick={() => handlePaymentClick(sub, 'EFECTIVO')}
                                     disabled={updating === sub.id}
+                                    title="Marcar pagado en efectivo"
                                   >
-                                    {updating === sub.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
-                                    Efectivo
+                                    {updating === sub.id ? <Loader2 className="w-3 h-3 animate-spin sm:mr-1" /> : <CheckCircle2 className="w-3 h-3 sm:mr-1" />}
+                                    <span className="hidden sm:inline">Efectivo</span>
                                   </Button>
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="h-8 text-xs text-emerald-600 hover:bg-emerald-50"
+                                    className="h-9 sm:h-8 text-xs text-emerald-600 hover:bg-emerald-50"
                                     onClick={() => handlePaymentClick(sub, 'TRANSFERENCIA')}
                                     disabled={updating === sub.id}
+                                    title="Marcar pagado por transferencia"
                                   >
-                                    {updating === sub.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
-                                    Transf.
+                                    {updating === sub.id ? <Loader2 className="w-3 h-3 animate-spin sm:mr-1" /> : <Send className="w-3 h-3 sm:mr-1" />}
+                                    <span className="hidden sm:inline">Transf.</span>
                                   </Button>
 
                                 </>
@@ -362,7 +372,7 @@ export function PaymentsView() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className={`h-8 w-8 p-0 ${sub.status === 'PENDIENTE' ? 'text-amber-600 bg-amber-50' : 'text-slate-400'}`}
+                                className={`h-9 sm:h-8 w-9 sm:w-8 p-0 ${sub.status === 'PENDIENTE' ? 'text-amber-600 bg-amber-50' : 'text-slate-400'}`}
                                 onClick={() => handleStatusChange(sub.id, 'PENDIENTE')}
                                 disabled={updating === sub.id || sub.status === 'PENDIENTE'}
                                 title="Marcar como Pendiente"
@@ -373,7 +383,7 @@ export function PaymentsView() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className={`h-8 w-8 p-0 ${sub.status === 'DEUDOR' ? 'text-red-600 bg-red-50' : 'text-slate-400'}`}
+                                className={`h-9 sm:h-8 w-9 sm:w-8 p-0 ${sub.status === 'DEUDOR' ? 'text-red-600 bg-red-50' : 'text-slate-400'}`}
                                 onClick={() => handleStatusChange(sub.id, 'DEUDOR')}
                                 disabled={updating === sub.id || sub.status === 'DEUDOR'}
                                 title="Marcar como Deudor"
