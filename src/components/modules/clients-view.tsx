@@ -31,6 +31,8 @@ interface Group {
 
 interface ClientsViewProps {
   onViewChange?: (view: string, clientId?: string) => void
+  openNewClient?: boolean
+  onNewClientHandled?: () => void
 }
 
 const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChange, onDelete, deletingId }: any) => {
@@ -59,13 +61,13 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
           >
             {initials}
           </div>
-          <div>
-            <div className="font-medium" style={{ color: '#1A1A1A' }}>{formatFullName(client.nombre, client.apellido)}</div>
+          <div className="min-w-0">
+            <div className="font-medium truncate" style={{ color: '#1A1A1A' }}>{formatFullName(client.nombre, client.apellido)}</div>
           </div>
         </div>
       </TableCell>
-      <TableCell>
-        <span className="text-sm">{client.dni}</span>
+      <TableCell className="hidden sm:table-cell">
+        <span className="text-sm truncate block">{client.dni || '-'}</span>
       </TableCell>
       <TableCell onClick={(e) => e.stopPropagation()}>
         <GroupSelector
@@ -74,7 +76,7 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
           groups={groups}
         />
       </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
+      <TableCell className="hidden md:table-cell" onClick={(e) => e.stopPropagation()}>
         <div className="flex flex-col gap-1">
           <Badge className={cn(
             "text-xs w-fit",
@@ -103,10 +105,10 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
           </Badge>
         </div>
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden lg:table-cell">
         {(client as any).updatedAt ? (
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs" style={{ color: '#86868b' }}>
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <span className="text-xs truncate block" style={{ color: '#86868b' }}>
               {new Date((client as any).updatedAt).toLocaleDateString('es-AR', {
                 day: '2-digit',
                 month: '2-digit',
@@ -116,7 +118,7 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
               })}
             </span>
             {(client as any).updatedByUser?.name && (
-              <span className="text-[10px]" style={{ color: '#005691' }}>
+              <span className="text-[10px] truncate block" style={{ color: '#005691' }}>
                 por {(client as any).updatedByUser.name}
               </span>
             )}
@@ -157,10 +159,18 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
 })
 ClientTableRow.displayName = 'ClientTableRow'
 
-export function ClientsView({ onViewChange }: ClientsViewProps) {
+export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }: ClientsViewProps) {
   const [search, setSearch] = useState('')
   const [grupoFilter, setGrupoFilter] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
+
+  // FAB trigger: open new client form when parent requests it
+  useEffect(() => {
+    if (openNewClient) {
+      setShowForm(true)
+      onNewClientHandled?.()
+    }
+  }, [openNewClient, onNewClientHandled])
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
   const [showProfile, setShowProfile] = useState(false)
@@ -168,6 +178,7 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
   const [totalPages, setTotalPages] = useState(1)
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
+  const [totalClients, setTotalClients] = useState(0)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [memoizedGroups, setMemoizedGroups] = useState<Group[]>([])
@@ -197,6 +208,7 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
       if (result.success) {
         setClients(result.data || [])
         setTotalPages(result.pagination?.totalPages || 1)
+        setTotalClients(result.pagination?.total || 0)
       } else {
         console.error('API Business error:', result.error)
         setClients([]) // Clear clients on business error
@@ -286,9 +298,19 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
   }, [])
 
   return (
-    <div className="flex gap-4 h-[calc(100vh-140px)]">
-      {/* Sidebar de Grupos - Vertical */}
-      <div className="w-56 flex-shrink-0 flex flex-col">
+    <div className="flex flex-col gap-4">
+      {/* Mobile: horizontal group filter */}
+      <div className="md:hidden">
+        <GroupTabs
+          groups={memoizedGroups}
+          selectedId={grupoFilter}
+          onChange={(id) => { setGrupoFilter(id); setPage(1) }}
+        />
+      </div>
+
+      <div className="flex gap-4 md:h-[calc(100vh-160px)]">
+      {/* Sidebar de Grupos - Vertical (desktop only) */}
+      <div className="hidden md:flex w-56 flex-shrink-0 flex-col">
         <div className="bg-white shadow-md p-4 flex-shrink-0">
           <div className="flex items-center gap-2 mb-4">
             <Users className="w-4 h-4" style={{ color: '#86868b' }} />
@@ -346,7 +368,15 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
           <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2 flex-shrink-0">
             <div>
               <CardTitle className="text-xl font-semibold">Clientes</CardTitle>
-              <CardDescription>{clients.length} clientes</CardDescription>
+              <CardDescription>
+                {loading && totalClients === 0 ? (
+                  'Cargando...'
+                ) : totalClients === 0 ? (
+                  'Sin clientes'
+                ) : (
+                  `${totalClients} cliente${totalClients !== 1 ? 's' : ''}`
+                )}
+              </CardDescription>
             </div>
             <Button onClick={() => setShowForm(true)} size="sm">
               <Plus className="w-4 h-4 mr-2" />
@@ -373,11 +403,11 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Cliente</TableHead>
-                    <TableHead>DNI</TableHead>
+                    <TableHead className="hidden sm:table-cell">DNI</TableHead>
                     <TableHead>Grupo</TableHead>
-                    <TableHead>Inscripción</TableHead>
+                    <TableHead className="hidden md:table-cell">Inscripción</TableHead>
                     <TableHead>Estado</TableHead>
-                    <TableHead>Última Modificación</TableHead>
+                    <TableHead className="hidden lg:table-cell">Última Modificación</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -432,7 +462,7 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
             {totalPages > 1 && (
               <div className="flex items-center justify-between mt-3">
                 <span className="text-sm text-slate-500">
-                  Página {page} de {totalPages}
+                  Página {page} de {totalPages}{totalClients > 0 && ` (${totalClients} total)`}
                 </span>
                 <div className="flex gap-2">
                   <Button 
@@ -457,11 +487,12 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
           </CardContent>
         </Card>
       </div>
+      </div>
 
       {/* Modal Nuevo Cliente */}
       {showForm && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4 animate-fade-in">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
+          <Card className="w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto animate-scale-in">
             <CardHeader>
               <CardTitle>Nuevo Cliente</CardTitle>
             </CardHeader>
@@ -480,15 +511,22 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
         </div>
       )}
 
-      {/* Perfil de Cliente */}
-      {showProfile && selectedClientId && (
-        <ClientProfile
-          clientId={selectedClientId}
-          onClose={handleProfileClose}
-          groups={memoizedGroups}
-          onSaved={fetchClients}
-        />
-      )}
+      {/* Perfil de Cliente — Sheet overlay (full-width on mobile, side panel on desktop) */}
+      <Sheet open={showProfile && !!selectedClientId} onOpenChange={(open) => !open && handleProfileClose()}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl p-0 overflow-hidden flex flex-col">
+          <SheetTitle className="sr-only">Perfil de cliente</SheetTitle>
+          <div className="flex-1 min-h-0 overflow-hidden">
+            {selectedClientId && (
+              <ClientProfile
+                clientId={selectedClientId}
+                onClose={handleProfileClose}
+                groups={memoizedGroups}
+                onSaved={fetchClients}
+              />
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <AlertDialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
         <AlertDialogContent>

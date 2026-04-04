@@ -451,41 +451,42 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b bg-white sticky top-0 z-10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Header - fixed height, not sticky within the flex context */}
+      <div className="p-3 sm:p-4 border-b bg-white shrink-0">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0 h-9 w-9">
               <X className="w-5 h-5" />
             </Button>
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900">{clientFullName}</h2>
-              <div className="flex items-center gap-2 mt-1">
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-xl font-semibold text-slate-900 truncate">{clientFullName}</h2>
+              <div className="flex items-center gap-2 mt-0.5">
                 <GroupBadge group={client.grupo} size="sm" />
-                <Badge className={cn(statusConfig.color, 'border')}>
+                <Badge className={cn(statusConfig.color, 'border text-xs')}>
                   {statusConfig.label}
                 </Badge>
               </div>
             </div>
           </div>
-          <Button 
-            onClick={handleSave} 
+          <Button
+            onClick={handleSave}
             disabled={saving}
-            className="gap-2"
+            size="sm"
+            className="shrink-0 gap-1.5"
             style={{ background: '#005691' }}
           >
             {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : (
-              <Save className="w-4 h-4" />
+              <Save className="w-3.5 h-3.5" />
             )}
-            Guardar
+            <span className="hidden sm:inline">Guardar</span>
           </Button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 mt-4">
+        {/* Tabs — scrollable on mobile */}
+        <div className="flex gap-1 mt-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
           {tabs.map((tab) => (
             <TabButton
               key={tab.id}
@@ -499,8 +500,9 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         </div>
       </div>
 
-      {/* Content */}
-      <ScrollArea className="flex-1 p-4">
+      {/* Content - scrollable area with proper flex sizing */}
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="p-4">
         {error && (
           <div className="mb-4 p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100">
             {error}
@@ -1095,6 +1097,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             </Card>
           </div>
         )}
+        </div>
       </ScrollArea>
     </div>
   )
