@@ -1,1 +1,0 @@
-'        },\n            config?.1ccessToken || undefined,\n            metadata?.phone_number_id\n          )\n        } else {\n          await sendWhatsAppMessage(\n            from,\n            config?.1'

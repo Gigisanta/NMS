@@ -92,7 +92,7 @@ npm run test:e2e         # Playwright e2e tests
 
 | Ambiente | URL |
 |----------|-----|
-| Producción | https://nms-giolivos-projects.vercel.app |
+| Producción | https://oroazul.maat.work |
 | Preview | nms-giolivos-projects-git-*.vercel.app |
 
 ## Stack Tecnológico
@@ -119,7 +119,7 @@ El proyecto está configurado para deployment automático en Vercel:
 ```json
 // vercel.json
 {
-  "buildCommand": "prisma migrate deploy && prisma generate && npm run build:standalone",
+  "buildCommand": "npx prisma@6.11.1 migrate deploy && npx prisma@6.11.1 generate && next build",
   "outputDirectory": ".next",
   "framework": "nextjs"
 }

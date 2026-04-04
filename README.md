@@ -9,7 +9,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-Private-red?style=flat-square)]()
 
-**Live Production:** [https://nms-giolivos-projects.vercel.app](https://nms-giolivos-projects.vercel.app)
+**Live Production:** [https://oroazul.maat.work](https://oroazul.maat.work)
 
 ---
 
@@ -145,8 +145,8 @@ src/
 El proyecto está configurado para deploy automático en Vercel:
 
 1. Push a GitHub → Vercel detecta y despliega
-2. Build command ejecuta: `prisma migrate deploy` → `prisma generate` → `next build`
-3. Production URL: [https://nms-giolivos-projects.vercel.app](https://nms-giolivos-projects.vercel.app)
+2. Build command ejecuta: `npx prisma@6.11.1 migrate deploy` → `npx prisma@6.11.1 generate` → `next build`
+3. Production URL: [https://oroazul.maat.work](https://oroazul.maat.work)
 
 ---
 

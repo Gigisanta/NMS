@@ -34,7 +34,7 @@ Environment variables are configured in Vercel Dashboard → Project → Setting
 |----------|-------|
 | DATABASE_URL | From Neon Console → Connection Details |
 | NEXTAUTH_SECRET | Generate with: `openssl rand -base64 32` |
-| NEXTAUTH_URL | `https://nms-giolivos-projects.vercel.app` |
+| NEXTAUTH_URL | `https://oroazul.maat.work` |
 | NODE_ENV | `production` |
 
 ## Authentication

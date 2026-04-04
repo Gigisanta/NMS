@@ -1,5 +1,4 @@
+// Instrumentation file - temporarily disabled Sentry
 export async function register() {
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
-    await import('@sentry/nextjs')
-  }
+  // Sentry temporarily disabled for debugging
 }

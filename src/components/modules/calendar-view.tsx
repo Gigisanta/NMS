@@ -277,8 +277,8 @@ export function CalendarView() {
                   <div
                     key={day.toISOString()}
                     onClick={() => setSelectedDate(day)}
-                    className={`border-r border-b border-slate-100 p-1 min-h-[100px] transition-colors cursor-pointer hover:bg-slate-50 ${
-                      isSelected ? 'bg-cyan-50/40' : ''
+                    className={`border-r border-b border-slate-100 p-1 min-h-[100px] transition-colors duration-150 cursor-pointer hover:bg-[rgba(0,168,232,0.04)] ${
+                      isSelected ? 'bg-[rgba(0,168,232,0.08)]' : ''
                     }`}
                   >
                     <div className="flex justify-between items-center mb-1">

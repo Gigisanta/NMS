@@ -163,7 +163,7 @@ export function PaymentsView() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 stagger-in">
         {[
           { label: 'Total', value: stats.total, icon: CreditCard, accent: '#64748b' },
           { label: 'Al Día', value: stats.alDia, icon: CheckCircle2, accent: '#10b981' },
@@ -172,7 +172,7 @@ export function PaymentsView() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm"
+            className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm card-lift"
           >
             <div className="flex items-start justify-between gap-2">
               <div>
@@ -285,10 +285,10 @@ export function PaymentsView() {
                       return (
                         <motion.tr
                           key={sub.id}
-                          className="hover:bg-slate-50/50 transition-colors"
-                          initial={{ opacity: 0, y: 10 }}
+                          className="hover:bg-[rgba(0,168,232,0.04)] transition-colors duration-150"
+                          initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.03 }}
+                          transition={{ delay: index * 0.025, ease: [0.25, 0.46, 0.45, 0.94] }}
                         >
                           <TableCell>
                             <div className="flex items-center gap-3 relative">

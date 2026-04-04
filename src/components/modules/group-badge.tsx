@@ -23,15 +23,15 @@ export function GroupBadge({ group, className, size = 'md', onClick, interactive
 
   if (!group) {
     return (
-      <span 
+      <span
         className={cn(
-          'inline-flex items-center gap-1.5 font-medium border',
-          'text-xs px-2.5 py-1',
-          interactive && 'cursor-pointer transition-all hover:scale-105',
+          'inline-flex items-center gap-1.5 font-medium border rounded-full',
+          'text-xs px-2.5 py-0.5',
+          interactive && 'cursor-pointer transition-all duration-150 hover:scale-105',
           className
         )}
-        style={{ 
-          background: 'rgba(0, 168, 232, 0.08)', 
+        style={{
+          background: 'rgba(0, 168, 232, 0.08)',
           color: '#86868b',
           borderColor: 'rgba(0, 168, 232, 0.2)',
         }}
@@ -43,14 +43,14 @@ export function GroupBadge({ group, className, size = 'md', onClick, interactive
   }
 
   return (
-    <span 
+    <span
       className={cn(
-        'inline-flex items-center gap-1.5 font-medium border transition-all',
+        'inline-flex items-center gap-1.5 font-medium border rounded-full transition-all duration-150',
         sizeClasses[size],
-        interactive && 'cursor-pointer hover:shadow-md hover:scale-105',
+        interactive && 'cursor-pointer hover:shadow-sm hover:scale-105',
         className
       )}
-      style={{ 
+      style={{
         backgroundColor: `${group.color}15`,
         color: group.color,
         borderColor: `${group.color}40`,

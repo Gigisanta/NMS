@@ -138,18 +138,7 @@ export async POST(req: Request) {
 - **Strategy**: NextAuth v4 with Credentials provider + bcrypt
 - **Roles**: `EMPLEADORA` (admin), `EMPLEADO` (staff)
 - **Session**: JWT stored in httpOnly cookie (30-day TTL)
-- **Middleware**: Protects all routes except `/login`, `/register`, `/api/auth/*`
-
-### Middleware Public Paths
-
-```typescript
-// src/middleware.ts
-export const config = {
-  matcher: ['/((?!login|register|api/auth|api/debug|_next/static|_next/image|favicon.ico|public|uploads|images).*)']
-}
-```
-
-These paths bypass authentication: `/login`, `/register`, `/api/auth/*`, `/api/debug`, `/favicon.ico`, `/_next/*`, `/public/*`, `/uploads/*`, `/images/*`
+- **Auth Protection**: API routes use `auth()` from `@/lib/auth` for authentication checks
 
 ## Database Schema (Prisma)
 
@@ -222,7 +211,7 @@ ARCA_SIGN_KEY=""
 
 The `vercel.json` build command runs:
 ```
-prisma generate → prisma migrate deploy → next build
+npx prisma@6.11.1 generate → npx prisma@6.11.1 migrate deploy → next build
 ```
 
 **Important**: Production builds use `migrate deploy` (safe) NOT `db push` (destructive).

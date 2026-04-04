@@ -48,14 +48,14 @@ const ClientTableRow = memo(({ client, groups, index, onClientClick, onGroupChan
 
   return (
     <tr
-      className="cursor-pointer transition-colors animate-fade-in hover:bg-slate-50/80"
+      className="cursor-pointer transition-colors duration-150 hover:bg-[rgba(0,168,232,0.04)]"
       onClick={() => onClientClick(client)}
     >
       <TableCell className="py-3">
         <div className="flex items-center gap-3">
           <div
-            className="flex h-8 w-8 items-center justify-center font-medium text-xs rounded-full"
-            style={{ background: 'rgba(0, 168, 232, 0.1)', color: '#005691' }}
+            className="flex h-8 w-8 items-center justify-center font-medium text-xs rounded-full text-white shrink-0"
+            style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}
           >
             {initials}
           </div>
@@ -460,8 +460,8 @@ export function ClientsView({ onViewChange }: ClientsViewProps) {
 
       {/* Modal Nuevo Cliente */}
       {showForm && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4 animate-fade-in">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
             <CardHeader>
               <CardTitle>Nuevo Cliente</CardTitle>
             </CardHeader>

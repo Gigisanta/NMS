@@ -53,8 +53,11 @@ export function GroupTabs({ groups, selectedId, onChange, className }: GroupTabs
                 }}
               >
                 <span
-                  className="absolute bottom-0 left-0 h-0.5 w-full"
-                  style={{ backgroundColor: group.color || '#00A8E8' }}
+                  className="absolute bottom-0 left-0 h-0.5 w-full transition-opacity duration-200"
+                  style={{
+                    backgroundColor: group.color || '#00A8E8',
+                    opacity: selectedId === group.id ? 1 : 0.25,
+                  }}
                 />
                 {group.name}
               </TabsTrigger>

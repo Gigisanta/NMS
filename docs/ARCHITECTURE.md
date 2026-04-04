@@ -434,16 +434,16 @@ GitHub Push → Vercel CI/CD → Build → Deploy
 
 Build Process:
 1. npm install
-2. prisma migrate deploy
-3. prisma generate
-4. npm run build:standalone
+2. npx prisma@6.11.1 migrate deploy
+3. npx prisma@6.11.1 generate
+4. next build
 ```
 
 ### Environments
 
 | Environment | Trigger | URL Pattern |
 |-------------|---------|-------------|
-| Production | Push a main | nms-giolivos-projects.vercel.app |
+| Production | Push a main | oroazul.maat.work |
 | Preview | Pull Request | nms-giolivos-projects-git-*.vercel.app |
 
 ### Integraciones Vercel

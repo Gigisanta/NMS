@@ -85,9 +85,9 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
   const progressPercent = (classesUsed / classesTotal) * 100
 
   return (
-    <tr 
-      className={`border-b border-slate-100 hover:bg-slate-50/50 transition-colors ${
-        isLimitReached ? 'bg-red-50/30' : ''
+    <tr
+      className={`border-b border-slate-100 transition-colors duration-150 ${
+        isLimitReached ? 'bg-red-50/30' : 'hover:bg-[rgba(0,168,232,0.04)]'
       }`}
     >
       <td className="py-2 px-3">
@@ -109,7 +109,7 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
         <div className="flex items-center gap-2">
           <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <div
-              className={`h-full ${isLimitReached ? 'bg-red-400' : ''}`}
+              className={`h-full progress-bar-animated ${isLimitReached ? 'bg-red-400' : ''}`}
               style={{ width: `${progressPercent}%`, ...(!isLimitReached ? { background: '#00A8E8' } : {}) }}
             />
           </div>

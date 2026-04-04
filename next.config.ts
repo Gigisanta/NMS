@@ -1,10 +1,8 @@
 import type { NextConfig } from 'next'
 import withBundleAnalyzer from '@next/bundle-analyzer'
-import { withSentryConfig } from '@sentry/nextjs'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  outputFileTracingRoot: '/Users/prueba/Desktop/NMS',
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
@@ -36,6 +34,4 @@ const withBundleAnalyzerConfig = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })
 
-export default withSentryConfig(withBundleAnalyzerConfig(nextConfig), {
-  silent: true,
-})
+export default withBundleAnalyzerConfig(nextConfig)

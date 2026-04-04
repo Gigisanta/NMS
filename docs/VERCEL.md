@@ -6,7 +6,7 @@
 
 | Ambiente | URL |
 |----------|-----|
-| Producción | https://nms-giolivos-projects.vercel.app |
+| Producción | https://oroazul.maat.work |
 | Preview | nms-giolivos-projects-git-*.vercel.app |
 
 ---
@@ -17,7 +17,7 @@
 
 ```json
 {
-  "buildCommand": "prisma migrate deploy && prisma generate && npm run build:standalone",
+  "buildCommand": "npx prisma@6.11.1 migrate deploy && npx prisma@6.11.1 generate && next build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
   "framework": "nextjs"
@@ -26,9 +26,9 @@
 
 ### Build Command Explicado
 
-1. `prisma migrate deploy` - Aplica migraciones pendientes en Neon
-2. `prisma generate` - Genera el cliente Prisma
-3. `npm run build:standalone` - Construye la aplicación standalone
+1. `npx prisma@6.11.1 migrate deploy` - Aplica migraciones pendientes en Neon
+2. `npx prisma@6.11.1 generate` - Genera el cliente Prisma
+3. `next build` - Construye la aplicación
 
 **Nota:** No usa `db push --accept-data-loss` en producción. Usa `migrate deploy` para seguridad de datos.
 
@@ -50,7 +50,7 @@
 |----------|-------------|
 | `DATABASE_URL` | Connection string de Neon PostgreSQL |
 | `NEXTAUTH_SECRET` | Secret para JWT (mínimo 32 caracteres) |
-| `NEXTAUTH_URL` | https://nms-giolivos-projects.vercel.app |
+| `NEXTAUTH_URL` | https://oroazul.maat.work |
 
 ### Configurar Variables
 
@@ -118,9 +118,9 @@ Push a GitHub → Vercel CI → Build → Deploy
 ### Pasos del Build
 
 1. **Install**: `npm install`
-2. **Migrate**: `prisma migrate deploy`
-3. **Generate**: `prisma generate`
-4. **Build**: `npm run build:standalone`
+2. **Migrate**: `npx prisma@6.11.1 migrate deploy`
+3. **Generate**: `npx prisma@6.11.1 generate`
+4. **Build**: `next build`
 
 ---
 
@@ -156,7 +156,7 @@ prisma migrate dev
 
 **Solución**:
 1. Verificar NEXTAUTH_SECRET en Vercel
-2. Verificar NEXTAUTH_URL = https://nms-giolivos-projects.vercel.app
+2. Verificar NEXTAUTH_URL = https://oroazul.maat.work
 
 ### Error: Login Always Fails
 
@@ -197,13 +197,13 @@ prisma migrate dev
 
 ```bash
 # Usando Vercel CLI
-vercel logs nms-giolivos-projects
+vercel logs oroazul
 
 # Logs de una función específica
-vercel logs nms-giolivos-projects --follow
+vercel logs oroazul --follow
 
 # Runtime logs (últimas 24h)
-vercel logs nms-giolivos-projects --cursor=<cursor>
+vercel logs oroazul --cursor=<cursor>
 ```
 
 ### Runtime Logs Tool
@@ -225,13 +225,13 @@ mcp__claude_ai_Vercel__get_runtime_logs({
 ### Preview (Pull Requests)
 
 Cada PR crea un deployment preview con:
-- URL única: `nms-giolivos-projects-git-feature-xxx.vercel.app`
+- URL única: `oroazul-git-feature-xxx.vercel.app`
 - Variables de Production
 
 ### Production (Main Branch)
 
 Push a main = deployment automático a:
-- **https://nms-giolivos-projects.vercel.app**
+- **https://oroazul.maat.work**
 
 ---
 
@@ -286,7 +286,7 @@ vercel --prod
 vercel ls
 
 # Logs
-vercel logs nms-giolivos-projects
+vercel logs oroazul
 
 # Alias (asignar URL a deployment)
 vercel alias set <deployment-url> <alias>

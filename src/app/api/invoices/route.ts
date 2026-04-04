@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     let fileName = 'unknown'
     let fileSize: number | null = null
     let mimeType = 'application/pdf'
-    let fileData: Buffer | null = null
+    let fileData: Uint8Array | null = null
     let filePath = '/uploads/placeholder'
 
     // Handle file upload if provided
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
 
       // Store file data directly in PostgreSQL
       const bytes = await file.arrayBuffer()
-      fileData = Buffer.from(bytes)
+      fileData = Buffer.from(bytes) as unknown as Uint8Array<ArrayBuffer>
     }
 
     // Only set uploadedBy if user exists in database
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
         filePath,
         fileSize,
         mimeType,
-        fileData,
+        fileData: fileData as Uint8Array<ArrayBuffer> | null,
         invoiceNumber: invoiceNumber || null,
         amount: amount ? parseFloat(amount) : null,
         issueDate: issueDate ? new Date(issueDate) : null,

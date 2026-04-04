@@ -175,14 +175,14 @@ export function ExpensesView() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 stagger-in">
         {[
           { title: 'Total Mes', value: stats.total, Icon: Banknote, accent: '#005691', trend: 'Egresos registrados' },
           { title: 'Sueldos', value: stats.sueldos, Icon: Users, accent: '#8b5cf6', trend: 'Personal y honorarios' },
           { title: 'Proveedores', value: stats.proveedores, Icon: Truck, accent: '#10b981', trend: 'Insumos y servicios' },
           { title: 'Fijos', value: stats.fijos, Icon: Filter, accent: '#00A8E8', trend: 'Alquiler e impuestos' },
         ].map((stat) => (
-          <div key={stat.title} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <div key={stat.title} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider truncate">{stat.title}</p>
@@ -296,7 +296,7 @@ export function ExpensesView() {
                     return (
                       <tr 
                         key={expense.id} 
-                        className="hover:bg-slate-50/50 transition-colors group"
+                        className="hover:bg-[rgba(0,168,232,0.04)] transition-colors duration-150 group"
                       >
                         <td className="px-6 py-4">
                           <p className="text-sm font-medium text-slate-900">

@@ -164,7 +164,7 @@
   
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     line-height: 1.6;
     letter-spacing: -0.01em;
@@ -303,7 +303,7 @@
 @keyframes fadeSlideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -362,8 +362,196 @@
   body {
     @apply bg-white text-black;
   }
-  
+
   .no-print {
     display: none !important;
   }
+}
+
+/* ============================================
+   MEJORAS UI/UX — Shimmer · Elevación · Stagger
+   ============================================ */
+
+/* Skeleton shimmer: gradiente que barre de izquierda a derecha */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(240, 248, 255, 0.7) 25%,
+    rgba(205, 228, 245, 0.95) 50%,
+    rgba(240, 248, 255, 0.7) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* Barra de progreso al cambiar de vista */
+@keyframes viewLoadBar {
+  0%   { width: 0%;   opacity: 1; }
+  75%  { width: 85%;  opacity: 1; }
+  95%  { width: 97%;  opacity: 1; }
+  100% { width: 100%; opacity: 0; }
+}
+
+.view-load-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #005691 0%, #00A8E8 55%, #4DC3F4 100%);
+  animation: viewLoadBar 0.52s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  z-index: 9999;
+  pointer-events: none;
+  border-radius: 0 999px 999px 0;
+}
+
+/* Status dot con pulso para indicadores en vivo */
+@keyframes statusPulse {
+  0%, 100% { transform: scale(1);    opacity: 1;   }
+  50%       { transform: scale(0.72); opacity: 0.5; }
+}
+
+/* Scrollbar global: fino y con paleta Oro Azul */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 86, 145, 0.14) transparent;
+}
+*::-webkit-scrollbar        { width: 5px; height: 5px; }
+*::-webkit-scrollbar-track  { background: transparent; }
+*::-webkit-scrollbar-thumb  {
+  background: rgba(0, 86, 145, 0.14);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 86, 145, 0.3);
+}
+
+@layer utilities {
+  /* Elevación de card en hover */
+  .card-lift {
+    transition:
+      transform   220ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      box-shadow  220ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+  }
+  .card-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Animación en cascada para grids/listas */
+  .stagger-in > * {
+    animation: fadeSlideUp 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    opacity: 0;
+  }
+  .stagger-in > *:nth-child(1) { animation-delay:   0ms; }
+  .stagger-in > *:nth-child(2) { animation-delay:  65ms; }
+  .stagger-in > *:nth-child(3) { animation-delay: 130ms; }
+  .stagger-in > *:nth-child(4) { animation-delay: 195ms; }
+  .stagger-in > *:nth-child(5) { animation-delay: 260ms; }
+  .stagger-in > *:nth-child(6) { animation-delay: 325ms; }
+  .stagger-in > *:nth-child(n+7) { animation-delay: 390ms; }
+
+  /* Status dot reutilizable */
+  .status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-dot-live {
+    animation: statusPulse 2.5s ease-in-out infinite;
+  }
+
+  /* Hover de fila en tabla con acento izquierdo */
+  .table-row-hover {
+    transition: background 130ms ease;
+    position: relative;
+  }
+  .table-row-hover:hover {
+    background: rgba(0, 168, 232, 0.045);
+  }
+  .table-row-hover:hover td:first-child {
+    box-shadow: inset 2px 0 0 rgba(0, 168, 232, 0.5);
+  }
+}
+
+/* Progress bar: animación de relleno desde el lado izquierdo */
+@keyframes progressBarIn {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.progress-bar-animated {
+  transform-origin: left;
+  animation: progressBarIn 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.35s both;
+}
+
+/* Select nativo: apariencia consistente con la paleta */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234A5568' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  padding-right: 1.75rem !important;
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+select:focus {
+  outline: none;
+  border-color: rgba(0, 168, 232, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(0, 168, 232, 0.12) !important;
+}
+select:hover {
+  border-color: rgba(0, 168, 232, 0.4) !important;
+}
+
+/* Input focus glow con paleta Oro Azul */
+[data-slot="input"]:focus-visible {
+  border-color: rgba(0, 168, 232, 0.65) !important;
+  box-shadow: 0 0 0 3px rgba(0, 168, 232, 0.14), 0 1px 6px rgba(0, 86, 145, 0.08) !important;
+  outline: none !important;
+}
+
+/* Hover de items de navegación en sidebar */
+.sidebar-nav-inactive:hover {
+  background: rgba(0, 168, 232, 0.09) !important;
+  border-color: rgba(0, 168, 232, 0.15) !important;
+}
+
+/* Acento izquierdo en todas las filas de tabla al hacer hover */
+[data-slot="table-row"]:hover [data-slot="table-cell"]:first-child {
+  box-shadow: inset 2px 0 0 rgba(0, 168, 232, 0.45);
+  transition: box-shadow 130ms ease;
+}
+[data-slot="table-cell"] {
+  transition: box-shadow 130ms ease;
+}
+
+/* DropdownMenu: entrada más suave */
+[data-slot="dropdown-menu-content"],
+[data-radix-popper-content-wrapper] > [role="menu"] {
+  animation: scaleIn 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin, top left);
+}
+
+/* Dialog overlay: fade más suave */
+[data-slot="dialog-overlay"] {
+  animation: fadeIn 0.2s ease forwards;
+}
+[data-slot="dialog-content"] {
+  animation: scaleIn 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Sheet: entrada desde el lateral más suave */
+[data-slot="sheet-content"][data-side="right"] {
+  transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+}
+[data-slot="sheet-content"][data-side="left"] {
+  transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
 }

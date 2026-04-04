@@ -96,7 +96,7 @@ const StatCard = memo(function StatCard({
 
   return (
     <div
-      className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-200"
+      className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm card-lift"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
@@ -131,7 +131,7 @@ const ClientItem = memo(function ClientItem({ client, showStatus, status }: {
   const statusConfig = status ? getPaymentStatusConfig(status) : null
 
   return (
-    <div className="flex items-center gap-3 py-2">
+    <div className="flex items-center gap-3 py-2 px-1 rounded-lg transition-colors duration-150 hover:bg-slate-50">
       <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0">
         <span className="text-xs font-medium text-slate-500">{initials}</span>
       </div>
@@ -240,7 +240,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4 stagger-in">
         <StatCard
           title="Clientes"
           value={stats?.totalClients ?? 0}
@@ -314,7 +314,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
       {!isEmployee && (
         <div className="grid gap-4 lg:grid-cols-3">
           {/* Revenue */}
-          <Card className="border-slate-100 shadow-sm">
+          <Card className="border-slate-100 shadow-sm card-lift">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-emerald-500" />
@@ -333,7 +333,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                 </div>
                 <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-emerald-500 rounded-full transition-all"
+                    className="h-full bg-emerald-500 rounded-full progress-bar-animated"
                     style={{
                       width: `${stats?.activeClients
                         ? ((stats.alDiaClients) / stats.activeClients) * 100
@@ -373,10 +373,10 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                           </div>
                         </div>
                         <div className="mt-2 h-1 bg-slate-200 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-emerald-500 rounded-full transition-all"
-                            style={{ 
-                              width: `${group.revenue > 0 ? (group.collected / group.revenue) * 100 : 0}%` 
+                          <div
+                            className="h-full bg-emerald-500 rounded-full progress-bar-animated"
+                            style={{
+                              width: `${group.revenue > 0 ? (group.collected / group.revenue) * 100 : 0}%`
                             }}
                           />
                         </div>
@@ -389,7 +389,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           </Card>
 
           {/* Recent Clients */}
-          <Card className="border-slate-100 shadow-sm">
+          <Card className="border-slate-100 shadow-sm card-lift">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Users className="w-4 h-4 text-slate-400" />
@@ -412,7 +412,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           </Card>
 
           {/* Pending Payments */}
-          <Card className="border-slate-100 shadow-sm">
+          <Card className="border-slate-100 shadow-sm card-lift">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-500" />

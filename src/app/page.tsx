@@ -28,17 +28,24 @@ type ValidView = typeof VALID_VIEWS[number]
 // Loading skeleton for views
 function ViewSkeleton() {
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-10 w-32" />
+        <div className="space-y-1.5">
+          <Skeleton className="h-6 w-44" />
+          <Skeleton className="h-4 w-28" />
+        </div>
+        <Skeleton className="h-9 w-28 rounded-full" />
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4 stagger-in">
         {[...Array(4)].map((_, i) => (
-          <Skeleton key={i} className="h-24 rounded-lg" />
+          <Skeleton key={i} className="h-20 rounded-xl" />
         ))}
       </div>
-      <Skeleton className="h-64 rounded-lg" />
+      <div className="grid gap-4 lg:grid-cols-3 stagger-in">
+        {[...Array(3)].map((_, i) => (
+          <Skeleton key={i} className="h-48 rounded-2xl" />
+        ))}
+      </div>
     </div>
   )
 }
@@ -138,7 +145,9 @@ function Home() {
   return (
     <AppLayout currentView={currentView} onViewChange={handleNavigate}>
       <Suspense fallback={<ViewSkeleton />}>
-        {renderView()}
+        <div key={currentView} className="animate-fade-slide-up">
+          {renderView()}
+        </div>
       </Suspense>
     </AppLayout>
   )

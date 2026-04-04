@@ -129,7 +129,7 @@ const EmployeeCard = memo(function EmployeeCard({
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className={`border-slate-100 shadow-sm transition-shadow duration-200 hover:shadow-md ${
+      <Card className={`border-slate-100 shadow-sm card-lift ${
         !employee.active ? 'opacity-60' : ''
       }`}>
         <CardContent className="p-4">
@@ -666,14 +666,14 @@ export function EmployeesView() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 stagger-in">
         {[
           { title: 'Total activos', value: stats.total, Icon: Users, accent: '#005691' },
           { title: 'Profesores', value: stats.profesores, Icon: Users, accent: '#8b5cf6' },
           { title: 'Administrativos', value: stats.administrativos, Icon: Briefcase, accent: '#00A8E8' },
           { title: 'Limpieza', value: stats.limpieza, Icon: UserCheck, accent: '#10b981' },
         ].map((stat) => (
-          <div key={stat.title} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+          <div key={stat.title} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{stat.title}</p>

@@ -144,14 +144,14 @@ export function BillingView() {
         </div>
       </div>
 
-      <div className="grid gap-3 grid-cols-1 md:grid-cols-3">
-        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+      <div className="grid gap-3 grid-cols-1 md:grid-cols-3 stagger-in">
+        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">ARCA (AFIP)</p>
               <p className="text-sm font-semibold text-slate-900 mt-1">Facturación electrónica</p>
               <div className="flex items-center gap-1.5 mt-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 status-dot-live" />
                 <span className="text-xs text-slate-400">Conectado</span>
               </div>
             </div>
@@ -167,7 +167,7 @@ export function BillingView() {
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Mercado Pago</p>
               <p className="text-sm font-semibold text-slate-900 mt-1">API Gateway</p>
               <div className="flex items-center gap-1.5 mt-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 status-dot-live" />
                 <span className="text-xs text-slate-400">Activo para conciliación</span>
               </div>
             </div>
@@ -260,7 +260,7 @@ export function BillingView() {
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.02 }}
-                      className={`hover:bg-slate-50/50 transition-colors ${sub.isBilled ? 'opacity-60 grayscale-[0.5]' : ''}`}
+                      className={`hover:bg-[rgba(0,168,232,0.04)] transition-colors duration-150 ${sub.isBilled ? 'opacity-60 grayscale-[0.5]' : ''}`}
                     >
                       <TableCell>
                         {!sub.isBilled && (

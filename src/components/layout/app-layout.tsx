@@ -85,6 +85,7 @@ const WaterWavesPattern = () => (
 export function AppLayout({ children, currentView, onViewChange, onNewClient }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
+  const [loadBarKey, setLoadBarKey] = useState(0)
   const { data: session } = useSession()
   const { handleMouseEnter, handleMouseLeave } = useViewPreloader()
 
@@ -158,6 +159,9 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
 
   return (
     <div className="min-h-screen" style={{ background: '#FFFFFF' }}>
+      {/* Barra de progreso al cambiar vista */}
+      {loadBarKey > 0 && <div key={loadBarKey} className="view-load-bar" aria-hidden="true" />}
+
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 
@@ -257,6 +261,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
                   <button
                     key={item.id}
                     onClick={() => {
+                      if (currentView !== item.id) setLoadBarKey(k => k + 1)
                       onViewChange(item.id)
                       setSidebarOpen(false)
                     }}
@@ -266,7 +271,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
                       "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group relative",
                       isActive
                         ? "text-[#005691] shadow-sm"
-                        : "text-slate-600 hover:text-[#005691]"
+                        : "text-slate-600 hover:text-[#005691] sidebar-nav-inactive"
                     )}
                     style={{
                       background: isActive

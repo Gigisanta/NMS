@@ -409,7 +409,7 @@ Expense[date]
 
 ```json
 {
-  "buildCommand": "prisma migrate deploy && prisma generate && npm run build:standalone"
+  "buildCommand": "npx prisma@6.11.1 migrate deploy && npx prisma@6.11.1 generate && next build"
 }
 ```
 

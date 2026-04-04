@@ -1,10 +1,26 @@
 import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { db } from '@/lib/db'
+import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import type { NextAuthOptions } from 'next-auth'
 import type { DefaultSession } from 'next-auth'
 import { getServerSession } from 'next-auth'
+
+// Singleton pattern for Prisma in serverless
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined
+}
+
+function getPrisma(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    })
+  }
+  return globalForPrisma.prisma
+}
+
+const prisma = getPrisma()
 
 // Extend session types
 declare module 'next-auth' {
@@ -57,7 +73,7 @@ export const authOptions: NextAuthOptions = {
         const password = credentials.password as string
 
         try {
-          const user = await db.user.findUnique({
+          const user = await prisma.user.findUnique({
             where: { email: email.toLowerCase() },
           })
 
