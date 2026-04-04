@@ -23,3 +23,7 @@
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
+
+## 2025-05-15 - API Logic Ordering and Caching
+**Learning:** In handlers involving automatic data synchronization (e.g., `ensureSubscriptionsExist` in `/api/subscriptions`), calling the sync logic *inside* `cachedFetch` can skip important side effects if the cache is hit.
+**Action:** Always call data synchronization or "ensure exists" logic *before* the `cachedFetch` call to ensure missing records are created even when serving cached data.
