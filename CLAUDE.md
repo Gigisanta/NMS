@@ -79,10 +79,10 @@ const navigateTo = (view: string) => {
 |-----------|---------|
 | `src/app/page.tsx` | SPA entry - client-side routing |
 | `src/app/api/` | API routes (serverless functions) |
+| `src/auth.ts` | NextAuth config with Prisma singleton |
 | `src/components/modules/` | Business views (lazy-loaded) |
 | `src/components/ui/` | shadcn/ui components |
 | `src/components/layout/` | Layout components (Sidebar, Header) |
-| `src/lib/` | Auth config, Prisma client, utilities |
 | `src/stores/` | Zustand stores |
 | `src/hooks/` | Custom React hooks |
 | `prisma/schema.prisma` | Database schema |
@@ -93,7 +93,7 @@ API routes follow this pattern for data operations:
 
 ```typescript
 // src/app/api/[resource]/route.ts
-import { auth } from '@/lib/auth'
+import { auth } from '@/auth'
 import { z } from 'zod'
 import { NextResponse } from 'next/server'
 
@@ -138,7 +138,27 @@ export async POST(req: Request) {
 - **Strategy**: NextAuth v4 with Credentials provider + bcrypt
 - **Roles**: `EMPLEADORA` (admin), `EMPLEADO` (staff)
 - **Session**: JWT stored in httpOnly cookie (30-day TTL)
-- **Auth Protection**: API routes use `auth()` from `@/lib/auth` for authentication checks
+- **Auth Protection**: API routes use `auth()` from `@/src/auth.ts` for authentication checks
+- **Note**: `src/middleware.ts` is disabled (TypeScript error in serverless). Auth is enforced at API route level.
+
+### Prisma Singleton Pattern
+
+In serverless environments (Vercel), Prisma connections must be singleton to avoid connection pool exhaustion:
+
+```typescript
+// src/auth.ts or src/lib/db.ts
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined }
+function getPrisma(): PrismaClient {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = new PrismaClient({ log: ['error'] })
+  }
+  return globalForPrisma.prisma
+}
+```
+
+### Critical: outputFileTracingRoot
+
+**NEVER add `outputFileTracingRoot` to `next.config.ts`** - it must point to a local path and will cause all serverless functions to fail in production (500 errors). The build system handles tracing automatically.
 
 ## Database Schema (Prisma)
 
@@ -239,8 +259,18 @@ If data is lost:
 ## Seed Data
 
 The seed script creates:
-- 2 users: mariela@nms.com (EMPLEADORA), tomas@nms.com (EMPLEADO)
+- 2 users: mariela@nms.com (EMPLEADORA, password: mariela123), tomas@nms.com (EMPLEADO, password: tomas123)
 - 4 pricing plans (Mensual 4/8/12 clases, individual)
 - Business settings (currency: ARS, timezone: America/Argentina/Cordoba)
 
 **⚠️ WARNING: `npm run db:seed` overwrites all existing data. Only use on development databases!**
+
+## File Locations
+
+| File | Location |
+|------|----------|
+| NextAuth config | `src/auth.ts` (NOT `src/lib/auth.ts`) |
+| Prisma schema | `prisma/schema.prisma` |
+| Prisma seed | `bun run prisma/seed.ts` |
+| Migration folder | `prisma/migrations/` |
+| Production DB | Neon (`ep-lively-breeze-a4lvgwtw-pooler.us-east-1.aws.neon.tech`) |
