@@ -176,6 +176,7 @@ export async function POST(request: NextRequest) {
         issueDate: data.issueDate ? new Date(data.issueDate) : null,
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
         type: data.type,
+        status: 'PENDING',
         category: data.category || null,
         description: data.description || null,
         source: data.source,
