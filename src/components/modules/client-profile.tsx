@@ -305,6 +305,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         })
       }
 
+      toast.success('Cambios guardados correctamente')
       onSaved()
     } catch (error) {
       console.error('Error saving client:', error)
@@ -441,8 +442,34 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[400px]">
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
+      <div className="flex flex-col h-full">
+        {/* Header skeleton */}
+        <div className="p-4 border-b shrink-0 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-slate-100 animate-pulse shrink-0" />
+            <div className="space-y-1.5 flex-1">
+              <div className="h-5 w-40 bg-slate-100 rounded animate-pulse" />
+              <div className="h-4 w-24 bg-slate-100 rounded animate-pulse" />
+            </div>
+            <div className="h-8 w-20 bg-slate-100 rounded animate-pulse shrink-0" />
+          </div>
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="h-9 w-24 bg-slate-100 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        </div>
+        {/* Content skeleton */}
+        <div className="flex-1 p-4 space-y-4">
+          <div className="rounded-xl border border-slate-100 p-4 space-y-3">
+            <div className="h-4 w-32 bg-slate-100 rounded animate-pulse" />
+            <div className="grid grid-cols-2 gap-3">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
