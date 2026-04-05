@@ -254,7 +254,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-2 sm:gap-3 grid-cols-2 md:grid-cols-4 stagger-in">
+      <div className="grid gap-2 sm:gap-3 grid-cols-2 md:grid-cols-5 stagger-in">
         <StatCard
           title="Clientes"
           value={stats?.totalClients ?? 0}
@@ -275,6 +275,13 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           Icon={Clock}
           trend="Por cobrar"
           accent="#f59e0b"
+        />
+        <StatCard
+          title="Morosos"
+          value={stats?.overduePayments ?? 0}
+          Icon={AlertTriangle}
+          trend="+10 días"
+          accent="#ef4444"
         />
         <StatCard
           title="Hoy"
