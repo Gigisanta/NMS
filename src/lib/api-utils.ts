@@ -19,6 +19,7 @@ const cache = new Map<string, CacheEntry<unknown>>()
 export const CacheKeys = {
   groups: () => 'groups:all',
   clients: (params: Record<string, string>) => `clients:${JSON.stringify(params)}`,
+  subscriptions: (params: Record<string, string>) => `subscriptions:${JSON.stringify(params)}`,
   client: (id: string) => `client:${id}`,
   dashboard: () => 'dashboard:stats',
   attendanceToday: () => `attendance:today`,

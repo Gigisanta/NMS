@@ -38,7 +38,8 @@ export async function PUT(
       data: updateData,
     })
 
-    // BOLT: Invalidate clients and dashboard cache when subscription changes
+    // BOLT: Invalidate subscriptions, clients and dashboard cache when subscription changes
+    invalidateCachePattern('subscriptions')
     invalidateClientCache()
     invalidateCachePattern('dashboard')
 
