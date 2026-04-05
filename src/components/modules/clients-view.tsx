@@ -23,6 +23,7 @@ import { formatFullName, getPaymentStatusConfig, cn } from '@/lib/utils'
 import { useDebounce } from '@/hooks/use-optimized'
 import { useAppStore } from '@/store'
 import { Plus, Search, Loader2, ChevronLeft, ChevronRight, Send, FileCheck, Users } from 'lucide-react'
+import { toast } from 'sonner'
 import type { Client } from '@/types'
 
 interface Group {
@@ -281,9 +282,14 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
       if (result.success) {
         invalidateDashboard?.()
         setClients(prev => prev.filter(c => c.id !== id))
+        setTotalClients(prev => Math.max(0, prev - 1))
+        toast.success('Cliente eliminado')
+      } else {
+        toast.error(result.error || 'Error al eliminar cliente')
       }
     } catch (err) {
       console.error('Error deleting client:', err)
+      toast.error('Error de conexión')
     } finally {
       setDeletingId(null)
     }
@@ -299,9 +305,12 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
       if (res.ok) {
         invalidateDashboard?.()
         setClients(prev => prev.map(c => c.id === clientId ? { ...c, grupoId } as Client : c))
+      } else {
+        toast.error('Error al cambiar grupo')
       }
     } catch (err) {
       console.error('Group change error:', err)
+      toast.error('Error de conexión')
     }
   }, [invalidateDashboard])
 
