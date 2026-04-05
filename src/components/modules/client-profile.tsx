@@ -31,6 +31,7 @@ import { ScheduleSelector } from './schedule-selector'
 import { InvoiceUpload } from './invoice-upload'
 import { cn } from '@/lib/utils'
 import { formatFullName, getPaymentStatusConfig, formatDate, formatTime } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface Group {
   id: string
@@ -190,6 +191,10 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [savingFee1, setSavingFee1] = useState(false)
+  const [savingFee2, setSavingFee2] = useState(false)
+  const [uploadingFee1, setUploadingFee1] = useState(false)
+  const [uploadingFee2, setUploadingFee2] = useState(false)
   
   // Form state
   const [formData, setFormData] = useState({
@@ -795,29 +800,39 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
+                    disabled={savingFee1}
+                    onClick={async () => {
                       const newValue = !formData.registrationFeePaid1
                       setFormData(prev => ({ ...prev, registrationFeePaid1: newValue }))
-                      // Save immediately
-                      fetch(`/api/clients/${clientId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ registrationFeePaid1: newValue }),
-                      })
+                      setSavingFee1(true)
+                      try {
+                        const res = await fetch(`/api/clients/${clientId}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ registrationFeePaid1: newValue }),
+                        })
+                        const result = await res.json()
+                        if (!result.success) {
+                          setFormData(prev => ({ ...prev, registrationFeePaid1: !newValue }))
+                          toast.error('Error al guardar cuota 1')
+                        }
+                      } catch {
+                        setFormData(prev => ({ ...prev, registrationFeePaid1: !newValue }))
+                        toast.error('Error de conexión')
+                      } finally {
+                        setSavingFee1(false)
+                      }
                     }}
                     className={cn(
                       'relative inline-flex h-8 w-14 items-center rounded-full transition-all',
-                      formData.registrationFeePaid1
-                        ? 'bg-emerald-500'
-                        : 'bg-amber-400'
+                      savingFee1 ? 'opacity-60 cursor-not-allowed' : '',
+                      formData.registrationFeePaid1 ? 'bg-emerald-500' : 'bg-amber-400'
                     )}
                   >
-                    <span
-                      className={cn(
-                        'inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all',
-                        formData.registrationFeePaid1 ? 'translate-x-7' : 'translate-x-1'
-                      )}
-                    />
+                    {savingFee1
+                      ? <Loader2 className="w-4 h-4 animate-spin text-white mx-auto" />
+                      : <span className={cn('inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all', formData.registrationFeePaid1 ? 'translate-x-7' : 'translate-x-1')} />
+                    }
                   </button>
                 </div>
 
@@ -837,14 +852,14 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                   <Button
                     variant="outline"
                     size="sm"
+                    disabled={uploadingFee1}
                     onClick={() => {
-                      // Trigger file input for this specific cuota
                       const input = document.getElementById('inscription-receipt-1') as HTMLInputElement
                       if (input) input.click()
                     }}
                     className="gap-2"
                   >
-                    <Upload className="w-4 h-4" />
+                    {uploadingFee1 ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                     {clientInvoices.filter(inv => inv.category === 'INSCRIPCION_CUOTA1').length > 0 ? 'Cambiar' : 'Subir'}
                   </Button>
                   <input
@@ -855,25 +870,27 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                     onChange={async (e) => {
                       const file = e.target.files?.[0]
                       if (!file) return
-
-                      const formDataUpload = new FormData()
-                      formDataUpload.append('file', file)
-                      formDataUpload.append('clientId', clientId)
-                      formDataUpload.append('type', 'RECEIPT')
-                      formDataUpload.append('category', 'INSCRIPCION_CUOTA1')
-                      formDataUpload.append('description', 'Comprobante cuota 1 inscripción')
-
+                      setUploadingFee1(true)
+                      const fd = new FormData()
+                      fd.append('file', file)
+                      fd.append('clientId', clientId)
+                      fd.append('type', 'RECEIPT')
+                      fd.append('category', 'INSCRIPCION_CUOTA1')
+                      fd.append('description', 'Comprobante cuota 1 inscripción')
                       try {
-                        const response = await fetch('/api/invoices', {
-                          method: 'POST',
-                          body: formDataUpload,
-                        })
-                        const result = await response.json()
+                        const res = await fetch('/api/invoices', { method: 'POST', body: fd })
+                        const result = await res.json()
                         if (result.success) {
+                          toast.success('Comprobante subido')
                           fetchClient()
+                        } else {
+                          toast.error(result.error || 'Error al subir comprobante')
                         }
-                      } catch (error) {
-                        console.error('Error uploading receipt:', error)
+                      } catch {
+                        toast.error('Error de conexión')
+                      } finally {
+                        setUploadingFee1(false)
+                        e.target.value = ''
                       }
                     }}
                   />
@@ -930,29 +947,39 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
+                    disabled={savingFee2}
+                    onClick={async () => {
                       const newValue = !formData.registrationFeePaid2
                       setFormData(prev => ({ ...prev, registrationFeePaid2: newValue }))
-                      // Save immediately
-                      fetch(`/api/clients/${clientId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ registrationFeePaid2: newValue }),
-                      })
+                      setSavingFee2(true)
+                      try {
+                        const res = await fetch(`/api/clients/${clientId}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ registrationFeePaid2: newValue }),
+                        })
+                        const result = await res.json()
+                        if (!result.success) {
+                          setFormData(prev => ({ ...prev, registrationFeePaid2: !newValue }))
+                          toast.error('Error al guardar cuota 2')
+                        }
+                      } catch {
+                        setFormData(prev => ({ ...prev, registrationFeePaid2: !newValue }))
+                        toast.error('Error de conexión')
+                      } finally {
+                        setSavingFee2(false)
+                      }
                     }}
                     className={cn(
                       'relative inline-flex h-8 w-14 items-center rounded-full transition-all',
-                      formData.registrationFeePaid2
-                        ? 'bg-emerald-500'
-                        : 'bg-amber-400'
+                      savingFee2 ? 'opacity-60 cursor-not-allowed' : '',
+                      formData.registrationFeePaid2 ? 'bg-emerald-500' : 'bg-amber-400'
                     )}
                   >
-                    <span
-                      className={cn(
-                        'inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all',
-                        formData.registrationFeePaid2 ? 'translate-x-7' : 'translate-x-1'
-                      )}
-                    />
+                    {savingFee2
+                      ? <Loader2 className="w-4 h-4 animate-spin text-white mx-auto" />
+                      : <span className={cn('inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all', formData.registrationFeePaid2 ? 'translate-x-7' : 'translate-x-1')} />
+                    }
                   </button>
                 </div>
 
@@ -972,14 +999,14 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                   <Button
                     variant="outline"
                     size="sm"
+                    disabled={uploadingFee2}
                     onClick={() => {
-                      // Trigger file input for this specific cuota
                       const input = document.getElementById('inscription-receipt-2') as HTMLInputElement
                       if (input) input.click()
                     }}
                     className="gap-2"
                   >
-                    <Upload className="w-4 h-4" />
+                    {uploadingFee2 ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                     {clientInvoices.filter(inv => inv.category === 'INSCRIPCION_CUOTA2').length > 0 ? 'Cambiar' : 'Subir'}
                   </Button>
                   <input
@@ -990,25 +1017,27 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                     onChange={async (e) => {
                       const file = e.target.files?.[0]
                       if (!file) return
-
-                      const formDataUpload = new FormData()
-                      formDataUpload.append('file', file)
-                      formDataUpload.append('clientId', clientId)
-                      formDataUpload.append('type', 'RECEIPT')
-                      formDataUpload.append('category', 'INSCRIPCION_CUOTA2')
-                      formDataUpload.append('description', 'Comprobante cuota 2 inscripción')
-
+                      setUploadingFee2(true)
+                      const fd = new FormData()
+                      fd.append('file', file)
+                      fd.append('clientId', clientId)
+                      fd.append('type', 'RECEIPT')
+                      fd.append('category', 'INSCRIPCION_CUOTA2')
+                      fd.append('description', 'Comprobante cuota 2 inscripción')
                       try {
-                        const response = await fetch('/api/invoices', {
-                          method: 'POST',
-                          body: formDataUpload,
-                        })
-                        const result = await response.json()
+                        const res = await fetch('/api/invoices', { method: 'POST', body: fd })
+                        const result = await res.json()
                         if (result.success) {
+                          toast.success('Comprobante subido')
                           fetchClient()
+                        } else {
+                          toast.error(result.error || 'Error al subir comprobante')
                         }
-                      } catch (error) {
-                        console.error('Error uploading receipt:', error)
+                      } catch {
+                        toast.error('Error de conexión')
+                      } finally {
+                        setUploadingFee2(false)
+                        e.target.value = ''
                       }
                     }}
                   />

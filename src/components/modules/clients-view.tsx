@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, memo } from 'react'
+import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -137,12 +137,13 @@ const ClientTableRow = memo(({
         }
       </TableCell>
       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-end items-center gap-1.5">
+        <div className="flex justify-end items-center gap-1">
           {isLate && client.telefono && (
             <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs text-amber-600 border-amber-200 hover:bg-amber-50 hidden sm:inline-flex"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-amber-500 hover:text-amber-700 hover:bg-amber-50"
+              title="Recordar pago por WhatsApp"
               onClick={() => {
                 window.open(
                   `https://wa.me/${client.telefono!.replace(/\D/g, '')}?text=Hola%20${encodeURIComponent(client.nombre)},%20te%20recordamos%20que%20el%20pago%20de%20la%20cuota%20está%20pendiente.%20¡Muchas%20gracias!`,
@@ -150,18 +151,18 @@ const ClientTableRow = memo(({
                 )
               }}
             >
-              <Send className="w-3 h-3 mr-1" />
-              Recordar
+              <Send className="w-4 h-4" />
             </Button>
           )}
           <Button
             variant="ghost"
-            size="sm"
-            className="h-8 text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
+            size="icon"
+            className="h-9 w-9 text-red-400 hover:text-red-600 hover:bg-red-50"
+            title="Eliminar cliente"
             onClick={() => onDelete(client.id)}
             disabled={isDeleting}
           >
-            {isDeleting ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Eliminar'}
+            {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <span className="text-xs font-medium">✕</span>}
           </Button>
         </div>
       </TableCell>
@@ -184,7 +185,8 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [groups, setGroups] = useState<Group[]>([])
-  const [groupsLastFetch, setGroupsLastFetch] = useState(0)
+  const groupsLastFetchRef = useRef(0)
+  const [groupsVersion, setGroupsVersion] = useState(0)
 
   const setStoreGroups = useAppStore((state: any) => state.setGroups)
   const invalidateDashboard = useAppStore((state: any) => state.invalidateDashboard)
@@ -199,20 +201,25 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
     }
   }, [openNewClient, onNewClientHandled])
 
+  const refreshGroups = useCallback(() => {
+    groupsLastFetchRef.current = 0
+    setGroupsVersion(v => v + 1)
+  }, [])
+
   const fetchGroups = useCallback(async () => {
-    if (Date.now() - groupsLastFetch < 5 * 60 * 1000) return
+    if (Date.now() - groupsLastFetchRef.current < 5 * 60 * 1000) return
     try {
       const res = await fetch('/api/groups')
       const result = await res.json()
       if (result.success) {
         setGroups(result.data)
         setStoreGroups?.(result.data)
-        setGroupsLastFetch(Date.now())
+        groupsLastFetchRef.current = Date.now()
       }
     } catch (err) {
       console.error('Error fetching groups:', err)
     }
-  }, [groupsLastFetch, setStoreGroups])
+  }, [setStoreGroups])
 
   const fetchClients = useCallback(async () => {
     setLoading(true)
@@ -245,14 +252,10 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
     fetchClients()
   }, [fetchClients])
 
-  // Initial groups fetch
-  useEffect(() => {
-    setGroupsLastFetch(0) // force fetch on mount
-  }, [])
-
+  // Fetch groups when version changes (or on mount)
   useEffect(() => {
     fetchGroups()
-  }, [groupsLastFetch])
+  }, [fetchGroups, groupsVersion])
 
   const handleClientClick = useCallback((client: Client) => {
     setSelectedClientId(client.id)
@@ -267,8 +270,8 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
     setShowForm(false)
     invalidateDashboard?.()
     fetchClients()
-    setGroupsLastFetch(0)
-  }, [fetchClients, invalidateDashboard])
+    refreshGroups()
+  }, [fetchClients, invalidateDashboard, refreshGroups])
 
   const handleDelete = useCallback(async (id: string) => {
     setDeletingId(id)
@@ -357,7 +360,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
               ))}
             </div>
           </div>
-          <GroupManager groups={groups} onGroupsChange={() => setGroupsLastFetch(0)} />
+          <GroupManager groups={groups} onGroupsChange={() => refreshGroups()} />
         </aside>
 
         {/* Main table card */}
