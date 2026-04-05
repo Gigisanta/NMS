@@ -13,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   CreditCard,
@@ -32,6 +31,7 @@ import { useAppStore } from '@/store'
 import { ReceiptUploadDialog } from './payments/receipt-upload-dialog'
 import { formatCurrency } from '@/lib/utils'
 import { queryClient } from '@/lib/queryClient'
+import { toast } from 'sonner'
 
 
 interface Group {
@@ -116,11 +116,15 @@ export function PaymentsView() {
         setSubscriptions(prev =>
           prev.map(s => s.id === subscriptionId ? { ...s, status: newStatus, paymentMethod: paymentMethod || s.paymentMethod } : s)
         )
-        // Invalidar caché de TanStack Query para actualizar dashboard instantáneamente
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+        if (newStatus === 'AL_DIA') {
+          toast.success(`Pago registrado (${paymentMethod === 'EFECTIVO' ? 'Efectivo' : 'Transferencia'})`)
+        }
+      } else {
+        toast.error(result.error || 'Error al actualizar el estado')
       }
     } catch (error) {
-      console.error('Error updating subscription:', error)
+      toast.error('Error de conexión')
     } finally {
       setUpdating(null)
     }
@@ -269,9 +273,9 @@ export function PaymentsView() {
               </div>
             </div>
           ) : (
-            <ScrollArea className="h-[300px] sm:h-[calc(100vh-450px)] sm:min-h-[400px]">
+            <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="sticky top-0 bg-slate-50/95 backdrop-blur z-10">
+                <TableHeader className="bg-slate-50">
                   <TableRow>
                     <TableHead>Cliente</TableHead>
                     <TableHead className="hidden sm:table-cell">Grupo</TableHead>
@@ -398,7 +402,7 @@ export function PaymentsView() {
                   </AnimatePresence>
                 </TableBody>
               </Table>
-            </ScrollArea>
+            </div>
           )}
         </CardContent>
       </Card>

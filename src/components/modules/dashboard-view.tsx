@@ -132,8 +132,11 @@ const ClientItem = memo(function ClientItem({ client, showStatus, status }: {
 
   return (
     <div className="flex items-center gap-3 py-2 px-1 rounded-lg transition-colors duration-150 hover:bg-slate-50">
-      <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0">
-        <span className="text-xs font-medium text-slate-500">{initials}</span>
+      <div
+        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xs font-semibold"
+        style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}
+      >
+        {initials}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-slate-700 truncate">{fullName}</p>
@@ -227,16 +230,27 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
           <p className="text-sm text-slate-500">{monthLabel}</p>
         </div>
-        <Button 
-          onClick={() => handleNavigate('clientes')} 
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-        >
-          <Users className="w-4 h-4" />
-          Ver Clientes
-          <ArrowRight className="w-3 h-3" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => handleNavigate('asistencias')}
+            size="sm"
+            className="gap-1.5 text-white"
+            style={{ background: '#005691' }}
+          >
+            <Calendar className="w-4 h-4" />
+            <span className="hidden sm:inline">Asistencias</span>
+          </Button>
+          <Button
+            onClick={() => handleNavigate('clientes')}
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+          >
+            <Users className="w-4 h-4" />
+            <span className="hidden sm:inline">Clientes</span>
+            <ArrowRight className="w-3 h-3" />
+          </Button>
+        </div>
       </div>
 
       {/* Stats Grid */}

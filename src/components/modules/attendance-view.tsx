@@ -385,8 +385,30 @@ export function AttendanceView() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-2">
+            <div className="h-6 w-32 bg-slate-100 rounded animate-pulse" />
+            <div className="h-4 w-52 bg-slate-100 rounded animate-pulse" />
+          </div>
+          <div className="h-10 w-56 bg-slate-100 rounded-lg animate-pulse" />
+        </div>
+        <div className="h-10 w-full bg-slate-100 rounded-lg animate-pulse" />
+        <div className="rounded-xl border border-slate-100 overflow-hidden bg-white shadow-sm">
+          <div className="p-3 border-b bg-slate-50 grid grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-4 bg-slate-200 rounded animate-pulse" />)}
+          </div>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 p-3 border-b border-slate-50">
+              <div className="w-8 h-8 rounded-full bg-slate-100 animate-pulse shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <div className="h-3.5 w-36 bg-slate-100 rounded animate-pulse" />
+                <div className="h-3 w-20 bg-slate-100 rounded animate-pulse sm:hidden" />
+              </div>
+              <div className="ml-auto w-16 h-8 bg-slate-100 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
