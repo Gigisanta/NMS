@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server'
 
 vi.mock('@/lib/db', () => ({
   db: {
-    subscription: { findMany: vi.fn(), findUnique: vi.fn(), update: vi.fn(), create: vi.fn() },
+    subscription: { findMany: vi.fn(), findUnique: vi.fn(), update: vi.fn(), create: vi.fn(), createMany: vi.fn() },
     client: { findMany: vi.fn(), findUnique: vi.fn() },
     settings: { findUnique: vi.fn() },
     $transaction: vi.fn(),
@@ -12,7 +12,10 @@ vi.mock('@/lib/db', () => ({
 
 vi.mock('@/lib/api-utils', () => ({
   cachedFetch: vi.fn((_k, fetcher) => fetcher()),
-  CacheKeys: { dashboard: () => 'dashboard:stats' },
+  CacheKeys: {
+    dashboard: () => 'dashboard:stats',
+    subscriptions: (p: any) => `subscriptions:${JSON.stringify(p)}`
+  },
   invalidateCache: vi.fn(),
   invalidateCachePattern: vi.fn(),
   invalidateClientCache: vi.fn(),
@@ -53,13 +56,13 @@ describe('API /subscriptions', () => {
     })
 
     it('should create missing subscriptions when ensureSubsExist is called', async () => {
-      vi.mocked(db.client.findMany).mockResolvedValue([{ id: 'client-1' }])
+      vi.mocked(db.client.findMany).mockResolvedValue([{ id: 'client-1', monthlyAmount: 5000 }])
       vi.mocked(db.subscription.findMany).mockResolvedValue([])
       vi.mocked(db.settings.findUnique).mockResolvedValue(null)
-      vi.mocked(db.$transaction).mockResolvedValue([])
+      vi.mocked(db.subscription.createMany).mockResolvedValue({ count: 1 })
       const response = await getSubscriptions(createRequest('/api/subscriptions?month=5&year=2026'))
       expect(response.status).toBe(200)
-      expect(db.$transaction).toHaveBeenCalled()
+      expect(db.subscription.createMany).toHaveBeenCalled()
     })
   })
 })

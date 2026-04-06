@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
+import { invalidateClientCache } from '@/lib/api-utils'
 import { z } from 'zod'
 
 const billingSchema = z.object({
@@ -60,6 +61,9 @@ export async function POST(request: NextRequest) {
         }),
       },
     })
+
+    // BOLT OPTIMIZATION: Invalidate client-related caches (including subscriptions) after bulk billing update
+    invalidateClientCache()
 
     return NextResponse.json({
       success: true,
