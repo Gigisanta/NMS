@@ -4,7 +4,7 @@ import { invalidateCachePattern, invalidateClientCache } from '@/lib/api-utils'
 import { z } from 'zod'
 
 const updateSubscriptionSchema = z.object({
-  status: z.enum(['AL_DIA', 'PENDIENTE', 'SUSPENDIDO', 'CANCELADO']).optional(),
+  status: z.enum(['AL_DIA', 'PENDIENTE', 'DEUDOR', 'SUSPENDIDO', 'CANCELADO']).optional(),
   classesTotal: z.number().int().min(0).optional(),
   classesUsed: z.number().int().min(0).optional(),
   amount: z.number().min(0).nullable().optional(),
@@ -48,8 +48,9 @@ export async function PUT(
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
       return NextResponse.json(
-        { success: false, error: 'Datos inválidos', details: error.issues },
+        { success: false, error: firstError?.message || 'Datos inválidos' },
         { status: 400 }
       )
     }

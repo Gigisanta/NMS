@@ -417,7 +417,7 @@ function GroupCreateForm({
         <Button
           size="sm"
           onClick={onSave}
-          disabled={!value.name.trim() || saving}
+          disabled={!value.name.trim() || value.name.trim().length < 2 || saving}
         >
           {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Crear'}
         </Button>

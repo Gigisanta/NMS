@@ -120,8 +120,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
       return NextResponse.json(
-        { success: false, error: 'Datos inválidos', details: error.issues },
+        { success: false, error: firstError?.message || 'Datos inválidos' },
         { status: 400 }
       )
     }

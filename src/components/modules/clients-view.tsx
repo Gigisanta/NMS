@@ -53,6 +53,7 @@ const ClientTableRow = memo(({
   groups,
   onClientClick,
   onGroupChange,
+  onGroupsRefresh,
   onDelete,
   isDeleting,
 }: {
@@ -60,6 +61,7 @@ const ClientTableRow = memo(({
   groups: Group[]
   onClientClick: (client: Client) => void
   onGroupChange: (clientId: string, grupoId: string | null) => void
+  onGroupsRefresh: () => void
   onDelete: (id: string) => void
   isDeleting: boolean
 }) => {
@@ -103,6 +105,7 @@ const ClientTableRow = memo(({
           value={(client as any).grupoId}
           onChange={(grupoId) => onGroupChange(client.id, grupoId)}
           groups={groups}
+          onGroupsChange={onGroupsRefresh}
         />
       </TableCell>
       <TableCell className="hidden md:table-cell" onClick={(e) => e.stopPropagation()}>
@@ -460,6 +463,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
                             groups={groups}
                             onClientClick={handleClientClick}
                             onGroupChange={handleGroupChange}
+                            onGroupsRefresh={refreshGroups}
                             onDelete={setConfirmDeleteId}
                             isDeleting={deletingId === client.id}
                           />
