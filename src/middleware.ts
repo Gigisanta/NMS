@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const config = {
   runtime: 'nodejs',
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|login|register).*)'],
 }
 
 export default function middleware(request: NextRequest) {
