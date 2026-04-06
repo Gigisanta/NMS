@@ -5,10 +5,10 @@ import { z } from 'zod'
 import { ratelimit } from '@/lib/rate-limit'
 
 const createGroupSchema = z.object({
-  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-  description: z.string().optional(),
-  schedule: z.string().optional(),
+  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres').max(50, 'Máximo 50 caracteres'),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').default('#06b6d4'),
+  description: z.string().max(200).optional().nullable(),
+  schedule: z.string().max(100).optional().nullable(),
 })
 
 // GET /api/groups - List all groups with client counts
@@ -93,9 +93,9 @@ export async function POST(request: NextRequest) {
     const group = await db.group.create({
       data: {
         name: validated.name,
-        color: validated.color || '#06b6d4',
-        description: validated.description,
-        schedule: validated.schedule,
+        color: validated.color ?? '#06b6d4',
+        ...(validated.description !== undefined && { description: validated.description ?? null }),
+        ...(validated.schedule !== undefined && { schedule: validated.schedule ?? null }),
       },
       select: {
         id: true,

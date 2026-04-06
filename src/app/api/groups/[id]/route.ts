@@ -83,9 +83,10 @@ export async function PUT(
     })
   } catch (error) {
     console.error('Error updating group:', error)
-    if (error instanceof Error && error.name === 'ZodError') {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
       return NextResponse.json(
-        { success: false, error: 'Datos inválidos' },
+        { success: false, error: firstError?.message || 'Datos inválidos' },
         { status: 400 }
       )
     }
