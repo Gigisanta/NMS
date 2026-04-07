@@ -141,7 +141,7 @@ export async function GET() {
     // BOLT OPTIMIZATION: Aggregate collected revenue in-memory (O(N) where N is paid subscriptions)
     const collectedByGroup = collectedSubscriptions.reduce((acc, sub) => {
       const gId = sub.client?.grupoId || 'ungrouped'
-      acc[gId] = (acc[gId] || 0) + Number(sub.amount || 0)
+      acc[gId] = (acc[gId] || 0) + (sub.amount?.toNumber() ?? 0)
       return acc
     }, {} as Record<string, number>)
 

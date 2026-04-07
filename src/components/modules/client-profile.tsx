@@ -294,7 +294,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
       )
 
       if (subscription) {
-        await fetch(`/api/subscriptions/${subscription.id}`, {
+        const subResponse = await fetch(`/api/subscriptions/${subscription.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -303,13 +303,17 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             amount: formData.amount,
           }),
         })
+        const subResult = await subResponse.json()
+        if (!subResult.success) {
+          throw new Error(subResult.error || 'Error al actualizar la suscripción')
+        }
       }
 
       toast.success('Cambios guardados correctamente')
       onSaved()
     } catch (error) {
       console.error('Error saving client:', error)
-      setError('Error de conexión')
+      setError(error instanceof Error ? error.message : 'Error de conexión')
     } finally {
       setSaving(false)
     }

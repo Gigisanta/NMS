@@ -372,7 +372,7 @@ export function PaymentsView() {
                                 </>
                               ) : (
                                 <Badge variant="outline" className="h-8 text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
-                                  Pagado ({sub.paymentMethod === 'EFECTIVO' ? 'Efe' : 'Transf'})
+                                  Pagado ({sub.paymentMethod === 'EFECTIVO' ? 'Efe' : sub.paymentMethod === 'TRANSFERENCIA' ? 'Transf' : '?'})
                                 </Badge>
                               )}
 
@@ -414,10 +414,12 @@ export function PaymentsView() {
         <ReceiptUploadDialog
           open={isReceiptOpen}
           onClose={() => setIsReceiptOpen(false)}
-          onSuccess={() => {
-            setIsReceiptOpen(false)
-            handleStatusChange(pendingSub.id, 'AL_DIA', 'TRANSFERENCIA')
-            setPendingSub(null)
+          onSuccess={(invoiceId) => {
+            if (invoiceId) {
+              setIsReceiptOpen(false)
+              handleStatusChange(pendingSub.id, 'AL_DIA', 'TRANSFERENCIA')
+              setPendingSub(null)
+            }
           }}
           clientId={pendingSub.client.id}
           subscriptionId={pendingSub.id}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { auth } from '@/auth'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
 
 async function ensureSubscriptionsExist(month: number, year: number) {
@@ -43,6 +44,14 @@ async function ensureSubscriptionsExist(month: number, year: number) {
 // GET /api/subscriptions - Get subscriptions with filters
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, error: 'No autorizado' },
+        { status: 401 }
+      )
+    }
+
     const searchParams = request.nextUrl.searchParams
     const clientId = searchParams.get('clientId')
     const month = searchParams.get('month') ? parseInt(searchParams.get('month')!) : getCurrentMonth()

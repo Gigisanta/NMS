@@ -68,6 +68,12 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error processing billing:', error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: error.issues[0]?.message || 'Datos invalidos' },
+        { status: 400 }
+      )
+    }
     return NextResponse.json(
       { success: false, error: 'Error al procesar facturación' },
       { status: 500 }

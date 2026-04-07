@@ -47,7 +47,7 @@ export async function PUT(
       data: subscription,
     })
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof z.ZodError && error.issues.length > 0) {
       const firstError = error.issues[0]
       return NextResponse.json(
         { success: false, error: firstError?.message || 'Datos inválidos' },

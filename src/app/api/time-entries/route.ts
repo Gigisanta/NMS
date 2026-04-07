@@ -64,9 +64,13 @@ export async function GET(request: NextRequest) {
         if (isTodayEntry) todayEntries.push(entry)
 
         if (entry.clockOut) {
-          const hours = (entry.clockOut.getTime() - entry.clockIn.getTime()) / (1000 * 60 * 60)
-          monthHours += hours
-          if (isTodayEntry) todayHours += hours
+          const clockInTime = entry.clockIn.getTime()
+          const clockOutTime = entry.clockOut.getTime()
+          if (clockOutTime > clockInTime) {
+            const hours = (clockOutTime - clockInTime) / (1000 * 60 * 60)
+            monthHours += hours
+            if (isTodayEntry) todayHours += hours
+          }
         }
       }
 
@@ -132,8 +136,12 @@ export async function GET(request: NextRequest) {
     let totalHours = 0
     entries.forEach((entry) => {
       if (entry.clockOut) {
-        const hours = (entry.clockOut.getTime() - entry.clockIn.getTime()) / (1000 * 60 * 60)
-        totalHours += hours
+        const clockInTime = entry.clockIn.getTime()
+        const clockOutTime = entry.clockOut.getTime()
+        if (clockOutTime > clockInTime) {
+          const hours = (clockOutTime - clockInTime) / (1000 * 60 * 60)
+          totalHours += hours
+        }
       }
     })
 

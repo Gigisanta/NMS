@@ -25,7 +25,7 @@ export default function GlobalError({
         <NextError
           statusCode={500}
           title="Algo salió mal"
-          message="Disculpa,发生错误。La aplicación encontró un error inesperado."
+          message="Disculpa, la aplicación encontró un error inesperado."
         />
         <div style={{
           position: 'fixed',
@@ -37,7 +37,12 @@ export default function GlobalError({
           borderRadius: '8px',
           cursor: 'pointer',
         }}>
-          <button onClick={() => reset()}>Reintentar</button>
+          <button
+            onClick={() => reset()}
+            aria-label="Reintentar cargar la aplicación"
+          >
+            Reintentar
+          </button>
         </div>
       </body>
     </html>

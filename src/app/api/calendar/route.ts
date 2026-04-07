@@ -20,6 +20,12 @@ export async function GET(request: NextRequest) {
 
     if (id) {
         const event = await db.calendarEvent.findUnique({ where: { id } })
+        if (!event) {
+          return NextResponse.json(
+            { success: false, error: 'Evento no encontrado' },
+            { status: 404 }
+          )
+        }
         return NextResponse.json({ success: true, data: event })
     }
 
@@ -122,7 +128,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Evento eliminado correctamente',
+      data: { deleted: true },
     })
   } catch (error) {
     console.error('Error deleting event:', error)
