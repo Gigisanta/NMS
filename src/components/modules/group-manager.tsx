@@ -137,10 +137,15 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       const result = await response.json()
       if (result.success) {
         onGroupsChange()
+        setConfirmDeleteId(null)
+      } else {
+        setError(result.error || 'Error al eliminar el grupo')
+        setConfirmDeleteId(null)
       }
     } catch (err) {
       console.error('Error deleting group:', err)
       setError('Error al eliminar el grupo. Intenta de nuevo.')
+      setConfirmDeleteId(null)
     } finally {
       setDeletingId(null)
     }
@@ -149,7 +154,6 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
   const handleDeleteConfirm = () => {
     if (confirmDeleteId !== null) {
       handleDelete(confirmDeleteId)
-      setConfirmDeleteId(null)
     }
   }
 
