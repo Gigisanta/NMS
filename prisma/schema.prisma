@@ -45,6 +45,9 @@ model User {
   // Clients updated by this user
   clientsUpdated Client[] @relation("ClientUpdates")
 
+  // Color de grupo que el empleado puede ver (solo para EMPLEADO)
+  groupColor String?
+
   @@map("users")
 }
 

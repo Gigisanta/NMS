@@ -41,6 +41,7 @@ declare module 'next-auth' {
     email: string
     role: 'EMPLEADORA' | 'EMPLEADO'
     employeeRole?: string
+    groupColor?: string
     image?: string | null
   }
 }
@@ -52,6 +53,7 @@ declare module 'next-auth/jwt' {
     email: string
     role: 'EMPLEADORA' | 'EMPLEADO'
     employeeRole?: string
+    groupColor?: string
     image?: string | null
   }
 }
@@ -93,6 +95,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             role: user.role,
             employeeRole: user.employeeRole || undefined,
+            groupColor: user.groupColor || undefined,
             image: user.image,
           }
         } catch (error) {
@@ -118,6 +121,7 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email
         token.role = user.role
         token.employeeRole = user.employeeRole
+        token.groupColor = user.groupColor
         token.image = user.image
       }
       
@@ -135,6 +139,7 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email
         session.user.role = token.role
         session.user.employeeRole = token.employeeRole
+        session.user.groupColor = token.groupColor
         session.user.image = token.image
       }
       return session

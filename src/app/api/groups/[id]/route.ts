@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { db } from '@/lib/db'
 import { updateGroupSchema } from '@/schemas'
 import { invalidateGroupsCache, CacheKeys } from '@/lib/api-utils'
+import { auth } from '@/auth'
 
 // GET /api/groups/[id] - Get single group
 export async function GET(
@@ -11,6 +12,9 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    const session = await auth()
+    const isAdmin = session?.user?.role === 'EMPLEADORA'
+    const userColor = session?.user?.groupColor
 
     const group = await db.group.findUnique({
       where: { id },
@@ -22,6 +26,14 @@ export async function GET(
     })
 
     if (!group) {
+      return NextResponse.json(
+        { success: false, error: 'Grupo no encontrado' },
+        { status: 404 }
+      )
+    }
+
+    // Filtrar por color si no es admin y tiene color asignado
+    if (!isAdmin && userColor && group.color !== userColor) {
       return NextResponse.json(
         { success: false, error: 'Grupo no encontrado' },
         { status: 404 }
@@ -50,6 +62,14 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await auth()
+    if (!session?.user || session.user.role !== 'EMPLEADORA') {
+      return NextResponse.json(
+        { success: false, error: 'Sin permisos para actualizar grupos' },
+        { status: 403 }
+      )
+    }
+
     const { id } = await params
     const body = await request.json()
     const validatedData = updateGroupSchema.parse(body)
@@ -104,6 +124,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await auth()
+    if (!session?.user || session.user.role !== 'EMPLEADORA') {
+      return NextResponse.json(
+        { success: false, error: 'Sin permisos para eliminar grupos' },
+        { status: 403 }
+      )
+    }
+
     const { id } = await params
 
     const group = await db.group.findUnique({

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
+import { useSession } from 'next-auth/react'
 import {
   Dialog,
   DialogContent,
@@ -196,6 +197,9 @@ const ClientTableRow = memo(({
 ClientTableRow.displayName = 'ClientTableRow'
 
 export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }: ClientsViewProps) {
+  const { data: session } = useSession()
+  const isAdmin = session?.user?.role === 'EMPLEADORA'
+
   const [search, setSearch] = useState('')
   const [grupoFilter, setGrupoFilter] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -345,6 +349,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
           groups={groups}
           selectedId={grupoFilter}
           onChange={(id) => { setGrupoFilter(id); setPage(1) }}
+          isAdmin={isAdmin}
         />
       </div>
 
@@ -357,16 +362,18 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
               <span className="font-semibold text-sm text-slate-700">Grupos</span>
             </div>
             <div className="space-y-0.5">
-              <button
-                onClick={() => { setGrupoFilter(null); setPage(1) }}
-                className={cn(
-                  'w-full text-left px-3 py-2 text-sm rounded-lg transition-all font-medium',
-                  grupoFilter === null ? 'text-white' : 'text-slate-600 hover:bg-slate-50'
-                )}
-                style={grupoFilter === null ? { background: '#005691' } : {}}
-              >
-                Todos
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => { setGrupoFilter(null); setPage(1) }}
+                  className={cn(
+                    'w-full text-left px-3 py-2 text-sm rounded-lg transition-all font-medium',
+                    grupoFilter === null ? 'text-white' : 'text-slate-600 hover:bg-slate-50'
+                  )}
+                  style={grupoFilter === null ? { background: '#005691' } : {}}
+                >
+                  Todos
+                </button>
+              )}
               {groups.map((group) => (
                 <button
                   key={group.id}
@@ -392,7 +399,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
               ))}
             </div>
           </div>
-          <GroupManager groups={groups} onGroupsChange={() => refreshGroups()} />
+          {isAdmin && <GroupManager groups={groups} onGroupsChange={() => refreshGroups()} />}
         </aside>
 
         {/* Main table card */}

@@ -15,9 +15,10 @@ interface GroupTabsProps {
   selectedId: string | null
   onChange: (id: string | null) => void
   className?: string
+  isAdmin?: boolean
 }
 
-export function GroupTabs({ groups, selectedId, onChange, className }: GroupTabsProps) {
+export function GroupTabs({ groups, selectedId, onChange, className, isAdmin = true }: GroupTabsProps) {
   return (
     <div className={cn("w-full mb-6", className)}>
       <Tabs
@@ -26,20 +27,22 @@ export function GroupTabs({ groups, selectedId, onChange, className }: GroupTabs
         className="w-full"
       >
         <ScrollArea className="w-full">
-          <TabsList 
+          <TabsList
             className="inline-flex h-11 items-center justify-start px-1 w-auto min-w-full"
             style={{ background: 'rgba(0, 168, 232, 0.08)' }}
           >
-            <TabsTrigger
-              value="all"
-              className="px-5 py-2 text-sm font-medium transition-all"
-              style={{ 
-                color: selectedId === null ? '#FFFFFF' : '#4A5568',
-                background: selectedId === null ? 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' : 'transparent',
-              }}
-            >
-              Todos los grupos
-            </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger
+                value="all"
+                className="px-5 py-2 text-sm font-medium transition-all"
+                style={{
+                  color: selectedId === null ? '#FFFFFF' : '#4A5568',
+                  background: selectedId === null ? 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' : 'transparent',
+                }}
+              >
+                Todos los grupos
+              </TabsTrigger>
+            )}
             {groups.map((group) => (
               <TabsTrigger
                 key={group.id}

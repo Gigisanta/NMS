@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -61,6 +62,9 @@ interface Subscription {
 }
 
 export function PaymentsView() {
+  const { data: session } = useSession()
+  const isAdmin = session?.user?.role === 'EMPLEADORA'
+
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<string>('')
@@ -116,9 +120,8 @@ export function PaymentsView() {
 
       const result = await response.json()
       if (result.success) {
-        setSubscriptions(prev =>
-          prev.map(s => s.id === subscriptionId ? { ...s, status: newStatus, paymentMethod: paymentMethod || s.paymentMethod } : s)
-        )
+        // Re-fetch to ensure server state matches UI
+        await fetchSubscriptions()
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
         if (newStatus === 'AL_DIA') {
           toast.success(`Pago registrado (${paymentMethod === 'EFECTIVO' ? 'Efectivo' : 'Transferencia'})`)
@@ -205,6 +208,7 @@ export function PaymentsView() {
           groups={storeGroups}
           selectedId={selectedGrupo}
           onChange={setSelectedGrupo}
+          isAdmin={isAdmin}
         />
       )}
 

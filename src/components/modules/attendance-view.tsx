@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useMemo, memo } from 'react'
+import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -210,6 +211,9 @@ const AttendanceListItem = memo(function AttendanceListItem({
 })
 
 export function AttendanceView() {
+  const { data: session } = useSession()
+  const isAdmin = session?.user?.role === 'EMPLEADORA'
+
   // Local state
   const [clients, setClients] = useState<Client[]>([])
   const [todayAttendance, setTodayAttendance] = useState<AttendanceRecord[]>([])
@@ -438,6 +442,7 @@ export function AttendanceView() {
           groups={storeGroups}
           selectedId={selectedGrupo}
           onChange={setSelectedGrupo}
+          isAdmin={isAdmin}
         />
       )}
 

@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { cachedFetch, CacheKeys, invalidateGroupsCache } from '@/lib/api-utils'
 import { z } from 'zod'
 import { ratelimit } from '@/lib/rate-limit'
+import { auth } from '@/auth'
 
 const createGroupSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres').max(50, 'Máximo 50 caracteres'),
@@ -14,12 +15,46 @@ const createGroupSchema = z.object({
 // GET /api/groups - List all groups with client counts
 export async function GET() {
   try {
+    const session = await auth()
+    const isAdmin = session?.user?.role === 'EMPLEADORA'
+    const userColor = session?.user?.groupColor
+
     // Use cache for groups (they don't change frequently)
-    const groups = await cachedFetch(
-      CacheKeys.groups(),
-      async () => {
-        const result = await db.group.findMany({
-          where: { active: true },
+    // Note: cache is disabled when filtering by user color
+    const useCache = isAdmin || !userColor
+
+    const groups = useCache
+      ? await cachedFetch(
+          CacheKeys.groups(),
+          async () => {
+            const result = await db.group.findMany({
+              where: { active: true },
+              select: {
+                id: true,
+                name: true,
+                color: true,
+                description: true,
+                schedule: true,
+                _count: {
+                  select: { clients: true }
+                }
+              },
+              orderBy: { name: 'asc' }
+            })
+
+            return result.map(g => ({
+              id: g.id,
+              name: g.name,
+              color: g.color,
+              description: g.description,
+              schedule: g.schedule,
+              clientCount: g._count.clients
+            }))
+          },
+          2 * 60 * 1000 // 2 minutes cache
+        )
+      : await db.group.findMany({
+          where: { active: true, color: userColor },
           select: {
             id: true,
             name: true,
@@ -31,25 +66,20 @@ export async function GET() {
             }
           },
           orderBy: { name: 'asc' }
-        })
-
-        return result.map(g => ({
+        }).then(result => result.map(g => ({
           id: g.id,
           name: g.name,
           color: g.color,
           description: g.description,
           schedule: g.schedule,
           clientCount: g._count.clients
-        }))
-      },
-      2 * 60 * 1000 // 2 minutes cache
-    )
+        })))
 
     return NextResponse.json(
       { success: true, data: groups },
       {
         headers: {
-          'Cache-Control': 'private, max-age=120, stale-while-revalidate=60',
+          'Cache-Control': useCache ? 'private, max-age=120, stale-while-revalidate=60' : 'no-store',
         },
       }
     )
@@ -65,6 +95,14 @@ export async function GET() {
 // POST /api/groups - Create new group
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user || session.user.role !== 'EMPLEADORA') {
+      return NextResponse.json(
+        { success: false, error: 'Sin permisos para crear grupos' },
+        { status: 403 }
+      )
+    }
+
     // Rate limiting
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anonymous'
     const { success } = await ratelimit.limit(ip)
