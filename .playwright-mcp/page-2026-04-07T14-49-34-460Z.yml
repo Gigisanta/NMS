@@ -1,0 +1,26 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e14]:
+    - generic [ref=e16]:
+      - generic [ref=e18]: NMS
+      - generic [ref=e19]: Bienvenido
+      - generic [ref=e20]: Sistema de Gestión de Natatorio
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - generic [ref=e24]: Email
+        - textbox "Email" [disabled]:
+          - /placeholder: correo@ejemplo.com
+          - text: mariela@nms.com
+      - generic [ref=e26]:
+        - generic [ref=e27]: Contraseña
+        - textbox "Contraseña" [disabled]:
+          - /placeholder: ••••••••
+          - text: "123456"
+      - button "Iniciando sesión..." [disabled]:
+        - img
+        - text: Iniciando sesión...
+      - generic [ref=e30]:
+        - text: ¿No tienes cuenta?
+        - link "Registrarse" [ref=e31] [cursor=pointer]:
+          - /url: /register
+  - region "Notifications alt+T"
+  - alert [ref=e7]

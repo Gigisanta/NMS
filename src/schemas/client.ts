@@ -48,6 +48,7 @@ export type CreateClientGroupInput = z.infer<typeof createClientGroupSchema>
 
 export const createClientSchema = clientSchema.extend({
   classesTotal: z.number().int().min(1).max(30).optional().default(4),
+  billingPeriod: z.enum(['FULL', 'HALF']).default('FULL'),
 })
 
 export const updateClientSchema = clientSchema.partial()

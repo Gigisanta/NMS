@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
-import { cachedFetch, CacheKeys, invalidateCachePattern } from '@/lib/api-utils'
+import { cachedFetch, CacheKeys, invalidateCachePattern, invalidateGroupsCache } from '@/lib/api-utils'
 import { createClientSchema } from '@/schemas/client'
 import { ratelimit } from '@/lib/rate-limit'
 
@@ -202,6 +202,7 @@ export async function POST(request: NextRequest) {
       notes,
       classesTotal = 4,
       monthlyAmount,
+      billingPeriod = 'FULL',
       registrationFeePaid1 = false,
       registrationFeePaid2 = false,
     } = parsed.data
@@ -275,7 +276,7 @@ export async function POST(request: NextRequest) {
           month: currentMonth,
           year: currentYear,
           status: 'PENDIENTE',
-          billingPeriod: 'FULL',
+          billingPeriod: billingPeriod,
           classesTotal: classesTotal,
           classesUsed: 0,
           amount: monthlyAmount || null,
@@ -286,9 +287,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Invalidate ALL client and group related caches
-    invalidateCachePattern('client')
-    invalidateCachePattern('groups')
-    invalidateCachePattern('dashboard')
+    invalidateGroupsCache()
 
     return NextResponse.json({
       success: true,

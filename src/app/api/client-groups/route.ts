@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
-import { invalidateCachePattern } from '@/lib/api-utils'
+import { invalidateGroupsCache } from '@/lib/api-utils'
 
 // GET /api/client-groups - Get client group assignments (by clientId or groupId)
 export async function GET(request: NextRequest) {
@@ -124,8 +124,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Invalidate caches
-    invalidateCachePattern('client')
-    invalidateCachePattern('groups')
+    invalidateGroupsCache()
 
     return NextResponse.json({
       success: true,

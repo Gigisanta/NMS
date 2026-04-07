@@ -72,6 +72,16 @@ export function invalidateCachePattern(pattern: string): void {
 }
 
 /**
+ * Invalidate groups cache and any related caches (clients include group data)
+ */
+export function invalidateGroupsCache(): void {
+  invalidateCache('groups:all')
+  // Clients cache contains group data (grupo object), so invalidate it too
+  invalidateCachePattern('clients')
+  invalidateCachePattern('dashboard')
+}
+
+/**
  * Invalidate client-related caches (both list and details)
  * Clears lists, specific details, dashboard and attendance
  */

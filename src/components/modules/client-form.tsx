@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Loader2, Check, Calendar, Clock, FileText, User, Phone, Hash, DollarSign, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { ScheduleSelector } from './schedule-selector'
 
@@ -85,6 +86,7 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
           preferredTime: formData.preferredTime || null,
           notes: formData.notes || null,
           classesTotal: formData.classesTotal,
+          billingPeriod: formData.billingPeriod,
           monthlyAmount: formData.monthlyAmount,
           registrationFeePaid1: formData.registrationFeePaid1,
           registrationFeePaid2: formData.registrationFeePaid2,
@@ -96,7 +98,7 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
       if (result.success) {
         if (!client?.id && additionalGroups.length > 0) {
           const clientId = result.data.id
-          await Promise.all(
+          const results = await Promise.all(
             additionalGroups.map(groupId =>
               fetch('/api/client-groups', {
                 method: 'POST',
@@ -105,6 +107,10 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
               })
             )
           )
+          const failedGroups = results.filter(r => !r.ok)
+          if (failedGroups.length > 0) {
+            toast.error(`Error al asignar ${failedGroups.length} grupo(s)`)
+          }
         }
         onSuccess()
       } else {

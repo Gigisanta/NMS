@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GroupBadge } from './group-badge'
+import { toast } from 'sonner'
 
 // Predefined colors for groups
 const predefinedColors = [
@@ -96,6 +97,7 @@ export function GroupSelector({
       }
     } catch (error) {
       console.error('Error creating group:', error)
+      toast.error('Error al crear grupo')
     } finally {
       setCreating(false)
     }

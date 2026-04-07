@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
-import { invalidateCachePattern } from '@/lib/api-utils'
+import { invalidateGroupsCache } from '@/lib/api-utils'
 
 // DELETE /api/client-groups/[id] - Delete a client-group assignment
 export async function DELETE(
@@ -34,8 +34,7 @@ export async function DELETE(
     })
 
     // Invalidate caches
-    invalidateCachePattern('client')
-    invalidateCachePattern('groups')
+    invalidateGroupsCache()
 
     return NextResponse.json({
       success: true,

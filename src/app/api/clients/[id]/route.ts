@@ -176,7 +176,7 @@ export async function PUT(
     if (preferredDays !== undefined) updateData.preferredDays = preferredDays || null
     if (preferredTime !== undefined) updateData.preferredTime = preferredTime || null
     if (notes !== undefined) updateData.notes = notes || null
-    if (monthlyAmount !== undefined) updateData.monthlyAmount = (monthlyAmount !== null && monthlyAmount !== '') ? new Prisma.Decimal(monthlyAmount) : null
+    if (monthlyAmount !== undefined) updateData.monthlyAmount = monthlyAmount !== null ? new Prisma.Decimal(monthlyAmount) : null
     if (registrationFeePaid1 !== undefined) updateData.registrationFeePaid1 = registrationFeePaid1
     if (registrationFeePaid2 !== undefined) updateData.registrationFeePaid2 = registrationFeePaid2
 
@@ -206,7 +206,7 @@ export async function PUT(
       const currentYear = getCurrentYear()
       const billingPeriod = body.billingPeriod || 'FULL'
 
-      const updateData: Record<string, number | string | null> = {}
+      const updateData: Record<string, unknown> = {}
       if (monthlyAmount !== undefined) {
         // null means clear/set null, 0 means explicitly set to zero, undefined means don't update
         updateData.amount = monthlyAmount === null ? null : new Prisma.Decimal(monthlyAmount ?? 0)
@@ -277,8 +277,8 @@ export async function PATCH(
 
     // Build update data to prevent mass assignment
     const updateData: {
-      nombre?: string
-      apellido?: string
+      nombre?: string | null
+      apellido?: string | null
       dni?: string | null
       telefono?: string | null
       grupoId?: string | null
@@ -301,7 +301,7 @@ export async function PATCH(
     if (parsed.data.preferredDays !== undefined) updateData.preferredDays = parsed.data.preferredDays || null
     if (parsed.data.preferredTime !== undefined) updateData.preferredTime = parsed.data.preferredTime || null
     if (parsed.data.notes !== undefined) updateData.notes = parsed.data.notes || null
-    if (parsed.data.monthlyAmount !== undefined) updateData.monthlyAmount = parsed.data.monthlyAmount ? new Prisma.Decimal(parsed.data.monthlyAmount) : null
+    if (parsed.data.monthlyAmount !== undefined) updateData.monthlyAmount = parsed.data.monthlyAmount !== null ? new Prisma.Decimal(parsed.data.monthlyAmount) : null
     if (parsed.data.registrationFeePaid1 !== undefined) updateData.registrationFeePaid1 = parsed.data.registrationFeePaid1
     if (parsed.data.registrationFeePaid2 !== undefined) updateData.registrationFeePaid2 = parsed.data.registrationFeePaid2
 

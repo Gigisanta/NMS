@@ -208,7 +208,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
     notes: '',
     classesTotal: 4,
     billingPeriod: 'FULL' as 'FULL' | 'HALF',
-    amount: 0,
+    amount: null as number | null,
     registrationFeePaid1: false,
     registrationFeePaid2: false,
   })

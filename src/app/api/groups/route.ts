@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { cachedFetch, CacheKeys, invalidateCache } from '@/lib/api-utils'
+import { cachedFetch, CacheKeys, invalidateGroupsCache } from '@/lib/api-utils'
 import { z } from 'zod'
 import { ratelimit } from '@/lib/rate-limit'
 
@@ -108,8 +108,8 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Invalidate groups cache
-    invalidateCache(CacheKeys.groups())
+    // Invalidate groups cache and related caches (clients include group data)
+    invalidateGroupsCache()
 
     return NextResponse.json({
       success: true,

@@ -231,7 +231,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
   }, [])
 
   const fetchGroups = useCallback(async () => {
-    if (Date.now() - groupsLastFetchRef.current < 5 * 60 * 1000) return
+    if (groupsLastFetchRef.current > 0 && Date.now() - groupsLastFetchRef.current < 5 * 60 * 1000) return
     try {
       const res = await fetch('/api/groups')
       const result = await res.json()
