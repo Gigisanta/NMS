@@ -846,6 +846,10 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                         if (!result.success) {
                           setFormData(prev => ({ ...prev, registrationFeePaid1: !newValue }))
                           toast.error('Error al guardar cuota 1')
+                        } else {
+                          toast.success('Cuota 1 actualizada')
+                          // Refresh clients list so clients-view table updates
+                          onSaved()
                         }
                       } catch {
                         setFormData(prev => ({ ...prev, registrationFeePaid1: !newValue }))
@@ -914,6 +918,9 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                         if (!result.success) {
                           setFormData(prev => ({ ...prev, registrationFeePaid2: !newValue }))
                           toast.error('Error al guardar cuota 2')
+                        } else {
+                          toast.success('Cuota 2 actualizada')
+                          onSaved()
                         }
                       } catch {
                         setFormData(prev => ({ ...prev, registrationFeePaid2: !newValue }))

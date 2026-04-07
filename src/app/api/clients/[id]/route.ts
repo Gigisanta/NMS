@@ -226,8 +226,9 @@ export async function PUT(
       })
     }
 
-    // Invalidate caches
+    // Invalidate caches - must invalidate ALL related caches including list
     invalidateCachePattern('client')
+    invalidateCachePattern('clients')
     invalidateCachePattern('dashboard')
 
     return NextResponse.json({
