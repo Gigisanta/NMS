@@ -31,6 +31,7 @@ declare module 'next-auth' {
       email: string
       role: 'EMPLEADORA' | 'EMPLEADO'
       employeeRole?: string
+      groupColor?: string
       image?: string | null
     } & DefaultSession['user']
   }
