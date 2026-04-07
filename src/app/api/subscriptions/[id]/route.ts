@@ -26,6 +26,8 @@ export async function PUT(
 
     const updateData: Record<string, unknown> = {}
 
+    console.log('[Subscription PUT] id:', id, 'data:', validated)
+
     if (validated.status !== undefined) updateData.status = validated.status
     if (validated.classesTotal !== undefined) updateData.classesTotal = validated.classesTotal
     if (validated.classesUsed !== undefined) updateData.classesUsed = validated.classesUsed

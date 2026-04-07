@@ -91,6 +91,8 @@ export async function GET(request: NextRequest) {
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
     })
 
+    console.log('[Subscriptions GET] count:', subscriptions.length, 'month:', month, 'year:', year)
+
     return NextResponse.json({
       success: true,
       data: subscriptions,

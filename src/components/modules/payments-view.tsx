@@ -119,6 +119,7 @@ export function PaymentsView() {
       })
 
       const result = await response.json()
+      console.log('[Payments] Status update result:', result)
       if (result.success) {
         // Re-fetch to ensure server state matches UI
         await fetchSubscriptions()
