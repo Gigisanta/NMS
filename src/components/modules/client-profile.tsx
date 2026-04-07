@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, memo } from 'react'
+import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -31,6 +31,7 @@ import { ScheduleSelector } from './schedule-selector'
 import { InvoiceUpload } from './invoice-upload'
 import { cn } from '@/lib/utils'
 import { formatFullName, getPaymentStatusConfig, formatDate, formatTime } from '@/lib/utils'
+import { queryClient } from '@/lib/queryClient'
 import { toast } from 'sonner'
 
 interface Group {
@@ -319,17 +320,95 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
     }
   }, [clientId, formData, client?.subscriptions, currentDate, onSaved])
 
+  // Auto-save for client info fields - debounced 1 second
+  const autoSaveInfoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const autoSaveInfo = useCallback(async () => {
+    if (autoSaveInfoTimer.current) {
+      clearTimeout(autoSaveInfoTimer.current)
+    }
+    autoSaveInfoTimer.current = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/clients/${clientId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre: formData.nombre,
+            apellido: formData.apellido,
+            telefono: formData.telefono,
+            dni: formData.dni || null,
+            grupoId: formData.grupoId || null,
+            preferredDays: formData.preferredDays || null,
+            preferredTime: formData.preferredTime || null,
+            notes: formData.notes || null,
+          }),
+        })
+        const result = await response.json()
+        if (result.success) {
+          queryClient.invalidateQueries({ queryKey: ['clients'] })
+          onSaved()
+        }
+      } catch {
+        // Silent fail - auto-save is best effort
+      }
+    }, 1000)
+  }, [clientId, formData, onSaved])
+
+  // Auto-save for subscription fields - debounced 1 second
+  const autoSaveSubscriptionTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const autoSaveSubscription = useCallback(async () => {
+    if (autoSaveSubscriptionTimer.current) {
+      clearTimeout(autoSaveSubscriptionTimer.current)
+    }
+    autoSaveSubscriptionTimer.current = setTimeout(async () => {
+      const subscription = client?.subscriptions?.find(
+        s => s.month === currentDate.month && s.year === currentDate.year
+      )
+      if (!subscription) return
+
+      try {
+        const subResponse = await fetch(`/api/subscriptions/${subscription.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            classesTotal: Number(formData.classesTotal),
+            billingPeriod: formData.billingPeriod,
+            amount: formData.amount == null ? null : Number(formData.amount),
+          }),
+        })
+        const subResult = await subResponse.json()
+        if (subResult.success) {
+          queryClient.invalidateQueries({ queryKey: ['clients'] })
+          queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+          onSaved()
+        }
+      } catch {
+        // Silent fail - auto-save is best effort
+      }
+    }, 1000)
+  }, [client, currentDate, formData, onSaved])
+
   // Memoized form field updaters
   const updateFormData = useCallback(<K extends keyof typeof formData>(
     field: K,
     value: (typeof formData)[K]
   ) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-  }, [])
+
+    // Trigger auto-save based on field category
+    const infoFields = ['nombre', 'apellido', 'telefono', 'dni', 'grupoId', 'preferredDays', 'preferredTime', 'notes']
+    const subFields = ['classesTotal', 'billingPeriod', 'amount']
+
+    if (infoFields.includes(field as string)) {
+      autoSaveInfo()
+    } else if (subFields.includes(field as string)) {
+      autoSaveSubscription()
+    }
+  }, [autoSaveInfo, autoSaveSubscription])
 
   const handleScheduleChange = useCallback((days: string, time: string) => {
     setFormData(prev => ({ ...prev, preferredDays: days, preferredTime: time }))
-  }, [])
+    autoSaveInfo()
+  }, [autoSaveInfo])
 
   const decrementClasses = useCallback(() => {
     setFormData(prev => ({ ...prev, classesTotal: Math.max(1, prev.classesTotal - 1) }))
@@ -505,20 +584,6 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
               </div>
             </div>
           </div>
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            size="sm"
-            className="shrink-0 gap-1.5"
-            style={{ background: '#005691' }}
-          >
-            {saving ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Save className="w-3.5 h-3.5" />
-            )}
-            <span className="hidden sm:inline">Guardar</span>
-          </Button>
         </div>
 
         {/* Tabs — scrollable on mobile */}
@@ -848,7 +913,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                           toast.error('Error al guardar cuota 1')
                         } else {
                           toast.success('Cuota 1 actualizada')
-                          // Refresh clients list so clients-view table updates
+                          queryClient.invalidateQueries({ queryKey: ['clients'] })
                           onSaved()
                         }
                       } catch {
@@ -920,6 +985,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                           toast.error('Error al guardar cuota 2')
                         } else {
                           toast.success('Cuota 2 actualizada')
+                          queryClient.invalidateQueries({ queryKey: ['clients'] })
                           onSaved()
                         }
                       } catch {
