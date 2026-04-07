@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { invalidateCachePattern, invalidateClientCache } from '@/lib/api-utils'
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
 
 const updateSubscriptionSchema = z.object({
   status: z.enum(['AL_DIA', 'PENDIENTE', 'DEUDOR', 'SUSPENDIDO', 'CANCELADO']).optional(),
@@ -28,7 +29,7 @@ export async function PUT(
     if (validated.status !== undefined) updateData.status = validated.status
     if (validated.classesTotal !== undefined) updateData.classesTotal = validated.classesTotal
     if (validated.classesUsed !== undefined) updateData.classesUsed = validated.classesUsed
-    if (validated.amount !== undefined) updateData.amount = validated.amount
+    if (validated.amount !== undefined) updateData.amount = validated.amount === null ? null : new Prisma.Decimal(validated.amount)
     if (validated.paymentMethod !== undefined) updateData.paymentMethod = validated.paymentMethod
     if (validated.isBilled !== undefined) updateData.isBilled = validated.isBilled
     if (validated.billingPeriod !== undefined) updateData.billingPeriod = validated.billingPeriod
