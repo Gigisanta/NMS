@@ -243,7 +243,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
           notes: result.data.notes || '',
           classesTotal: currentSub?.classesTotal || 4,
           billingPeriod: currentSub?.billingPeriod || 'FULL',
-          amount: currentSub?.amount || 0,
+          amount: currentSub?.amount != null ? Number(currentSub.amount) : 0,
           registrationFeePaid1: result.data.registrationFeePaid1 || false,
           registrationFeePaid2: result.data.registrationFeePaid2 || false,
         })
@@ -298,9 +298,9 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            classesTotal: formData.classesTotal,
+            classesTotal: Number(formData.classesTotal),
             billingPeriod: formData.billingPeriod,
-            amount: formData.amount,
+            amount: formData.amount == null ? null : Number(formData.amount),
           }),
         })
         const subResult = await subResponse.json()
@@ -708,8 +708,8 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                     <Input
                       type="number"
                       className="w-28 sm:w-32 text-right"
-                      value={formData.amount || ''}
-                      onChange={(e) => updateFormData('amount', parseFloat(e.target.value) || 0)}
+                      value={formData.amount ?? ''}
+                      onChange={(e) => updateFormData('amount', e.target.value === '' ? null : (parseFloat(e.target.value) || 0))}
                       placeholder="0"
                     />
                   </div>
