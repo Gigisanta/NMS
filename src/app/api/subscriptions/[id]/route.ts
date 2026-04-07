@@ -28,7 +28,10 @@ export async function PUT(
 
     console.log('[Subscription PUT] id:', id, 'data:', validated)
 
-    if (validated.status !== undefined) updateData.status = validated.status
+    if (validated.status !== undefined) {
+      console.log('[Subscription PUT] Updating status to:', validated.status)
+      updateData.status = validated.status
+    }
     if (validated.classesTotal !== undefined) updateData.classesTotal = validated.classesTotal
     if (validated.classesUsed !== undefined) updateData.classesUsed = validated.classesUsed
     if (validated.amount !== undefined) updateData.amount = validated.amount === null ? null : new Prisma.Decimal(validated.amount)
