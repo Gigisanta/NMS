@@ -124,6 +124,10 @@ export function PaymentsView() {
         // Re-fetch to ensure server state matches UI
         await fetchSubscriptions()
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+        // Invalidate all related caches so other views (clients-view, client-profile) get fresh data
+        queryClient.invalidateQueries({ queryKey: ['clients'] })
+        queryClient.invalidateQueries({ queryKey: ['client'] })
+        queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
         if (newStatus === 'AL_DIA') {
           toast.success(`Pago registrado (${paymentMethod === 'EFECTIVO' ? 'Efectivo' : 'Transferencia'})`)
         }

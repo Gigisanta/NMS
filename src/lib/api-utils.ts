@@ -62,10 +62,13 @@ export function invalidateCache(key: string): void {
 
 /**
  * Invalidate all cache entries matching pattern
+ * Uses prefix matching to avoid false positives (e.g. 'client' won't match 'clients')
  */
 export function invalidateCachePattern(pattern: string): void {
   for (const key of cache.keys()) {
-    if (key.includes(pattern)) {
+    // Only match exact key or keys with the pattern as a prefix followed by ':'
+    // This ensures 'client' matches 'client:abc' but NOT 'clients:all'
+    if (key === pattern || key.startsWith(pattern + ':')) {
       cache.delete(key)
     }
   }
