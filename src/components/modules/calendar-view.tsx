@@ -32,6 +32,7 @@ export function CalendarView() {
   const { data: session } = useSession()
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const [focusedDayIndex, setFocusedDayIndex] = useState<number | null>(null)
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [showEventForm, setShowEventForm] = useState(false)
@@ -51,13 +52,16 @@ export function CalendarView() {
       const start = startOfMonth(currentMonth).toISOString()
       const end = endOfMonth(currentMonth).toISOString()
       const response = await fetch(`/api/calendar?start=${start}&end=${end}`)
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`)
+      }
       const result = await response.json()
       if (result.success) {
         setEvents(result.data)
       }
     } catch (error) {
       console.error('Error fetching events:', error)
-      toast.error('Error al cargar eventos')
+      toast.error(error instanceof Error ? error.message : 'Error al cargar eventos')
     } finally {
       setLoading(false)
     }
@@ -95,6 +99,9 @@ export function CalendarView() {
         }),
       })
 
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`)
+      }
       const result = await response.json()
       if (result.success) {
         toast.success('Evento creado correctamente')
@@ -105,7 +112,8 @@ export function CalendarView() {
         toast.error(result.error || 'Error al crear evento')
       }
     } catch (error) {
-      toast.error('Error de conexión')
+      console.error('Error creating event:', error)
+      toast.error(error instanceof Error ? error.message : 'Error de conexión al crear evento')
     } finally {
       setSaving(false)
     }
@@ -121,7 +129,8 @@ export function CalendarView() {
         toast.success('Evento eliminado')
       }
     } catch (error) {
-      toast.error('Error al eliminar evento')
+      console.error('Error deleting event:', error)
+      toast.error(error instanceof Error ? error.message : 'Error de conexión al eliminar evento')
     } finally {
       setDeletingEventId(null)
     }
@@ -273,11 +282,48 @@ export function CalendarView() {
                 const isToday = isSameDay(day, new Date())
                 const isSelected = selectedDate && isSameDay(day, selectedDate)
 
+                const handleDayKeyDown = (e: React.KeyboardEvent) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setSelectedDate(day)
+                  } else if (e.key === 'ArrowRight') {
+                    e.preventDefault()
+                    if (i < days.length - 1) {
+                      setSelectedDate(days[i + 1])
+                      setFocusedDayIndex(i + 1)
+                    }
+                  } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault()
+                    if (i > 0) {
+                      setSelectedDate(days[i - 1])
+                      setFocusedDayIndex(i - 1)
+                    }
+                  } else if (e.key === 'ArrowDown') {
+                    e.preventDefault()
+                    const nextWeek = i + 7
+                    if (nextWeek < days.length) {
+                      setSelectedDate(days[nextWeek])
+                      setFocusedDayIndex(nextWeek)
+                    }
+                  } else if (e.key === 'ArrowUp') {
+                    e.preventDefault()
+                    const prevWeek = i - 7
+                    if (prevWeek >= 0) {
+                      setSelectedDate(days[prevWeek])
+                      setFocusedDayIndex(prevWeek)
+                    }
+                  }
+                }
+
                 return (
                   <div
                     key={day.toISOString()}
                     onClick={() => setSelectedDate(day)}
-                    className={`border-r border-b border-slate-100 p-1 min-h-[100px] transition-colors duration-150 cursor-pointer hover:bg-[rgba(0,168,232,0.04)] ${
+                    onKeyDown={handleDayKeyDown}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${format(day, 'd MMMM')}${dayEvents.length > 0 ? `, ${dayEvents.length} eventos` : ''}`}
+                    className={`border-r border-b border-slate-100 p-1 min-h-[100px] transition-colors duration-150 cursor-pointer hover:bg-[rgba(0,168,232,0.04)] focus:outline-none focus:ring-2 focus:ring-[#00A8E8] focus:z-10 ${
                       isSelected ? 'bg-[rgba(0,168,232,0.08)]' : ''
                     }`}
                   >

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -74,7 +74,7 @@ export function PaymentsView() {
   const [pendingSub, setPendingSub] = useState<Subscription | null>(null)
 
 
-  const storeGroups = useAppStore((state) => (state as any).groups)
+  const storeGroups = useAppStore((state) => state.groups)
 
   const fetchSubscriptions = useCallback(async () => {
     setLoading(true)
@@ -84,6 +84,9 @@ export function PaymentsView() {
       params.set('year', selectedYear.toString())
 
       const response = await fetch(`/api/subscriptions?${params}`)
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`)
+      }
       const result = await response.json()
       if (result.success) {
         setSubscriptions(result.data)
@@ -140,18 +143,18 @@ export function PaymentsView() {
   }
 
 
-  const filteredSubscriptions = subscriptions.filter(s => {
+  const filteredSubscriptions = useMemo(() => subscriptions.filter(s => {
     const matchesStatus = !statusFilter || s.status === statusFilter
     const matchesGroup = !selectedGrupo || s.client.grupo?.id === selectedGrupo
     return matchesStatus && matchesGroup
-  })
+  }), [subscriptions, statusFilter, selectedGrupo])
 
-  const stats = {
+  const stats = useMemo(() => ({
     total: subscriptions.length,
     alDia: subscriptions.filter(s => s.status === 'AL_DIA').length,
     pendiente: subscriptions.filter(s => s.status === 'PENDIENTE').length,
     deudor: subscriptions.filter(s => s.status === 'DEUDOR').length,
-  }
+  }), [subscriptions])
 
   const months = Array.from({ length: 12 }, (_, i) => i + 1)
   const years = [selectedYear - 1, selectedYear, selectedYear + 1]

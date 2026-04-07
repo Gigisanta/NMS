@@ -1,30 +1,36 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useEffect } from 'react'
 
 const moduleMap = {
   dashboard: () => import('@/components/modules/dashboard-view').then(m => ({ default: m.DashboardView })),
   clientes: () => import('@/components/modules/clients-view').then(m => ({ default: m.ClientsView })),
-  asistencias: () => import('@/components/modules/attendance-view').then(m => ({ default: m.AttendanceView })),
-  pagos: () => import('@/components/modules/payments-view').then(m => ({ default: m.PaymentsView })),
   facturacion: () => import('@/components/modules/billing-view').then(m => ({ default: m.BillingView })),
   calendario: () => import('@/components/modules/calendar-view').then(m => ({ default: m.CalendarView })),
   configuracion: () => import('@/components/modules/settings-view').then(m => ({ default: m.SettingsView })),
   empleados: () => import('@/components/modules/employees-view').then(m => ({ default: m.EmployeesView })),
+  gastos: () => import('@/components/modules/expenses-view').then(m => ({ default: m.ExpensesView })),
 }
 
 type ViewKey = keyof typeof moduleMap
 
-const preloadedViews = new Set<ViewKey>()
-
 export function useViewPreloader() {
   const timersRef = useRef<Map<ViewKey, NodeJS.Timeout>>(new Map())
+  const preloadedViewsRef = useRef<Set<ViewKey>>(new Set())
+
+  // Cleanup all timers on unmount
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach((timer) => clearTimeout(timer))
+      timersRef.current.clear()
+    }
+  }, [])
 
   const preloadView = useCallback((viewId: string) => {
     if (viewId === 'dashboard' || !moduleMap[viewId as ViewKey]) return
-    
-    if (!preloadedViews.has(viewId as ViewKey)) {
-      preloadedViews.add(viewId as ViewKey)
+
+    if (!preloadedViewsRef.current.has(viewId as ViewKey)) {
+      preloadedViewsRef.current.add(viewId as ViewKey)
       moduleMap[viewId as ViewKey]()
     }
   }, [])

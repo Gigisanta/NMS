@@ -469,16 +469,18 @@ export function EmployeesView() {
     try {
       const params = new URLSearchParams()
       if (!showActiveOnly) params.set('active', 'false')
-      
+
       const response = await fetch(`/api/employees?${params}`)
       const result = await response.json()
-      
+
       if (result.success) {
         setEmployees(result.data)
+      } else {
+        toast.error(result.error || 'Error al cargar empleados')
       }
     } catch (error) {
       console.error('Error fetching employees:', error)
-      toast.error('Error al cargar empleados')
+      toast.error('Error de conexión al cargar empleados')
     } finally {
       setLoading(false)
     }
@@ -527,7 +529,8 @@ export function EmployeesView() {
         toast.error(result.error || 'Error al crear empleado')
       }
     } catch (error) {
-      toast.error('Error al crear empleado')
+      console.error('Error creating employee:', error)
+      toast.error(error instanceof Error ? error.message : 'Error al crear empleado. Intenta de nuevo.')
     } finally {
       setSaving(false)
     }
@@ -555,7 +558,8 @@ export function EmployeesView() {
         toast.error(result.error || 'Error al actualizar empleado')
       }
     } catch (error) {
-      toast.error('Error al actualizar empleado')
+      console.error('Error updating employee:', error)
+      toast.error(error instanceof Error ? error.message : 'Error al actualizar empleado. Intenta de nuevo.')
     } finally {
       setSaving(false)
     }
@@ -581,7 +585,8 @@ export function EmployeesView() {
         toast.error(result.error || 'Error al eliminar empleado')
       }
     } catch (error) {
-      toast.error('Error al eliminar empleado')
+      console.error('Error deleting employee:', error)
+      toast.error(error instanceof Error ? error.message : 'Error al eliminar empleado. Intenta de nuevo.')
     } finally {
       setSaving(false)
     }
@@ -604,7 +609,8 @@ export function EmployeesView() {
         toast.error(result.error || 'Error al actualizar estado')
       }
     } catch (error) {
-      toast.error('Error al actualizar estado')
+      console.error('Error toggling employee active state:', error)
+      toast.error(error instanceof Error ? error.message : 'Error al actualizar estado. Intenta de nuevo.')
     }
   }, [fetchEmployees])
 

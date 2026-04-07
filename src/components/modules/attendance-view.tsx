@@ -262,6 +262,7 @@ export function AttendanceView() {
       }
     } catch (error) {
       console.error('Error fetching data:', error)
+      toast.error('Error de conexión al cargar datos')
     } finally {
       setLoading(false)
     }
@@ -315,6 +316,7 @@ export function AttendanceView() {
       }
     } catch (error) {
       console.error('Error marking attendance:', error)
+      toast.error(error instanceof Error ? error.message : 'Error de conexión al registrar asistencia')
       setOptimisticUpdates(prev => {
         const newUpdates = { ...prev }
         delete newUpdates[client.id]
@@ -343,6 +345,7 @@ export function AttendanceView() {
       }
     } catch (error) {
       console.error('Error removing attendance:', error)
+      toast.error(error instanceof Error ? error.message : 'Error de conexión al eliminar asistencia')
     } finally {
       setRemovingAttendance(null)
     }

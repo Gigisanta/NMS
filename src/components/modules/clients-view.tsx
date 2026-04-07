@@ -26,6 +26,17 @@ import { Plus, Search, Loader2, ChevronLeft, ChevronRight, Send, FileCheck, User
 import { toast } from 'sonner'
 import type { Client } from '@/types'
 
+// Extended Client type with subscription and group data used in this view
+interface ClientRowData extends Omit<Client, 'updatedAt'> {
+  currentSubscription?: {
+    status: string
+  } | null
+  grupoId: string | null
+  registrationFeePaid1?: boolean
+  registrationFeePaid2?: boolean
+  updatedAt?: Date | string | null
+}
+
 interface Group {
   id: string
   name: string
@@ -57,15 +68,15 @@ const ClientTableRow = memo(({
   onDelete,
   isDeleting,
 }: {
-  client: Client
+  client: ClientRowData
   groups: Group[]
-  onClientClick: (client: Client) => void
+  onClientClick: (client: ClientRowData) => void
   onGroupChange: (clientId: string, grupoId: string | null) => void
   onGroupsRefresh: () => void
   onDelete: (id: string) => void
   isDeleting: boolean
 }) => {
-  const currentSub = (client as any).currentSubscription
+  const currentSub = client.currentSubscription
   const statusConfig = getPaymentStatusConfig(currentSub?.status || 'PENDIENTE')
   const isLate = useMemo(() => {
     const day = new Date().getDate()
@@ -77,6 +88,15 @@ const ClientTableRow = memo(({
     <TableRow
       className="cursor-pointer hover:bg-[rgba(0,168,232,0.04)] transition-colors duration-150"
       onClick={() => onClientClick(client)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onClientClick(client)
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`Ver perfil de ${formatFullName(client.nombre, client.apellido)}`}
     >
       <TableCell className="py-3">
         <div className="flex items-center gap-3">
@@ -102,7 +122,7 @@ const ClientTableRow = memo(({
       </TableCell>
       <TableCell onClick={(e) => e.stopPropagation()}>
         <GroupSelector
-          value={(client as any).grupoId}
+          value={client.grupoId}
           onChange={(grupoId) => onGroupChange(client.id, grupoId)}
           groups={groups}
           onGroupsChange={onGroupsRefresh}
@@ -111,8 +131,8 @@ const ClientTableRow = memo(({
       <TableCell className="hidden md:table-cell" onClick={(e) => e.stopPropagation()}>
         <div className="flex flex-col gap-1">
           {[
-            { paid: (client as any).registrationFeePaid1, label: 'Cuota 1' },
-            { paid: (client as any).registrationFeePaid2, label: 'Cuota 2' },
+            { paid: client.registrationFeePaid1, label: 'Cuota 1' },
+            { paid: client.registrationFeePaid2, label: 'Cuota 2' },
           ].map(({ paid, label }) => (
             <Badge
               key={label}
@@ -135,8 +155,8 @@ const ClientTableRow = memo(({
         </Badge>
       </TableCell>
       <TableCell className="hidden lg:table-cell text-xs text-slate-400">
-        {(client as any).updatedAt
-          ? new Date((client as any).updatedAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+        {client.updatedAt
+          ? new Date(client.updatedAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' })
           : '—'
         }
       </TableCell>
@@ -192,8 +212,8 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
   const groupsLastFetchRef = useRef(0)
   const [groupsVersion, setGroupsVersion] = useState(0)
 
-  const setStoreGroups = useAppStore((state: any) => state.setGroups)
-  const invalidateDashboard = useAppStore((state: any) => state.invalidateDashboard)
+  const setStoreGroups = useAppStore((state) => state.setGroups)
+  const invalidateDashboard = useAppStore((state) => state.invalidateDashboard)
 
   const debouncedSearch = useDebounce(search, 300)
 
@@ -261,7 +281,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
     fetchGroups()
   }, [fetchGroups, groupsVersion])
 
-  const handleClientClick = useCallback((client: Client) => {
+  const handleClientClick = useCallback((client: ClientRowData) => {
     setSelectedClientId(client.id)
     setShowProfile(true)
   }, [])
@@ -272,7 +292,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
 
   const handleFormSuccess = useCallback(() => {
     setShowForm(false)
-    invalidateDashboard?.()
+    invalidateDashboard()
     fetchClients()
     refreshGroups()
   }, [fetchClients, invalidateDashboard, refreshGroups])
@@ -283,7 +303,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
       const res = await fetch(`/api/clients/${id}`, { method: 'DELETE' })
       const result = await res.json()
       if (result.success) {
-        invalidateDashboard?.()
+        invalidateDashboard()
         setClients(prev => prev.filter(c => c.id !== id))
         setTotalClients(prev => Math.max(0, prev - 1))
         toast.success('Cliente eliminado')
@@ -306,7 +326,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
         body: JSON.stringify({ grupoId }),
       })
       if (res.ok) {
-        invalidateDashboard?.()
+        invalidateDashboard()
         setClients(prev => prev.map(c => c.id === clientId ? { ...c, grupoId } as Client : c))
       } else {
         toast.error('Error al cambiar grupo')

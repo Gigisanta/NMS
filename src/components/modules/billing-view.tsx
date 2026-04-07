@@ -35,7 +35,7 @@ export function BillingView() {
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth())
   const [selectedYear, setSelectedYear] = useState(getCurrentYear())
 
-  const invalidateDashboard = useAppStore((state: any) => state.invalidateDashboard)
+  const invalidateDashboard = useAppStore((state) => state.invalidateDashboard)
 
   const fetchBillableItems = useCallback(async () => {
     setLoading(true)
@@ -47,6 +47,9 @@ export function BillingView() {
       // Client payment status is calculated dynamically from invoices
 
       const response = await fetch(`/api/subscriptions?${params}`)
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`)
+      }
       const result = await response.json()
       if (result.success) {
         setSubscriptions(result.data)
@@ -95,7 +98,7 @@ export function BillingView() {
       const result = await response.json()
       if (result.success) {
         toast.success(`Se han procesado ${selectedIds.size} facturas exitosamente a través de Mercado Pago y ARCA.`)
-        invalidateDashboard?.()
+        invalidateDashboard()
         setSelectedIds(new Set())
         fetchBillableItems()
       } else {
