@@ -387,6 +387,18 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
     }, 1000)
   }, [client, currentDate, formData, onSaved])
 
+  // Cleanup timers on unmount to prevent state updates after unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveInfoTimer.current) {
+        clearTimeout(autoSaveInfoTimer.current)
+      }
+      if (autoSaveSubscriptionTimer.current) {
+        clearTimeout(autoSaveSubscriptionTimer.current)
+      }
+    }
+  }, [])
+
   // Memoized form field updaters
   const updateFormData = useCallback(<K extends keyof typeof formData>(
     field: K,
@@ -905,7 +917,11 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                         const res = await fetch(`/api/clients/${clientId}`, {
                           method: 'PUT',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ registrationFeePaid1: newValue }),
+                          // Send BOTH values to prevent race condition
+                          body: JSON.stringify({
+                            registrationFeePaid1: newValue,
+                            registrationFeePaid2: formData.registrationFeePaid2,
+                          }),
                         })
                         const result = await res.json()
                         if (!result.success) {
@@ -983,7 +999,10 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                         const res = await fetch(`/api/clients/${clientId}`, {
                           method: 'PUT',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ registrationFeePaid2: newValue }),
+                          body: JSON.stringify({
+                            registrationFeePaid1: formData.registrationFeePaid1,
+                            registrationFeePaid2: newValue,
+                          }),
                         })
                         const result = await res.json()
                         if (!result.success) {

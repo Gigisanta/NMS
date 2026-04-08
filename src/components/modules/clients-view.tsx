@@ -23,6 +23,7 @@ import { GroupTabs } from './group-tabs'
 import { formatFullName, getPaymentStatusConfig, cn } from '@/lib/utils'
 import { useDebounce } from '@/hooks/use-optimized'
 import { useAppStore } from '@/store'
+import { queryClient } from '@/lib/queryClient'
 import { Plus, Search, Loader2, ChevronLeft, ChevronRight, Send, FileCheck, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Client } from '@/types'
@@ -252,6 +253,9 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
   const fetchClients = useCallback(async () => {
     setLoading(true)
     try {
+      // First invalidate any stale queries to ensure fresh fetch
+      await queryClient.invalidateQueries({ queryKey: ['clients'] })
+
       const params = new URLSearchParams()
       params.set('page', page.toString())
       params.set('withSubscription', 'true')

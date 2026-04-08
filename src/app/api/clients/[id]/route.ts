@@ -351,6 +351,7 @@ export async function PATCH(
 
     // Invalidate caches
     invalidateCachePattern('client')
+    invalidateCachePattern('clients')
     invalidateCachePattern('dashboard')
 
     return NextResponse.json({
@@ -416,6 +417,7 @@ export async function DELETE(
 
     // Invalidate caches
     invalidateCachePattern('client')
+    invalidateCachePattern('clients')
     invalidateCachePattern('dashboard')
 
     return NextResponse.json({
