@@ -912,6 +912,12 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                           setFormData(prev => ({ ...prev, registrationFeePaid1: !newValue }))
                           toast.error('Error al guardar cuota 1')
                         } else {
+                          // Sync BOTH fields from server response to avoid stale cache issues
+                          setFormData(prev => ({
+                            ...prev,
+                            registrationFeePaid1: result.data.registrationFeePaid1,
+                            registrationFeePaid2: result.data.registrationFeePaid2,
+                          }))
                           toast.success('Cuota 1 actualizada')
                           queryClient.invalidateQueries({ queryKey: ['clients'] })
                           onSaved()
@@ -984,6 +990,12 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                           setFormData(prev => ({ ...prev, registrationFeePaid2: !newValue }))
                           toast.error('Error al guardar cuota 2')
                         } else {
+                          // Sync BOTH fields from server response to avoid stale cache issues
+                          setFormData(prev => ({
+                            ...prev,
+                            registrationFeePaid1: result.data.registrationFeePaid1,
+                            registrationFeePaid2: result.data.registrationFeePaid2,
+                          }))
                           toast.success('Cuota 2 actualizada')
                           queryClient.invalidateQueries({ queryKey: ['clients'] })
                           onSaved()
