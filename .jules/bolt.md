@@ -20,6 +20,10 @@
 **Learning:** Implementing a per-route `cachedFetch` strategy with a centralized `CacheKeys` generator simplifies cache management. However, cache invalidation must be granular yet comprehensive; using a pattern-based invalidator like `invalidateCachePattern('client')` is essential for routes that affect both list and detail views (e.g., updating a client profile).
 **Action:** When adding caching to related routes, ensure a consistent key prefix and use pattern invalidation in all mutating handlers (POST, PUT, PATCH, DELETE).
 
+## 2026-03-04 - Efficient Sync Logic with 'none' Filter
+**Learning:** Automatically synchronizing records (like creating monthly subscriptions for all clients) can be slow if done by fetching all records and diffing in JS. Prisma's `none` filter allows identifying missing related records in a single database roundtrip.
+**Action:** Use `db.model.findMany({ where: { relationship: { none: { criteria } } } })` to find missing entries efficiently, and `createMany` for bulk inserts.
+
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
