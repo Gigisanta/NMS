@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
+vi.mock('@/auth', () => ({
+  auth: vi.fn().mockResolvedValue({ user: { id: 'admin-1', role: 'EMPLEADORA' } }),
+}))
+
 vi.mock('@/lib/db', () => ({
   db: {
     group: { findMany: vi.fn(), findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
@@ -15,6 +19,7 @@ vi.mock('@/lib/api-utils', () => ({
   invalidateCache: vi.fn(),
   invalidateCachePattern: vi.fn(),
   invalidateClientCache: vi.fn(),
+  invalidateGroupsCache: vi.fn(),
 }))
 
 import { db } from '@/lib/db'

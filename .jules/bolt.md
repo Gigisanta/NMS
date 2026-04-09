@@ -6,7 +6,11 @@
 
 ## 2026-03-04 - Eliminating N+1 Query Patterns in Aggregations
 **Learning:** Prisma's `groupBy` is efficient for simple groupings, but when grouping by a related field is required, it often leads to N+1 query patterns (e.g., mapping over groups and running an aggregation for each).
-**Action:** Use a single `findMany` with `select` to fetch all relevant records in one batch, then use `reduce` to aggregate data in-memory. This reduces database roundtrips from O(N) to O(1) with minimal memory overhead.
+**Action:** Use a single `findMany` with `select` to fetch all relevant records in one batch, then use `reduce` to aggregate data in-memory. This reduces database roundtrips from O(N) to O(1) with memory overhead.
+
+## 2026-03-04 - Batch Subscription Generation and Caching
+**Learning:** Identifying missing records in a one-to-many relationship (e.g., clients missing subscriptions for the current month) can be done efficiently at the DB level using Prisma's `none` filter. Combining this with `createMany` and `cachedFetch` dramatically reduces the latency of synchronization routes.
+**Action:** Use `where: { relation: { none: { ... } } }` to find missing records instead of client-side filtering. Wrap the entire sync-and-fetch logic in `cachedFetch` to prevent redundant DB checks on frequent UI refreshes.
 
 ## 2025-05-15 - Initializing Bolt's Journal
 **Learning:** Starting the mission to optimize the codebase.
