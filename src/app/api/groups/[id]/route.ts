@@ -94,13 +94,21 @@ export async function PUT(
     const group = await db.group.update({
       where: { id },
       data: validatedData,
+      include: {
+        _count: {
+          select: { clients: true },
+        },
+      },
     })
 
     invalidateGroupsCache()
 
     return NextResponse.json({
       success: true,
-      data: group,
+      data: {
+        ...group,
+        clientCount: group._count.clients,
+      },
     })
   } catch (error) {
     console.error('Error updating group:', error)

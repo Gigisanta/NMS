@@ -91,6 +91,8 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
         setShowCreate(false)
         setNewGroup({ name: '', color: predefinedColors[0], schedule: '', description: '' })
         setError(null)
+        setSaving(false)
+        return
       } else {
         setError(result.error || 'Error al crear el grupo')
       }
@@ -121,6 +123,9 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
         onGroupsChange()
         setEditingId(null)
         setEditGroup(null)
+        setError(null)
+      } else {
+        setError(result.error || 'Error al actualizar el grupo')
       }
     } catch (err) {
       console.error('Error updating group:', err)
@@ -138,6 +143,7 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       if (result.success) {
         onGroupsChange()
         setConfirmDeleteId(null)
+        setError(null)
       } else {
         setError(result.error || 'Error al eliminar el grupo')
         setConfirmDeleteId(null)

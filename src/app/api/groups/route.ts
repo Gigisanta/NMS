@@ -79,7 +79,7 @@ export async function GET() {
       { success: true, data: groups },
       {
         headers: {
-          'Cache-Control': useCache ? 'private, max-age=120, stale-while-revalidate=60' : 'no-store',
+          'Cache-Control': useCache ? 'private, no-cache, must-revalidate' : 'no-store',
         },
       }
     )
