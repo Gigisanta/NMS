@@ -352,20 +352,18 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
     <div className="flex flex-col gap-4">
       {/* Mobile: horizontal group tabs */}
       <div className="md:hidden">
-        {isAdmin && (
-          <div className="mb-3">
-            <GroupManager
-              groups={groups}
-              onGroupsChange={() => refreshGroups()}
-              trigger={
-                <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-slate-600 hover:text-slate-800 hover:bg-slate-50">
-                  <Settings className="w-4 h-4" />
-                  Gestionar Grupos
-                </Button>
-              }
-            />
-          </div>
-        )}
+        <div className="mb-3">
+          <GroupManager
+            groups={groups}
+            onGroupsChange={() => refreshGroups()}
+            trigger={
+              <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-slate-600 hover:text-slate-800 hover:bg-slate-50">
+                <Settings className="w-4 h-4" />
+                Gestionar Grupos
+              </Button>
+            }
+          />
+        </div>
         <GroupTabs
           groups={groups}
           selectedId={grupoFilter}
@@ -429,18 +427,16 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
               ))}
             </div>
           </div>
-          {isAdmin && (
-                <GroupManager
-                  groups={groups}
-                  onGroupsChange={() => refreshGroups()}
-                  trigger={
-                    <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-slate-600 hover:text-slate-800 hover:bg-slate-50">
-                      <Settings className="w-4 h-4" />
-                      Gestionar Grupos
-                    </Button>
-                  }
-                />
-              )}
+          <GroupManager
+                groups={groups}
+                onGroupsChange={() => refreshGroups()}
+                trigger={
+                  <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-slate-600 hover:text-slate-800 hover:bg-slate-50">
+                    <Settings className="w-4 h-4" />
+                    Gestionar Grupos
+                  </Button>
+                }
+              />
         </aside>
 
         {/* Main table card */}
