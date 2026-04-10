@@ -2,7 +2,7 @@
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { cn } from '@/lib/utils'
+import { cn, adjustColor } from '@/lib/utils'
 
 interface Group {
   id: string
@@ -71,13 +71,4 @@ export function GroupTabs({ groups, selectedId, onChange, className, isAdmin = t
       </Tabs>
     </div>
   )
-}
-
-function adjustColor(color: string, amount: number): string {
-  const hex = color.replace('#', '')
-  if (hex.length !== 6) return color // Invalid format, return as-is
-  const r = Math.min(255, Math.max(0, parseInt(hex.substring(0, 2), 16) + amount))
-  const g = Math.min(255, Math.max(0, parseInt(hex.substring(2, 4), 16) + amount))
-  const b = Math.min(255, Math.max(0, parseInt(hex.substring(4, 6), 16) + amount))
-  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }

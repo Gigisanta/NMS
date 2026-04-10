@@ -284,9 +284,35 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
   wait: number
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null
-  
+
   return (...args: Parameters<T>) => {
     if (timeout) clearTimeout(timeout)
     timeout = setTimeout(() => func(...args), wait)
   }
 }
+
+/**
+ * Ajusta el brillo de un color hex sumando un valor RGB.
+ * Útil para crear variaciones de color para hover/gradientes.
+ *
+ * @param {string} color - Color en formato hex (#RRGGBB)
+ * @param {number} amount - Cantidad a ajustar (-255 a 255)
+ * @returns {string} Color hex ajustado
+ */
+export function adjustColor(color: string, amount: number): string {
+  const hex = color.replace('#', '')
+  if (hex.length !== 6) return color
+  const r = Math.min(255, Math.max(0, parseInt(hex.substring(0, 2), 16) + amount))
+  const g = Math.min(255, Math.max(0, parseInt(hex.substring(2, 4), 16) + amount))
+  const b = Math.min(255, Math.max(0, parseInt(hex.substring(4, 6), 16) + amount))
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
+}
+
+/**
+ * Paleta de colores predefinidos para grupos.
+ * Orden canónico para ordenamiento por color.
+ */
+export const GROUP_COLORS = [
+  '#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444',
+  '#3b82f6', '#ec4899', '#84cc16', '#f97316', '#6366f1',
+] as const

@@ -15,16 +15,17 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ClientForm } from './client-form'
 import { GroupSelector } from './group-selector'
 import { GroupManager } from './group-manager'
 import { ClientProfile } from './client-profile'
 import { GroupTabs } from './group-tabs'
-import { formatFullName, getPaymentStatusConfig, cn } from '@/lib/utils'
+import { formatFullName, getPaymentStatusConfig, cn, adjustColor, GROUP_COLORS } from '@/lib/utils'
 import { useDebounce } from '@/hooks/use-optimized'
 import { useAppStore } from '@/store'
 import { queryClient } from '@/lib/queryClient'
-import { Plus, Search, Loader2, ChevronLeft, ChevronRight, Send, FileCheck, Users } from 'lucide-react'
+import { Plus, Search, Loader2, ChevronLeft, ChevronRight, Send, FileCheck, Users, Settings } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Client } from '@/types'
 
@@ -50,15 +51,6 @@ interface ClientsViewProps {
   onViewChange?: (view: string, clientId?: string) => void
   openNewClient?: boolean
   onNewClientHandled?: () => void
-}
-
-function adjustColor(color: string, amount: number): string {
-  const hex = color.replace('#', '')
-  if (hex.length !== 6) return color
-  const r = Math.min(255, Math.max(0, parseInt(hex.substring(0, 2), 16) + amount))
-  const g = Math.min(255, Math.max(0, parseInt(hex.substring(2, 4), 16) + amount))
-  const b = Math.min(255, Math.max(0, parseInt(hex.substring(4, 6), 16) + amount))
-  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
 
 const ClientTableRow = memo(({
@@ -214,6 +206,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [groups, setGroups] = useState<Group[]>([])
+  const [groupSortBy, setGroupSortBy] = useState<'name' | 'color'>('name')
   const groupsLastFetchRef = useRef(0)
   const [groupsVersion, setGroupsVersion] = useState(0)
 
@@ -249,6 +242,16 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
       console.error('Error fetching groups:', err)
     }
   }, [setStoreGroups])
+
+  const sortedGroups = useMemo(() => {
+    const sorted = [...groups]
+    if (groupSortBy === 'color') {
+      sorted.sort((a, b) => GROUP_COLORS.indexOf(a.color as typeof GROUP_COLORS[number]) - GROUP_COLORS.indexOf(b.color as typeof GROUP_COLORS[number]))
+    } else {
+      sorted.sort((a, b) => a.name.localeCompare(b.name, 'es'))
+    }
+    return sorted
+  }, [groups, groupSortBy])
 
   const fetchClients = useCallback(async () => {
     setLoading(true)
@@ -349,6 +352,20 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
     <div className="flex flex-col gap-4">
       {/* Mobile: horizontal group tabs */}
       <div className="md:hidden">
+        {isAdmin && (
+          <div className="mb-3">
+            <GroupManager
+              groups={groups}
+              onGroupsChange={() => refreshGroups()}
+              trigger={
+                <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-slate-600 hover:text-slate-800 hover:bg-slate-50">
+                  <Settings className="w-4 h-4" />
+                  Gestionar Grupos
+                </Button>
+              }
+            />
+          </div>
+        )}
         <GroupTabs
           groups={groups}
           selectedId={grupoFilter}
@@ -364,6 +381,15 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
             <div className="flex items-center gap-2 mb-3">
               <Users className="w-4 h-4 text-slate-400" />
               <span className="font-semibold text-sm text-slate-700">Grupos</span>
+              <Select value={groupSortBy} onValueChange={(v) => setGroupSortBy(v as 'name' | 'color')}>
+                <SelectTrigger className="ml-auto h-7 w-[90px] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Nombre</SelectItem>
+                  <SelectItem value="color">Color</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-0.5">
               {isAdmin && (
@@ -378,7 +404,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
                   Todos
                 </button>
               )}
-              {groups.map((group) => (
+              {sortedGroups.map((group) => (
                 <button
                   key={group.id}
                   onClick={() => { setGrupoFilter(group.id); setPage(1) }}
@@ -403,7 +429,18 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
               ))}
             </div>
           </div>
-          {isAdmin && <GroupManager groups={groups} onGroupsChange={() => refreshGroups()} />}
+          {isAdmin && (
+                <GroupManager
+                  groups={groups}
+                  onGroupsChange={() => refreshGroups()}
+                  trigger={
+                    <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-slate-600 hover:text-slate-800 hover:bg-slate-50">
+                      <Settings className="w-4 h-4" />
+                      Gestionar Grupos
+                    </Button>
+                  }
+                />
+              )}
         </aside>
 
         {/* Main table card */}
