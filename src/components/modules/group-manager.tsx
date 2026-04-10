@@ -88,11 +88,12 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       })
       const result = await response.json()
       if (result.success) {
-        // Directly update cache with fresh data from API - no refetch needed
+        // Update cache AND force re-render via invalidate
         queryClient.setQueryData<Group[]>(['groups'], (old) => {
           if (!old) return [result.data]
           return [...old, result.data]
         })
+        queryClient.invalidateQueries({ queryKey: ['groups'] })
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
         onGroupsChange()
         setShowCreate(false)
@@ -127,11 +128,12 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       })
       const result = await response.json()
       if (result.success) {
-        // Directly update cache with fresh data from API - no refetch needed
+        // Update cache AND force re-render via invalidate
         queryClient.setQueryData<Group[]>(['groups'], (old) => {
           if (!old) return [result.data]
           return old.map(g => g.id === result.data.id ? { ...g, ...result.data } : g)
         })
+        queryClient.invalidateQueries({ queryKey: ['groups'] })
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
         onGroupsChange()
         setEditingId(null)
@@ -154,11 +156,12 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       const response = await fetch(`/api/groups/${id}`, { method: 'DELETE' })
       const result = await response.json()
       if (result.success) {
-        // Directly update cache by removing the deleted group
+        // Update cache AND force re-render via invalidate
         queryClient.setQueryData<Group[]>(['groups'], (old) => {
           if (!old) return []
           return old.filter(g => g.id !== id)
         })
+        queryClient.invalidateQueries({ queryKey: ['groups'] })
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
         onGroupsChange()
         setConfirmDeleteId(null)
