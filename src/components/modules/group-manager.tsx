@@ -112,32 +112,32 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
     }
   }
 
-  const handleUpdate = async () => {
-    if (!editGroup || !editGroup.name.trim()) return
+  const handleUpdateWithLocalData = async (localGroup: Group) => {
+    if (!localGroup.name.trim()) return
     setSaving(true)
     try {
-      const response = await fetch(`/api/groups/${editGroup.id}`, {
+      const response = await fetch(`/api/groups/${localGroup.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: editGroup.name.trim(),
-          color: editGroup.color,
-          schedule: editGroup.schedule?.trim() || null,
-          description: editGroup.description?.trim() || null,
+          name: localGroup.name.trim(),
+          color: localGroup.color,
+          schedule: localGroup.schedule?.trim() || null,
+          description: localGroup.description?.trim() || null,
         }),
       })
       const result = await response.json()
       if (result.success) {
-        // Update cache AND force re-render via invalidate
+        // Update cache with fresh data from API response
+        const freshGroup = result.data
         queryClient.setQueryData<Group[]>(['groups'], (old) => {
-          if (!old) return [result.data]
-          return old.map(g => g.id === result.data.id ? { ...g, ...result.data } : g)
+          if (!old) return [freshGroup]
+          return old.map(g => g.id === freshGroup.id ? freshGroup : g)
         })
         queryClient.invalidateQueries({ queryKey: ['groups'] })
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
         onGroupsChange()
         setEditingId(null)
-        setEditGroup(null)
         setError(null)
       } else {
         setError(result.error || 'Error al actualizar el grupo')
@@ -220,7 +220,7 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
                 {editingId === group.id ? (
                   <GroupEditForm
                     group={editGroup!}
-                    onSave={handleUpdate}
+                    onSave={(localGroup) => handleUpdateWithLocalData(localGroup)}
                     onCancel={cancelEdit}
                     saving={saving}
                   />
@@ -358,7 +358,7 @@ function GroupEditForm({
   saving,
 }: {
   group: Group
-  onSave: () => void
+  onSave: (group: Group) => void
   onCancel: () => void
   saving: boolean
 }) {
@@ -404,7 +404,7 @@ function GroupEditForm({
         <Button size="sm" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button size="sm" onClick={onSave} disabled={saving}>
+        <Button size="sm" onClick={() => onSave(localGroup)} disabled={saving}>
           {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Guardar'}
         </Button>
       </div>
