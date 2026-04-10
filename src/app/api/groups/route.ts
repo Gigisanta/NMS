@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { cachedFetch, CacheKeys, invalidateGroupsCache } from '@/lib/api-utils'
+import { invalidateGroupsCache } from '@/lib/api-utils'
 import { z } from 'zod'
 import { ratelimit } from '@/lib/rate-limit'
 import { auth } from '@/auth'
@@ -19,40 +19,23 @@ export async function GET() {
     const isAdmin = session?.user?.role === 'EMPLEADORA'
     const userColor = session?.user?.groupColor
 
-    // Use cache for groups (they don't change frequently)
-    // Note: cache is disabled when filtering by user color
-    const useCache = isAdmin || !userColor
-
-    const groups = useCache
-      ? await cachedFetch(
-          CacheKeys.groups(),
-          async () => {
-            const result = await db.group.findMany({
-              where: { active: true },
-              select: {
-                id: true,
-                name: true,
-                color: true,
-                description: true,
-                schedule: true,
-                _count: {
-                  select: { clients: true }
-                }
-              },
-              orderBy: { name: 'asc' }
-            })
-
-            return result.map(g => ({
-              id: g.id,
-              name: g.name,
-              color: g.color,
-              description: g.description,
-              schedule: g.schedule,
-              clientCount: g._count.clients
-            }))
+    // Always fetch directly from DB - client-side caching (5-min guard + force refresh)
+    // handles stale prevention. Invalidate via invalidateGroupsCache() on mutations.
+    const result = isAdmin || !userColor
+      ? await db.group.findMany({
+          where: { active: true },
+          select: {
+            id: true,
+            name: true,
+            color: true,
+            description: true,
+            schedule: true,
+            _count: {
+              select: { clients: true }
+            }
           },
-          2 * 60 * 1000 // 2 minutes cache
-        )
+          orderBy: { name: 'asc' }
+        })
       : await db.group.findMany({
           where: { active: true, color: userColor },
           select: {
@@ -66,20 +49,22 @@ export async function GET() {
             }
           },
           orderBy: { name: 'asc' }
-        }).then(result => result.map(g => ({
-          id: g.id,
-          name: g.name,
-          color: g.color,
-          description: g.description,
-          schedule: g.schedule,
-          clientCount: g._count.clients
-        })))
+        })
+
+    const groups = result.map(g => ({
+      id: g.id,
+      name: g.name,
+      color: g.color,
+      description: g.description,
+      schedule: g.schedule,
+      clientCount: g._count.clients,
+    }))
 
     return NextResponse.json(
       { success: true, data: groups },
       {
         headers: {
-          'Cache-Control': useCache ? 'private, no-cache, must-revalidate' : 'no-store',
+          'Cache-Control': 'private, no-cache, must-revalidate',
         },
       }
     )
