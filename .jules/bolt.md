@@ -1,5 +1,9 @@
 # Bolt's Journal - Critical Learnings
 
+## 2026-03-04 - Optimized Record Synchronization and Bulk Insertion
+**Learning:** Manual diffing of large datasets in JavaScript (fetching all records from two tables to find missing relations) is an $O(N+M)$ operation that scales poorly and consumes excessive memory/CPU. Using Prisma's `none` filter allows the database to perform this work in a single optimized query. Additionally, individual `create` calls within a loop (even in a transaction) incur $O(N)$ network roundtrips; `createMany` reduces this to $O(1)$.
+**Action:** Use `none` filter for existence checks and `createMany` for bulk inserts. Wrap long-running sync logic *inside* `cachedFetch` to avoid redundant execution on every request.
+
 ## 2026-03-04 - Parallelism and Date Mutation
 **Learning:** Mutating the `Date` object directly (e.g., `now.setHours(0)`) in an API handler that uses `Promise.all` can lead to race conditions or incorrect range calculations for subsequent parallel queries if they rely on the same `now` variable.
 **Action:** Always clone Date objects using `new Date(originalDate)` before performing mutations for range calculations.

@@ -22,6 +22,7 @@ export const CacheKeys = {
   client: (id: string) => `client:${id}`,
   dashboard: () => 'dashboard:stats',
   attendanceToday: () => `attendance:today`,
+  subscriptions: (params: Record<string, string>) => `subscriptions:${JSON.stringify(params)}`,
 } as const
 
 /**
