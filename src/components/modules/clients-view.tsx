@@ -290,10 +290,10 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
     setShowProfile(false)
   }, [])
 
-  const handleFormSuccess = useCallback(() => {
+  const handleFormSuccess = useCallback(async () => {
     setShowForm(false)
     invalidateDashboard()
-    fetchClients()
+    await fetchClients()
     queryClient.invalidateQueries({ queryKey: ['groups'] })
   }, [fetchClients, invalidateDashboard])
 
