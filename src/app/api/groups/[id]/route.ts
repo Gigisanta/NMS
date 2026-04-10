@@ -63,7 +63,7 @@ export async function PUT(
 ) {
   try {
     const session = await auth()
-    if (!session?.user || session.user.role !== 'EMPLEADORA') {
+    if (!session?.user) {
       return NextResponse.json(
         { success: false, error: 'Sin permisos para actualizar grupos' },
         { status: 403 }
@@ -133,7 +133,7 @@ export async function DELETE(
 ) {
   try {
     const session = await auth()
-    if (!session?.user || session.user.role !== 'EMPLEADORA') {
+    if (!session?.user) {
       return NextResponse.json(
         { success: false, error: 'Sin permisos para eliminar grupos' },
         { status: 403 }

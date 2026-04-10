@@ -96,7 +96,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || session.user.role !== 'EMPLEADORA') {
+    if (!session?.user) {
       return NextResponse.json(
         { success: false, error: 'Sin permisos para crear grupos' },
         { status: 403 }
