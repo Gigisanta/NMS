@@ -345,6 +345,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         const result = await response.json()
         if (result.success) {
           queryClient.invalidateQueries({ queryKey: ['clients'] })
+          queryClient.invalidateQueries({ queryKey: ['groups'] })
           onSaved()
         }
       } catch {
@@ -443,6 +444,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
       })
       const result = await response.json()
       if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ['groups'] })
         fetchClient()
       } else {
         setError(result.error || 'Error al agregar grupo')
@@ -461,6 +463,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
       })
       const result = await response.json()
       if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ['groups'] })
         fetchClient()
       } else {
         setError(result.error || 'Error al remover grupo')

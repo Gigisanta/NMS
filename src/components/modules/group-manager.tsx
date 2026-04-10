@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { queryClient } from '@/lib/queryClient'
 import {
   Dialog,
   DialogContent,
@@ -87,6 +88,8 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       })
       const result = await response.json()
       if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ['groups'] })
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] })
         onGroupsChange()
         setShowCreate(false)
         setNewGroup({ name: '', color: predefinedColors[0], schedule: '', description: '' })
@@ -120,6 +123,8 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       })
       const result = await response.json()
       if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ['groups'] })
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] })
         onGroupsChange()
         setEditingId(null)
         setEditGroup(null)
@@ -141,6 +146,8 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       const response = await fetch(`/api/groups/${id}`, { method: 'DELETE' })
       const result = await response.json()
       if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ['groups'] })
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] })
         onGroupsChange()
         setConfirmDeleteId(null)
         setError(null)

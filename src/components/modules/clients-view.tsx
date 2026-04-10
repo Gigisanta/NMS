@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
 import { useSession } from 'next-auth/react'
+import { useQuery } from '@tanstack/react-query'
 import {
   Dialog,
   DialogContent,
@@ -205,13 +206,26 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
-  const [groups, setGroups] = useState<Group[]>([])
   const [groupSortBy, setGroupSortBy] = useState<'name' | 'color'>('name')
-  const groupsLastFetchRef = useRef(0)
-  const [groupsVersion, setGroupsVersion] = useState(0)
 
   const setStoreGroups = useAppStore((state) => state.setGroups)
   const invalidateDashboard = useAppStore((state) => state.invalidateDashboard)
+
+  // Use React Query for groups - automatically invalidated by group-manager
+  const { data: groupsData } = useQuery({
+    queryKey: ['groups'],
+    queryFn: async () => {
+      const res = await fetch('/api/groups')
+      const result = await res.json()
+      if (result.success) {
+        setStoreGroups?.(result.data)
+        return result.data as Group[]
+      }
+      return []
+    },
+    staleTime: 60 * 1000,
+  })
+  const groups = groupsData || []
 
   const debouncedSearch = useDebounce(search, 300)
 
@@ -222,26 +236,6 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
       onNewClientHandled?.()
     }
   }, [openNewClient, onNewClientHandled])
-
-  const refreshGroups = useCallback(() => {
-    groupsLastFetchRef.current = 0
-    setGroupsVersion(v => v + 1)
-  }, [])
-
-  const fetchGroups = useCallback(async () => {
-    if (groupsLastFetchRef.current > 0 && Date.now() - groupsLastFetchRef.current < 5 * 60 * 1000) return
-    try {
-      const res = await fetch('/api/groups')
-      const result = await res.json()
-      if (result.success) {
-        setGroups(result.data)
-        setStoreGroups?.(result.data)
-        groupsLastFetchRef.current = Date.now()
-      }
-    } catch (err) {
-      console.error('Error fetching groups:', err)
-    }
-  }, [setStoreGroups])
 
   const sortedGroups = useMemo(() => {
     const sorted = [...groups]
@@ -287,11 +281,6 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
     fetchClients()
   }, [fetchClients])
 
-  // Fetch groups when version changes (or on mount)
-  useEffect(() => {
-    fetchGroups()
-  }, [fetchGroups, groupsVersion])
-
   const handleClientClick = useCallback((client: ClientRowData) => {
     setSelectedClientId(client.id)
     setShowProfile(true)
@@ -305,8 +294,8 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
     setShowForm(false)
     invalidateDashboard()
     fetchClients()
-    refreshGroups()
-  }, [fetchClients, invalidateDashboard, refreshGroups])
+    queryClient.invalidateQueries({ queryKey: ['groups'] })
+  }, [fetchClients, invalidateDashboard])
 
   const handleDelete = useCallback(async (id: string) => {
     setDeletingId(id)
@@ -355,7 +344,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
         <div className="mb-3">
           <GroupManager
             groups={groups}
-            onGroupsChange={() => refreshGroups()}
+            onGroupsChange={() => queryClient.invalidateQueries({ queryKey: ['groups'] })}
             trigger={
               <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-slate-600 hover:text-slate-800 hover:bg-slate-50">
                 <Settings className="w-4 h-4" />
@@ -429,7 +418,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
           </div>
           <GroupManager
                 groups={groups}
-                onGroupsChange={() => refreshGroups()}
+                onGroupsChange={() => queryClient.invalidateQueries({ queryKey: ['groups'] })}
                 trigger={
                   <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-slate-600 hover:text-slate-800 hover:bg-slate-50">
                     <Settings className="w-4 h-4" />
@@ -527,7 +516,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
                             groups={groups}
                             onClientClick={handleClientClick}
                             onGroupChange={handleGroupChange}
-                            onGroupsRefresh={refreshGroups}
+                            onGroupsRefresh={() => queryClient.invalidateQueries({ queryKey: ['groups'] })}
                             onDelete={setConfirmDeleteId}
                             isDeleting={deletingId === client.id}
                           />

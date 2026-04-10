@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { queryClient } from '@/lib/queryClient'
 import { 
   Plus, 
   Check, 
@@ -90,6 +91,7 @@ export function GroupSelector({
 
       const result = await response.json()
       if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ['groups'] })
         onGroupsChange?.()
         onChange(result.data.id)
         setShowCreate(false)
