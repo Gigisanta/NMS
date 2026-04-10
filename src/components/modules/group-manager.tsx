@@ -88,9 +88,12 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       })
       const result = await response.json()
       if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['groups'] })
+        // Directly update cache with fresh data from API - no refetch needed
+        queryClient.setQueryData<Group[]>(['groups'], (old) => {
+          if (!old) return [result.data]
+          return [...old, result.data]
+        })
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-        queryClient.refetchQueries({ queryKey: ['groups'] })
         onGroupsChange()
         setShowCreate(false)
         setNewGroup({ name: '', color: predefinedColors[0], schedule: '', description: '' })
@@ -124,10 +127,12 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       })
       const result = await response.json()
       if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['groups'] })
+        // Directly update cache with fresh data from API - no refetch needed
+        queryClient.setQueryData<Group[]>(['groups'], (old) => {
+          if (!old) return [result.data]
+          return old.map(g => g.id === result.data.id ? { ...g, ...result.data } : g)
+        })
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-        // Force immediate refetch instead of waiting for staleTime
-        queryClient.refetchQueries({ queryKey: ['groups'] })
         onGroupsChange()
         setEditingId(null)
         setEditGroup(null)
@@ -149,9 +154,12 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
       const response = await fetch(`/api/groups/${id}`, { method: 'DELETE' })
       const result = await response.json()
       if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['groups'] })
+        // Directly update cache by removing the deleted group
+        queryClient.setQueryData<Group[]>(['groups'], (old) => {
+          if (!old) return []
+          return old.filter(g => g.id !== id)
+        })
         queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-        queryClient.refetchQueries({ queryKey: ['groups'] })
         onGroupsChange()
         setConfirmDeleteId(null)
         setError(null)
