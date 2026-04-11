@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { updateGroupSchema } from '@/schemas'
 import { invalidateGroupsCache, CacheKeys } from '@/lib/api-utils'
 import { auth } from '@/auth'
+import { Prisma } from '@prisma/client'
 
 // GET /api/groups/[id] - Get single group
 export async function GET(
@@ -74,11 +75,12 @@ export async function PUT(
     const body = await request.json()
     const validatedData = updateGroupSchema.parse(body)
 
-    // If name is being updated, check for duplicates
+    // If name is being updated, check for duplicates (case-insensitive)
     if (validatedData.name) {
+      const normalizedName = validatedData.name.toLowerCase().trim()
       const existingGroup = await db.group.findFirst({
         where: {
-          name: validatedData.name,
+          name: { equals: normalizedName, mode: 'insensitive' },
           NOT: { id },
         },
       })
@@ -89,6 +91,8 @@ export async function PUT(
           { status: 400 }
         )
       }
+      // Normalize the name for storage
+      validatedData.name = normalizedName
     }
 
     const group = await db.group.update({
@@ -116,6 +120,13 @@ export async function PUT(
       const firstError = error.issues[0]
       return NextResponse.json(
         { success: false, error: firstError?.message || 'Datos inválidos' },
+        { status: 400 }
+      )
+    }
+    // Handle Prisma unique constraint violation (P2002)
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return NextResponse.json(
+        { success: false, error: 'Ya existe un grupo con este nombre' },
         { status: 400 }
       )
     }

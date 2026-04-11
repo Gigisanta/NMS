@@ -4,6 +4,7 @@ import { invalidateGroupsCache } from '@/lib/api-utils'
 import { z } from 'zod'
 import { ratelimit } from '@/lib/rate-limit'
 import { auth } from '@/auth'
+import { Prisma } from '@prisma/client'
 
 const createGroupSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres').max(50, 'Máximo 50 caracteres'),
@@ -101,9 +102,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validated = createGroupSchema.parse(body)
 
-    // Check if group with same name exists
+    // Normalize name to lowercase for case-insensitive duplicate check
+    const normalizedName = validated.name.toLowerCase().trim()
+
+    // Check if group with same name exists (case-insensitive)
     const existing = await db.group.findFirst({
-      where: { name: validated.name }
+      where: { name: { equals: normalizedName, mode: 'insensitive' } }
     })
 
     if (existing) {
@@ -115,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     const group = await db.group.create({
       data: {
-        name: validated.name,
+        name: normalizedName,
         color: validated.color ?? '#06b6d4',
         ...(validated.description !== undefined && { description: validated.description ?? null }),
         ...(validated.schedule !== undefined && { schedule: validated.schedule ?? null }),
@@ -146,6 +150,13 @@ export async function POST(request: NextRequest) {
       const firstError = error.issues[0]
       return NextResponse.json(
         { success: false, error: firstError?.message || 'Datos inválidos' },
+        { status: 400 }
+      )
+    }
+    // Handle Prisma unique constraint violation (P2002)
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return NextResponse.json(
+        { success: false, error: 'Ya existe un grupo con ese nombre' },
         { status: 400 }
       )
     }
