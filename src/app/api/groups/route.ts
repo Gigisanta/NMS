@@ -105,9 +105,13 @@ export async function POST(request: NextRequest) {
     // Normalize name to lowercase for case-insensitive duplicate check
     const normalizedName = validated.name.toLowerCase().trim()
 
-    // Check if group with same name exists (case-insensitive)
+    // Check if ACTIVE group with same name exists (case-insensitive)
+    // Ignore soft-deleted groups (active: false)
     const existing = await db.group.findFirst({
-      where: { name: { equals: normalizedName, mode: 'insensitive' } }
+      where: {
+        name: { equals: normalizedName, mode: 'insensitive' },
+        active: true
+      }
     })
 
     if (existing) {

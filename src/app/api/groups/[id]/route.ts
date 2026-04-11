@@ -75,12 +75,13 @@ export async function PUT(
     const body = await request.json()
     const validatedData = updateGroupSchema.parse(body)
 
-    // If name is being updated, check for duplicates (case-insensitive)
+    // If name is being updated, check for duplicates (case-insensitive, only active groups)
     if (validatedData.name) {
       const normalizedName = validatedData.name.toLowerCase().trim()
       const existingGroup = await db.group.findFirst({
         where: {
           name: { equals: normalizedName, mode: 'insensitive' },
+          active: true,
           NOT: { id },
         },
       })
