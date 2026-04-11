@@ -214,66 +214,22 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
         >
           {/* Logo */}
           <div
-            className="flex items-center justify-between h-24 px-5"
+            className="flex items-center justify-between h-20 px-5"
             style={{ borderBottom: '1px solid rgba(0, 168, 232, 0.3)' }}
           >
-            <div className="flex items-center gap-3">
-              {/* Logo real del natatorio con efectos visuales premium */}
-              <div
-                className="relative group cursor-pointer"
-                style={{
-                  padding: '8px 10px',
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(240,248,255,0.95) 100%)',
-                  borderRadius: '16px',
-                  boxShadow: '0 8px 32px rgba(0, 86, 145, 0.12), 0 2px 8px rgba(0, 168, 232, 0.08), inset 0 1px 0 rgba(255,255,255,1)',
-                  border: '1px solid rgba(0, 168, 232, 0.25)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.02)'
-                  e.currentTarget.style.boxShadow = '0 12px 40px rgba(0, 86, 145, 0.18), 0 4px 12px rgba(0, 168, 232, 0.12), inset 0 1px 0 rgba(255,255,255,1)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)'
-                  e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 86, 145, 0.12), 0 2px 8px rgba(0, 168, 232, 0.08), inset 0 1px 0 rgba(255,255,255,1)'
-                }}
-              >
-                {/* Glow sutil en hover */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{
-                    borderRadius: '16px',
-                    background: 'radial-gradient(ellipse at center, rgba(0, 168, 232, 0.08) 0%, transparent 70%)',
-                  }}
-                />
+            <div className="flex items-center gap-4">
+              {/* Logo del natatorio */}
+              <div className="relative flex items-center gap-3 p-2 rounded-2xl bg-white/90 shadow-md border border-sky-100 transition-all duration-200 hover:shadow-lg hover:scale-[1.01]">
                 <img
                   src="/logo-natatorio.png"
                   alt="Oro Azul Natatorio"
-                  className="h-16 w-auto object-contain block relative z-10"
-                  style={{
-                    maxHeight: '64px',
-                    transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    filter: 'drop-shadow(0 2px 4px rgba(0, 86, 145, 0.1))',
-                  }}
+                  className="h-12 w-auto object-contain"
                 />
               </div>
               {/* Nombre del natatorio */}
               <div className="flex flex-col">
-                <span
-                  className="text-lg font-bold tracking-tight"
-                  style={{
-                    color: '#005691',
-                    textShadow: '0 1px 2px rgba(0, 86, 145, 0.1)',
-                  }}
-                >
-                  Oro Azul
-                </span>
-                <span
-                  className="text-[11px] font-medium uppercase tracking-widest"
-                  style={{ color: '#00A8E8' }}
-                >
-                  Natatorio
-                </span>
+                <span className="text-base font-bold text-sky-800">Oro Azul</span>
+                <span className="text-[10px] font-medium text-sky-500 uppercase tracking-widest">Natatorio</span>
               </div>
             </div>
             <Button
