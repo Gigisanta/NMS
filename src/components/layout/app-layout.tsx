@@ -213,38 +213,18 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
           }}
         >
           {/* Logo */}
-          <div 
+          <div
             className="flex items-center justify-between h-20 px-6"
             style={{ borderBottom: '1px solid rgba(0, 168, 232, 0.3)' }}
           >
             <div className="flex items-center gap-3">
-              {/* Logo con gradiente Oro Azul */}
-              <div 
-                className="w-11 h-11 flex items-center justify-center rounded-xl shadow-lg"
-                style={{
-                  background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
-                  boxShadow: '0 4px 15px rgba(0, 168, 232, 0.5)',
-                }}
-              >
-                <WavesIcon className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <span 
-                  className="text-lg font-bold block"
-                  style={{ 
-                    color: '#005691', 
-                    letterSpacing: '-0.03em',
-                    background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                  }}
-                >
-                  NMS
-                </span>
-                <span className="text-[10px] font-medium" style={{ color: '#00A8E8' }}>
-                  Natatorio
-                </span>
-              </div>
+              {/* Logo real del natatorio */}
+              <img
+                src="/logo-natatorio.png"
+                alt="NMS Natatorio"
+                className="h-12 w-auto object-contain"
+                style={{ maxHeight: '48px' }}
+              />
             </div>
             <Button
               variant="ghost"
