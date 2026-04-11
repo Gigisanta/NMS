@@ -193,22 +193,8 @@ export async function POST(request: NextRequest) {
     } = parsed.data
 
     // Clean phone number - remove spaces and dashes (only if provided)
+    // NOTE: Multiple clients CAN have the same phone number - no duplicate check
     const telefono = telefonoWithFormat ? telefonoWithFormat.replace(/[\s\-]/g, '') : null
-
-    // Check if phone already exists (only if telefono is provided)
-    if (telefono) {
-      const existingClient = await db.client.findFirst({
-        where: { telefono },
-        select: { id: true }, // Only select id for performance
-      })
-
-      if (existingClient) {
-        return NextResponse.json(
-          { success: false, error: 'Ya existe un cliente con este teléfono' },
-          { status: 400 }
-        )
-      }
-    }
 
     // Create client with subscription in a transaction
     const currentMonth = getCurrentMonth()
