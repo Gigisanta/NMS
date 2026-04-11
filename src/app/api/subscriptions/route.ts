@@ -2,42 +2,43 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { auth } from '@/auth'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
+import { cachedFetch, CacheKeys } from '@/lib/api-utils'
 
 async function ensureSubscriptionsExist(month: number, year: number) {
-  const clients = await db.client.findMany({ select: { id: true } })
-  const existingSubs = await db.subscription.findMany({
-    where: { month, year },
-    select: { clientId: true },
+  // BOLT OPTIMIZATION: Identify missing clients in a single query using 'none' filter (O(1) query vs O(N) fetch + JS filter)
+  const missingClients = await db.client.findMany({
+    where: {
+      subscriptions: {
+        none: { month, year }
+      }
+    },
+    select: { id: true, monthlyAmount: true }
   })
-  const existingClientIds = new Set(existingSubs.map(s => s.clientId))
-  const missingClients = clients.filter(c => !existingClientIds.has(c.id))
 
   if (missingClients.length > 0) {
-    const defaultClassesSetting = await db.settings.findUnique({
-      where: { key: 'payment.defaultClasses' },
-    })
-    const defaultPriceSetting = await db.settings.findUnique({
-      where: { key: 'payment.defaultPrice' },
-    })
+    // BOLT OPTIMIZATION: Parallelize settings fetch
+    const [defaultClassesSetting, defaultPriceSetting] = await Promise.all([
+      db.settings.findUnique({ where: { key: 'payment.defaultClasses' } }),
+      db.settings.findUnique({ where: { key: 'payment.defaultPrice' } }),
+    ])
+
     const defaultClasses = defaultClassesSetting ? parseInt(defaultClassesSetting.value) : 4
     const defaultPrice = defaultPriceSetting ? parseInt(defaultPriceSetting.value) : 5000
 
-    await db.$transaction(
-      missingClients.map(client =>
-        db.subscription.create({
-          data: {
-            clientId: client.id,
-            month,
-            year,
-            status: 'PENDIENTE',
-            billingPeriod: 'FULL',
-            classesTotal: defaultClasses,
-            classesUsed: 0,
-            amount: defaultPrice,
-          },
-        })
-      )
-    )
+    // BOLT OPTIMIZATION: Use createMany for bulk insertion (O(1) database roundtrip vs O(N) in a transaction)
+    await db.subscription.createMany({
+      data: missingClients.map(client => ({
+        clientId: client.id,
+        month,
+        year,
+        status: 'PENDIENTE',
+        billingPeriod: 'FULL',
+        classesTotal: defaultClasses,
+        classesUsed: 0,
+        amount: client.monthlyAmount ?? defaultPrice,
+      })),
+      skipDuplicates: true,
+    })
   }
 }
 
@@ -57,39 +58,47 @@ export async function GET(request: NextRequest) {
     const month = searchParams.get('month') ? parseInt(searchParams.get('month')!) : getCurrentMonth()
     const year = searchParams.get('year') ? parseInt(searchParams.get('year')!) : getCurrentYear()
 
-    await ensureSubscriptionsExist(month, year)
+    // BOLT OPTIMIZATION: Use cachedFetch to reduce DB load (30s TTL)
+    // Moving generation logic inside the callback ensures it only runs on cache miss
+    const subscriptions = await cachedFetch(
+      CacheKeys.subscriptions({ clientId: clientId || 'all', month, year }),
+      async () => {
+        await ensureSubscriptionsExist(month, year)
 
-    const whereClause: {
-      clientId?: string
-      month?: number
-      year?: number
-    } = {}
+        const whereClause: {
+          clientId?: string
+          month?: number
+          year?: number
+        } = {}
 
-    if (clientId) whereClause.clientId = clientId
-    if (month) whereClause.month = month
-    if (year) whereClause.year = year
+        if (clientId) whereClause.clientId = clientId
+        if (month) whereClause.month = month
+        if (year) whereClause.year = year
 
-    const subscriptions = await db.subscription.findMany({
-      where: whereClause,
-      include: {
-        client: {
-          select: {
-            id: true,
-            nombre: true,
-            apellido: true,
-            telefono: true,
-            grupo: {
+        return db.subscription.findMany({
+          where: whereClause,
+          include: {
+            client: {
               select: {
                 id: true,
-                name: true,
-                color: true,
+                nombre: true,
+                apellido: true,
+                telefono: true,
+                grupo: {
+                  select: {
+                    id: true,
+                    name: true,
+                    color: true,
+                  },
+                },
               },
             },
           },
-        },
+          orderBy: [{ year: 'desc' }, { month: 'desc' }],
+        })
       },
-      orderBy: [{ year: 'desc' }, { month: 'desc' }],
-    })
+      30 * 1000
+    )
 
     console.log('[Subscriptions GET] count:', subscriptions.length, 'month:', month, 'year:', year)
 
