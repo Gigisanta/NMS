@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { cachedFetch, CacheKeys, invalidateCachePattern, invalidateClientCache } from '@/lib/api-utils'
+import { invalidateCachePattern, invalidateClientCache } from '@/lib/api-utils'
 
 // GET /api/attendance - Get attendance records
+// NOTE: In-memory cache removed - it doesn't work in serverless (Vercel) environments
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -10,47 +11,40 @@ export async function GET(request: NextRequest) {
     const clientId = searchParams.get('clientId')
 
     if (today) {
-      // Get today's attendance with cache
-      const attendance = await cachedFetch(
-        CacheKeys.attendanceToday(),
-        async () => {
-          const now = new Date()
-          // BOLT OPTIMIZATION: Avoid mutating the 'now' date object to prevent side effects
-          const startOfDay = new Date(now)
-          startOfDay.setHours(0, 0, 0, 0)
-          const endOfDay = new Date(now)
-          endOfDay.setHours(23, 59, 59, 999)
+      // Get today's attendance - direct query, no cache
+      const now = new Date()
+      const startOfDay = new Date(now)
+      startOfDay.setHours(0, 0, 0, 0)
+      const endOfDay = new Date(now)
+      endOfDay.setHours(23, 59, 59, 999)
 
-          return db.attendance.findMany({
-            where: {
-              date: {
-                gte: startOfDay,
-                lt: endOfDay,
-              },
-            },
+      const attendance = await db.attendance.findMany({
+        where: {
+          date: {
+            gte: startOfDay,
+            lt: endOfDay,
+          },
+        },
+        select: {
+          id: true,
+          clientId: true,
+          date: true,
+          client: {
             select: {
-              id: true,
-              clientId: true,
-              date: true,
-              client: {
+              nombre: true,
+              apellido: true,
+              grupo: {
                 select: {
-                  nombre: true,
-                  apellido: true,
-                  grupo: {
-                    select: {
-                      id: true,
-                      name: true,
-                      color: true,
-                    },
-                  },
+                  id: true,
+                  name: true,
+                  color: true,
                 },
               },
             },
-            orderBy: { date: 'desc' },
-          })
+          },
         },
-        30 * 1000 // 30 seconds cache for today's attendance
-      )
+        orderBy: { date: 'desc' },
+      })
 
       return NextResponse.json({
         success: true,

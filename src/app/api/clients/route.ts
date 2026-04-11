@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
-import { cachedFetch, CacheKeys, invalidateCachePattern, invalidateGroupsCache } from '@/lib/api-utils'
+import { invalidateCache, invalidateCachePattern, invalidateClientCache } from '@/lib/api-utils'
 import { createClientSchema } from '@/schemas/client'
 import { ratelimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
 // GET /api/clients - List all clients with pagination and filters
+// NOTE: In-memory cache removed - it doesn't work in serverless (Vercel) environments
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -20,135 +21,119 @@ export async function GET(request: NextRequest) {
 
     console.log(`[API CLIENTS] search: "${search}", grupoId: "${grupoId}", withSub: ${withSubscription}, page: ${page}`);
 
+    const currentMonth = getCurrentMonth()
+    const currentYear = getCurrentYear()
 
-    const params = {
-      search,
-      grupoId,
-      withSubscription: String(withSubscription),
-      page: String(page),
-      limit: String(limit)
+    // Build where clause safely
+    const where: Record<string, unknown> = {}
+
+    if (search) {
+      where.OR = [
+        { nombre: { contains: search, mode: 'insensitive' } },
+        { apellido: { contains: search, mode: 'insensitive' } },
+        { telefono: { contains: search, mode: 'insensitive' } },
+        { dni: { contains: search, mode: 'insensitive' } },
+      ]
     }
 
-    // Use cached fetch for high-traffic list route (30s cache)
-    const data = await cachedFetch(
-      CacheKeys.clients(params),
-      async () => {
-        const currentMonth = getCurrentMonth()
-        const currentYear = getCurrentYear()
+    if (grupoId && grupoId !== '' && grupoId !== 'null' && grupoId !== 'undefined') {
+      where.grupoId = grupoId
+    }
 
-        // Build where clause safely
-        const where: any = {}
-        
-        if (search) {
-          where.OR = [
-            { nombre: { contains: search, mode: 'insensitive' } },
-            { apellido: { contains: search, mode: 'insensitive' } },
-            { telefono: { contains: search, mode: 'insensitive' } },
-            { dni: { contains: search, mode: 'insensitive' } },
-          ]
-        }
-        
-        if (grupoId && grupoId !== '' && grupoId !== 'null' && grupoId !== 'undefined') {
-          where.grupoId = grupoId
-        }
+    console.log(`[API CLIENTS] Query where:`, JSON.stringify(where));
 
-        console.log(`[API CLIENTS] Query where:`, JSON.stringify(where));
-
-        // Run count and findMany in parallel
-        const [total, clients] = await Promise.all([
-          db.client.count({ where }),
-          db.client.findMany({
-            where,
+    // Run count and findMany in parallel
+    const [total, clients] = await Promise.all([
+      db.client.count({ where }),
+      db.client.findMany({
+        where,
+        select: {
+          id: true,
+          nombre: true,
+          apellido: true,
+          dni: true,
+          telefono: true,
+          grupoId: true,
+          preferredDays: true,
+          preferredTime: true,
+          notes: true,
+          monthlyAmount: true,
+          registrationFeePaid1: true,
+          registrationFeePaid2: true,
+          createdAt: true,
+          updatedAt: true,
+          updatedByUser: {
+            select: { name: true },
+          },
+          grupo: {
             select: {
               id: true,
-              nombre: true,
-              apellido: true,
-              dni: true,
-              telefono: true,
-              grupoId: true,
-              preferredDays: true,
-              preferredTime: true,
-              notes: true,
-              monthlyAmount: true,
-              registrationFeePaid1: true,
-              registrationFeePaid2: true,
-              createdAt: true,
-              updatedAt: true,
-              updatedByUser: {
-                select: { name: true },
-              },
-              grupo: {
-                select: {
-                  id: true,
-                  name: true,
-                  color: true,
-                },
-              },
-              // Only include subscription if requested
-              ...(withSubscription && {
-                subscriptions: {
-                  where: {
-                    month: currentMonth,
-                    year: currentYear,
-                  },
-                  select: {
-                    id: true,
-                    status: true,
-                    classesUsed: true,
-                    classesTotal: true,
-                    amount: true,
-                  },
-                  take: 1,
-                },
-              }),
+              name: true,
+              color: true,
             },
-            orderBy: [
-              { apellido: 'asc' },
-              { nombre: 'asc' }
-            ],
-            skip,
-            take: limit,
-          }),
-        ])
-
-        // Transform data to include current subscription status
-        const clientsWithStatus = clients.map((client) => {
-          const subscriptions = (client as { subscriptions?: { status: string; classesUsed: number; classesTotal: number }[] }).subscriptions || []
-          const currentSub = subscriptions[0]
-
-          return {
-            id: client.id,
-            nombre: client.nombre,
-            apellido: client.apellido,
-            dni: client.dni,
-            telefono: client.telefono,
-            grupoId: client.grupoId,
-            grupo: client.grupo,
-            preferredDays: client.preferredDays,
-            preferredTime: client.preferredTime,
-            notes: client.notes,
-            monthlyAmount: client.monthlyAmount,
-            registrationFeePaid1: client.registrationFeePaid1,
-            registrationFeePaid2: client.registrationFeePaid2,
-            createdAt: client.createdAt,
-            updatedAt: client.updatedAt,
-            updatedByUser: client.updatedByUser,
-            currentSubscription: currentSub || null,
-          }
-        })
-
-        return {
-          clients: clientsWithStatus,
-          pagination: {
-            page,
-            limit,
-            total,
-            totalPages: Math.ceil(total / limit),
           },
-        }
+          // Only include subscription if requested
+          ...(withSubscription && {
+            subscriptions: {
+              where: {
+                month: currentMonth,
+                year: currentYear,
+              },
+              select: {
+                id: true,
+                status: true,
+                classesUsed: true,
+                classesTotal: true,
+                amount: true,
+              },
+              take: 1,
+            },
+          }),
+        },
+        orderBy: [
+          { apellido: 'asc' },
+          { nombre: 'asc' }
+        ],
+        skip,
+        take: limit,
+      }),
+    ])
+
+    // Transform data to include current subscription status
+    const clientsWithStatus = clients.map((client) => {
+      const subscriptions = (client as { subscriptions?: { status: string; classesUsed: number; classesTotal: number }[] }).subscriptions || []
+      const currentSub = subscriptions[0]
+
+      return {
+        id: client.id,
+        nombre: client.nombre,
+        apellido: client.apellido,
+        dni: client.dni,
+        telefono: client.telefono,
+        grupoId: client.grupoId,
+        grupo: client.grupo,
+        preferredDays: client.preferredDays,
+        preferredTime: client.preferredTime,
+        notes: client.notes,
+        monthlyAmount: client.monthlyAmount,
+        registrationFeePaid1: client.registrationFeePaid1,
+        registrationFeePaid2: client.registrationFeePaid2,
+        createdAt: client.createdAt,
+        updatedAt: client.updatedAt,
+        updatedByUser: client.updatedByUser,
+        currentSubscription: currentSub || null,
+      }
+    })
+
+    const data = {
+      clients: clientsWithStatus,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      30 * 1000 // 30 seconds cache
-    )
+    }
 
     return NextResponse.json({
       success: true,
@@ -287,7 +272,8 @@ export async function POST(request: NextRequest) {
     })
 
     // Invalidate ALL client and group related caches
-    invalidateGroupsCache()
+    invalidateClientCache()
+    invalidateCache('groups:all')
 
     return NextResponse.json({
       success: true,

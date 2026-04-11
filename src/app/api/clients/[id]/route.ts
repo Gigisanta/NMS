@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { Prisma } from '@prisma/client'
-import { cachedFetch, CacheKeys, invalidateCachePattern } from '@/lib/api-utils'
+import { invalidateCachePattern } from '@/lib/api-utils'
 import { updateClientSchema } from '@/schemas/client'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
 import { ratelimit } from '@/lib/rate-limit'
 
 // GET /api/clients/[id] - Get single client with all details
+// NOTE: In-memory cache removed - it doesn't work in serverless (Vercel) environments
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -15,48 +16,42 @@ export async function GET(
   try {
     const { id } = await params
 
-    // Use cached fetch for high-traffic detail route (60s cache)
-    const client = await cachedFetch(
-      CacheKeys.client(id),
-      async () => {
-        return db.client.findUnique({
-          where: { id },
-          include: {
-            grupo: true,
-            subscriptions: {
-              orderBy: [{ year: 'desc' }, { month: 'desc' }],
-              take: 12,
-            },
-            invoices: {
-              orderBy: { uploadedAt: 'desc' },
-              take: 10,
-              select: {
-                id: true,
-                fileName: true,
-                filePath: true,
-                fileSize: true,
-                mimeType: true,
-                amount: true,
-                issueDate: true,
-                uploadedAt: true,
-                status: true,
-                category: true,
-                description: true,
-                type: true,
-                verified: true,
-                source: true,
-                // Exclude fileData (bytes) to avoid serialization issues with large files
-              },
-            },
-            attendances: {
-              orderBy: { date: 'desc' },
-              take: 20,
-            },
+    // Direct DB query - no caching in serverless
+    const client = await db.client.findUnique({
+      where: { id },
+      include: {
+        grupo: true,
+        subscriptions: {
+          orderBy: [{ year: 'desc' }, { month: 'desc' }],
+          take: 12,
+        },
+        invoices: {
+          orderBy: { uploadedAt: 'desc' },
+          take: 10,
+          select: {
+            id: true,
+            fileName: true,
+            filePath: true,
+            fileSize: true,
+            mimeType: true,
+            amount: true,
+            issueDate: true,
+            uploadedAt: true,
+            status: true,
+            category: true,
+            description: true,
+            type: true,
+            verified: true,
+            source: true,
+            // Exclude fileData (bytes) to avoid serialization issues with large files
           },
-        })
+        },
+        attendances: {
+          orderBy: { date: 'desc' },
+          take: 20,
+        },
       },
-      60 * 1000 // 1 minute cache
-    )
+    })
 
     if (!client) {
       return NextResponse.json(

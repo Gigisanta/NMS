@@ -311,6 +311,8 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
       }
 
       toast.success('Cambios guardados correctamente')
+      // Invalidate individual client cache so profile updates immediately
+      queryClient.invalidateQueries({ queryKey: ['client', clientId] })
       onSaved()
     } catch (error) {
       console.error('Error saving client:', error)
@@ -344,6 +346,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         })
         const result = await response.json()
         if (result.success) {
+          queryClient.invalidateQueries({ queryKey: ['client', clientId] })
           queryClient.invalidateQueries({ queryKey: ['clients'] })
           queryClient.invalidateQueries({ queryKey: ['groups'] })
           onSaved()
@@ -378,6 +381,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         })
         const subResult = await subResponse.json()
         if (subResult.success) {
+          queryClient.invalidateQueries({ queryKey: ['client', clientId] })
           queryClient.invalidateQueries({ queryKey: ['clients'] })
           queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
           onSaved()
