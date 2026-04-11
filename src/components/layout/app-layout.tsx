@@ -214,22 +214,55 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
         >
           {/* Logo */}
           <div
-            className="flex items-center justify-between h-20 px-6"
+            className="flex items-center justify-between h-20 px-5"
             style={{ borderBottom: '1px solid rgba(0, 168, 232, 0.3)' }}
           >
             <div className="flex items-center gap-3">
-              {/* Logo real del natatorio */}
-              <img
-                src="/logo-natatorio.png"
-                alt="NMS Natatorio"
-                className="h-12 w-auto object-contain"
-                style={{ maxHeight: '48px' }}
-              />
+              {/* Logo real del natatorio con efectos visuales */}
+              <div
+                className="relative group"
+                style={{
+                  padding: '6px',
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,248,255,0.95) 100%)',
+                  borderRadius: '14px',
+                  boxShadow: '0 4px 15px rgba(0, 86, 145, 0.15), 0 2px 6px rgba(0, 168, 232, 0.1), inset 0 1px 0 rgba(255,255,255,0.8)',
+                  border: '1px solid rgba(0, 168, 232, 0.2)',
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                <img
+                  src="/logo-natatorio.png"
+                  alt="NMS Natatorio"
+                  className="h-14 w-auto object-contain block"
+                  style={{
+                    maxHeight: '56px',
+                    transition: 'transform 0.3s ease',
+                  }}
+                />
+              </div>
+              {/* Nombre del natatorio */}
+              <div className="flex flex-col">
+                <span
+                  className="text-base font-bold tracking-tight"
+                  style={{
+                    color: '#005691',
+                    textShadow: '0 1px 2px rgba(0, 86, 145, 0.1)',
+                  }}
+                >
+                  Oro Azul
+                </span>
+                <span
+                  className="text-[10px] font-medium uppercase tracking-widest"
+                  style={{ color: '#00A8E8' }}
+                >
+                  Natatorio
+                </span>
+              </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden h-10 w-10"
+              className="lg:hidden h-10 w-10 hover:bg-slate-100"
               style={{ color: '#4A5568' }}
               onClick={() => setSidebarOpen(false)}
             >
