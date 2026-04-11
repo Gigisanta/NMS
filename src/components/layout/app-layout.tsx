@@ -214,28 +214,18 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
         >
           {/* Logo */}
           <div
-            className="flex items-center justify-between h-20 px-5"
+            className="relative h-20 px-4 flex items-center justify-center"
             style={{ borderBottom: '1px solid rgba(0, 168, 232, 0.3)' }}
           >
-            <div className="flex items-center gap-4">
-              {/* Logo del natatorio */}
-              <div className="relative flex items-center gap-3 p-2 rounded-2xl bg-white/90 shadow-md border border-sky-100 transition-all duration-200 hover:shadow-lg hover:scale-[1.01]">
-                <img
-                  src="/logo-natatorio.png"
-                  alt="Oro Azul Natatorio"
-                  className="h-12 w-auto object-contain"
-                />
-              </div>
-              {/* Nombre del natatorio */}
-              <div className="flex flex-col">
-                <span className="text-base font-bold text-sky-800">Oro Azul</span>
-                <span className="text-[10px] font-medium text-sky-500 uppercase tracking-widest">Natatorio</span>
-              </div>
-            </div>
+            <img
+              src="/logo-natatorio.png"
+              alt="Oro Azul Natatorio"
+              className="h-14 w-auto object-contain"
+            />
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden h-10 w-10 hover:bg-slate-100"
+              className="lg:hidden absolute right-2 h-10 w-10 hover:bg-slate-100"
               style={{ color: '#4A5568' }}
               onClick={() => setSidebarOpen(false)}
             >
