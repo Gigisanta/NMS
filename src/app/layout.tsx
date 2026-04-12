@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "NMS - Natatory Management System",
-  description: "Sistema de gestión integral para natatorios. Control de clientes, asistencias, pagos y más.",
+  description: "Sistema de gestión integral para natatorios. Control de clientes, asistencia, pagos y más.",
   keywords: ["natatorio", "gestión", "clientes", "asistencias", "pagos", "natación"],
   authors: [{ name: "NMS Team" }],
   icons: {
@@ -30,6 +30,18 @@ export const metadata: Metadata = {
   },
 };
 
+const themeScript = `
+(function() {
+  try {
+    var stored = localStorage.getItem('theme')
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    if (stored === 'dark' || (!stored && prefersDark)) {
+      document.documentElement.classList.add('dark')
+    }
+  } catch (e) {}
+})()
+`
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -37,9 +49,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
+      <head />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
+        {/* Anti-flash: aplica tema antes del primer paint */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <SessionProvider>
           <ErrorBoundary>
             {children}
@@ -48,5 +63,5 @@ export default function RootLayout({
         </SessionProvider>
       </body>
     </html>
-  );
+  )
 }
