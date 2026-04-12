@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 
 import { UserMenu } from '@/components/auth/user-menu'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useSession } from 'next-auth/react'
 import { CommandPalette, CommandPaletteTrigger } from '@/components/ui/command-palette'
 import { useNMSShortcuts } from '@/hooks/use-keyboard-shortcuts'
@@ -385,7 +386,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
               </div>
 
               {/* Right side */}
-              <div className="flex items-center gap-3 sm:gap-5">
+              <div className="flex items-center gap-2 sm:gap-4">
                 {/* Search en mobile */}
                 <button
                   className="lg:hidden h-10 w-10 flex items-center justify-center rounded-lg transition-colors hover:bg-slate-100"
@@ -400,6 +401,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
                 >
                   {dateLabel}
                 </span>
+                <ThemeToggle />
                 <UserMenu />
               </div>
             </div>
