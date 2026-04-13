@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
   DialogFooter,
   DialogDescription
@@ -12,14 +12,15 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { ReceiptUploader } from '@/components/ui/receipt-uploader'
 import { Loader2, Calendar } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Expense, ExpenseCategory } from '../expenses-view'
@@ -35,6 +36,10 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
   const [loading, setLoading] = useState(false)
   const [employees, setEmployees] = useState<{ id: string, name: string }[]>([])
   const [loadingEmployees, setLoadingEmployees] = useState(false)
+
+  const [currentReceiptId, setCurrentReceiptId] = useState<string | null>(null)
+  const [currentReceiptFileName, setCurrentReceiptFileName] = useState<string | null>(null)
+  const [currentReceiptStatus, setCurrentReceiptStatus] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     description: '',
@@ -66,6 +71,9 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
         notes: expense.notes || '',
       })
       setEmployeeMode(isCustomEmployee ? 'custom' : 'select')
+      setCurrentReceiptId(expense.receiptId || null)
+      setCurrentReceiptFileName((expense as any).receipt?.fileName || null)
+      setCurrentReceiptStatus(expense.receiptStatus || null)
     } else {
       setFormData({
         description: '',
@@ -79,6 +87,9 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
         notes: '',
       })
       setEmployeeMode('select')
+      setCurrentReceiptId(null)
+      setCurrentReceiptFileName(null)
+      setCurrentReceiptStatus(null)
     }
   }, [expense, open])
 
@@ -103,6 +114,35 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
     }
   }
 
+  const handleReceiptUpload = async (file: File): Promise<{ id: string } | null> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('type', 'RECEIPT')
+    formData.append('clientId', 'SYSTEM')
+    formData.append('description', expense ? `Comprobante gasto ${expense.id}` : 'Comprobante de gasto')
+
+    const res = await fetch('/api/invoices', {
+      method: 'POST',
+      body: formData,
+    })
+    const result = await res.json()
+    if (result.success) {
+      setCurrentReceiptId(result.data.id)
+      setCurrentReceiptFileName(result.data.fileName)
+      setCurrentReceiptStatus('PENDING')
+      return { id: result.data.id }
+    }
+    return null
+  }
+
+  const handleReceiptRemove = async () => {
+    if (!currentReceiptId) return
+    await fetch(`/api/invoices/${currentReceiptId}`, { method: 'DELETE' })
+    setCurrentReceiptId(null)
+    setCurrentReceiptFileName(null)
+    setCurrentReceiptStatus(null)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -110,15 +150,20 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
     try {
       const url = expense ? `/api/expenses/${expense.id}` : '/api/expenses'
       const method = expense ? 'PUT' : 'POST'
-      
+
+      const payload = {
+        ...formData,
+        receiptId: currentReceiptId,
+      }
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
-      
+
       const result = await response.json()
-      
+
       if (result.success) {
         toast.success(expense ? 'Gasto actualizado' : 'Gasto registrado')
         onSuccess()
@@ -316,13 +361,25 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
 
           <div className="space-y-2">
             <Label htmlFor="notes" className="text-slate-700 font-semibold">Notas (Opcional)</Label>
-            <Textarea 
+            <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               placeholder="Detalles adicionales del gasto..."
               className="resize-none border-slate-200 focus-visible:ring-[#00A8E8]"
               rows={3}
+            />
+          </div>
+
+          <div className="border-t pt-4 mt-4">
+            <Label className="text-slate-700 font-semibold mb-2 block">Comprobante</Label>
+            <ReceiptUploader
+              onUpload={handleReceiptUpload}
+              onRemove={currentReceiptId ? handleReceiptRemove : undefined}
+              currentReceiptId={currentReceiptId}
+              currentFileName={currentReceiptFileName}
+              currentStatus={currentReceiptStatus}
+              disabled={loading}
             />
           </div>
 
