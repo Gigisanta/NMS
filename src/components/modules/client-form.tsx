@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Loader2, Check, Calendar, Clock, FileText, User, Phone, Hash, DollarSign, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, parseArsAmount } from '@/lib/utils'
 import { ScheduleSelector } from './schedule-selector'
 
 interface Group {
@@ -316,7 +316,7 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                 <Input
                   type="number"
                   value={formData.monthlyAmount || ''}
-                  onChange={(e) => setFormData({ ...formData, monthlyAmount: e.target.value ? parseFloat(e.target.value) : null })}
+                  onChange={(e) => setFormData({ ...formData, monthlyAmount: e.target.value ? parseArsAmount(e.target.value) : null })}
                   placeholder="0.00"
                   required
                   className="text-lg font-semibold h-12"

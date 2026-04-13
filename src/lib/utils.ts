@@ -316,3 +316,24 @@ export const GROUP_COLORS = [
   '#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444',
   '#3b82f6', '#ec4899', '#84cc16', '#f97316', '#6366f1',
 ] as const
+
+/**
+ * Parsea un monto en formato argentino (ARS) a numero.
+ * Maneja puntos como separador de miles y comas como separador decimal.
+ *
+ * @param {string} value - Valor en formato string (ej: "55.000", "55,00", "55000")
+ * @returns {number} Numero parseado
+ *
+ * @example
+ * parseArsAmount("55.000") // => 55000
+ * parseArsAmount("55,00")  // => 55
+ * parseArsAmount("55000")  // => 55000
+ */
+export function parseArsAmount(value: string): number {
+  if (!value) return 0
+  // Remover puntos (separadores de miles en formato argentino)
+  const withoutDots = value.replace(/\./g, '')
+  // Reemplazar coma por punto para decimales
+  const normalized = withoutDots.replace(',', '.')
+  return parseFloat(normalized) || 0
+}

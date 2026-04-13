@@ -30,7 +30,7 @@ import { GroupSelector } from './group-selector'
 import { ScheduleSelector } from './schedule-selector'
 import { InvoiceUpload } from './invoice-upload'
 import { cn } from '@/lib/utils'
-import { formatFullName, getPaymentStatusConfig, formatDate, formatTime } from '@/lib/utils'
+import { formatFullName, getPaymentStatusConfig, formatDate, formatTime, parseArsAmount } from '@/lib/utils'
 import { queryClient } from '@/lib/queryClient'
 import { toast } from 'sonner'
 
@@ -793,7 +793,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                       type="number"
                       className="w-28 sm:w-32 text-right"
                       value={formData.amount ?? ''}
-                      onChange={(e) => updateFormData('amount', e.target.value === '' ? null : (parseFloat(e.target.value) || 0))}
+                      onChange={(e) => updateFormData('amount', e.target.value === '' ? null : (parseArsAmount(e.target.value)))}
                       placeholder="0"
                     />
                   </div>
