@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 const geistSans = Geist({
@@ -56,9 +57,11 @@ export default function RootLayout({
         {/* Anti-flash: aplica tema antes del primer paint */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <SessionProvider>
-          <ErrorBoundary>
-            {children}
-          </ErrorBoundary>
+          <ThemeProvider>
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
+          </ThemeProvider>
           <Toaster />
         </SessionProvider>
       </body>
