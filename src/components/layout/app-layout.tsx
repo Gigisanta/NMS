@@ -167,7 +167,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
   }, [])
 
   return (
-    <div className="min-h-screen" style={{ background: '#FFFFFF' }}>
+    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       {/* Barra de progreso al cambiar vista */}
       {loadBarKey > 0 && <div key={loadBarKey} className="view-load-bar" aria-hidden="true" />}
 
@@ -227,7 +227,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
               variant="ghost"
               size="icon"
               className="lg:hidden absolute right-2 h-10 w-10 hover:bg-slate-100"
-              style={{ color: '#4A5568' }}
+              style={{ color: 'var(--foreground-muted)' }}
               onClick={() => setSidebarOpen(false)}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,10 +324,10 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate" style={{ color: '#1A1A1A' }}>
+                <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>
                   {session?.user?.name || 'Usuario'}
                 </p>
-                <p className="text-xs font-medium" style={{ color: '#00A8E8' }}>
+                <p className="text-xs font-medium" style={{ color: 'var(--secondary)' }}>
                   {session?.user?.role === 'EMPLEADORA' ? 'Administrador' : 'Empleado'}
                 </p>
               </div>
@@ -359,7 +359,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
                   variant="ghost"
                   size="icon"
                   className="lg:hidden h-10 w-10 shrink-0"
-                  style={{ color: '#005691' }}
+                  style={{ color: 'var(--primary)' }}
                   onClick={() => setSidebarOpen(true)}
                 >
                   <Menu className="w-5 h-5" />
@@ -371,8 +371,8 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
                   const ActiveIcon = activeNav?.icon
                   return (
                     <div className="lg:hidden flex items-center gap-2">
-                      {ActiveIcon && <ActiveIcon className="w-4 h-4" style={{ color: '#00A8E8' }} />}
-                      <span className="text-sm font-semibold" style={{ color: '#005691' }}>
+                      {ActiveIcon && <ActiveIcon className="w-4 h-4" style={{ color: 'var(--secondary)' }} />}
+                      <span className="text-sm font-semibold" style={{ color: 'var(--primary)' }}>
                         {activeNav?.name ?? 'Dashboard'}
                       </span>
                     </div>
@@ -390,14 +390,14 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
                 {/* Search en mobile */}
                 <button
                   className="lg:hidden h-10 w-10 flex items-center justify-center rounded-lg transition-colors hover:bg-slate-100"
-                  style={{ color: '#005691' }}
+                  style={{ color: 'var(--primary)' }}
                   onClick={() => setCommandPaletteOpen(true)}
                 >
                   <Search className="w-4 h-4" />
                 </button>
                 <span
                   className="hidden md:block text-sm font-medium"
-                  style={{ color: '#4A5568' }}
+                  style={{ color: 'var(--foreground-muted)' }}
                 >
                   {dateLabel}
                 </span>
@@ -453,7 +453,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
                   onViewChange(item.id)
                 }}
                 className="flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-colors"
-                style={{ color: isActive ? '#005691' : '#94a3b8' }}
+                style={{ color: isActive ? 'var(--primary)' : 'var(--muted-foreground)' }}
                 aria-label={item.name}
               >
                 {isActive && (
@@ -471,7 +471,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
           <button
             onClick={() => setSidebarOpen(true)}
             className="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors"
-            style={{ color: '#94a3b8' }}
+            style={{ color: 'var(--muted-foreground)' }}
             aria-label="Más opciones"
           >
             <Menu className="w-5 h-5" />
