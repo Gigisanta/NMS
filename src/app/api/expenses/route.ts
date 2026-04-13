@@ -48,7 +48,8 @@ export async function GET(request: NextRequest) {
       include: {
         user: {
           select: { name: true }
-        }
+        },
+        receipt: true,
       }
     })
 
@@ -84,16 +85,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { 
-      description, 
-      amount, 
-      category, 
-      date, 
-      month, 
-      year, 
-      userId, 
-      supplier, 
-      notes 
+    const {
+      description,
+      amount,
+      category,
+      date,
+      month,
+      year,
+      userId,
+      supplier,
+      notes,
+      receiptId,
+      receiptStatus,
     } = body
 
     if (!description || !amount || !category) {
@@ -121,6 +124,8 @@ export async function POST(request: NextRequest) {
         userId: userId || null,
         supplier: supplier || null,
         notes: notes || null,
+        receiptId: receiptId || null,
+        receiptStatus: receiptStatus || 'PENDING',
       },
     })
 
@@ -133,6 +138,54 @@ export async function POST(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
       { success: false, error: 'Error al crear el gasto', details: errorMessage },
+      { status: 500 }
+    )
+  }
+}
+
+// PATCH /api/expenses - Update expense receipt status
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await auth()
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: 'No autenticado' },
+        { status: 401 }
+      )
+    }
+
+    if (session.user.role !== 'EMPLEADORA') {
+      return NextResponse.json(
+        { success: false, error: 'Sin permisos' },
+        { status: 403 }
+      )
+    }
+
+    const body = await request.json()
+    const { id, receiptId, receiptStatus } = body
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: 'ID de gasto requerido' },
+        { status: 400 }
+      )
+    }
+
+    const updateData: Record<string, unknown> = {}
+    if (receiptId !== undefined) updateData.receiptId = receiptId
+    if (receiptStatus !== undefined) updateData.receiptStatus = receiptStatus
+
+    const expense = await db.expense.update({
+      where: { id },
+      data: updateData,
+      include: { receipt: true },
+    })
+
+    return NextResponse.json({ success: true, data: expense })
+  } catch (error) {
+    console.error('Error updating expense:', error)
+    return NextResponse.json(
+      { success: false, error: 'Error al actualizar el gasto' },
       { status: 500 }
     )
   }
