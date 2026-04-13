@@ -4,20 +4,25 @@ import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Banknote, 
-  TrendingDown, 
-  Users, 
-  Truck, 
+import {
+  Plus,
+  Search,
+  Filter,
+  Banknote,
+  TrendingDown,
+  Users,
+  Truck,
   MoreVertical,
   Trash2,
   Edit,
   Loader2,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Check,
+  X,
+  Eye,
+  FileText,
+  Image,
 } from 'lucide-react'
 import {
   Select,
@@ -34,13 +39,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, cn } from '@/lib/utils'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { ExpenseForm } from './expenses/expense-form'
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
   DialogDescription,
   DialogFooter
@@ -60,8 +67,15 @@ export interface Expense {
   userId?: string
   supplier?: string
   notes?: string
+  receiptId?: string
+  receiptStatus?: string
   user?: {
     name: string
+  }
+  receipt?: {
+    id: string
+    fileName: string
+    mimeType: string
   }
 }
 
@@ -150,9 +164,24 @@ export function ExpensesView() {
     const sueldos = expenses.filter(e => e.category === 'SUELDO').reduce((acc, curr) => acc + curr.amount, 0)
     const proveedores = expenses.filter(e => e.category === 'PROVEEDOR').reduce((acc, curr) => acc + curr.amount, 0)
     const fijos = expenses.filter(e => e.category === 'FIJO').reduce((acc, curr) => acc + curr.amount, 0)
-    
+
     return { total, sueldos, proveedores, fijos }
   }, [expenses])
+
+  const updateReceiptStatus = async (expenseId: string, currentStatus: string, newStatus: string) => {
+    if (currentStatus === newStatus) return
+    const res = await fetch('/api/expenses', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: expenseId, receiptStatus: newStatus }),
+    })
+    if (res.ok) {
+      fetchExpenses()
+      toast.success(`Comprobante marcado como ${newStatus === 'VERIFIED' ? 'verificado' : 'rechazado'}`)
+    } else {
+      toast.error('Error al actualizar estado')
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -196,6 +225,135 @@ export function ExpensesView() {
           </div>
         ))}
       </div>
+
+      {/* Expense History with Receipts Table */}
+      <Card className="border-slate-100 shadow-sm bg-white overflow-hidden">
+        <CardHeader className="pb-0">
+          <CardTitle className="text-lg font-semibold text-slate-800">Historial de Gastos</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
+              <p className="text-slate-500 text-sm">Cargando...</p>
+            </div>
+          ) : expenses.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4 text-center px-4">
+              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
+                <AlertCircle className="w-8 h-8" />
+              </div>
+              <div>
+                <p className="text-slate-900 font-medium">No hay gastos registrados</p>
+                <p className="text-slate-500 text-sm">Registra un gasto para ver el historial.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 border-b border-slate-100">
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Descripción</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Categoría</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Monto</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Comprobante</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {expenses.map((expense) => {
+                    const cat = CATEGORY_LABELS[expense.category]
+                    const Icon = cat.icon
+                    const hasReceipt = !!expense.receiptId
+                    const isImage = expense.receipt?.fileName?.match(/\.(jpg|jpeg|png|webp|gif)$/i)
+                    const ReceiptIcon = isImage ? Image : FileText
+                    return (
+                      <tr key={expense.id} className="hover:bg-[rgba(0,168,232,0.04)] transition-colors duration-150">
+                        <td className="px-4 py-3">
+                          <p className="text-sm font-medium text-slate-900">
+                            {format(new Date(expense.date), 'dd/MM/yyyy')}
+                          </p>
+                        </td>
+                        <td className="px-4 py-3">
+                          <p className="text-sm font-medium text-slate-900">{expense.description}</p>
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge className={`${cat.color} border shadow-none font-medium text-[11px] h-6`}>
+                            <Icon className="w-3 h-3 mr-1" />
+                            {cat.label}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <span className="text-sm font-semibold text-slate-900 tabular-nums">
+                            {formatCurrency(expense.amount)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {hasReceipt ? (
+                            <span className="flex items-center gap-1.5 text-sm text-slate-600">
+                              <ReceiptIcon className="w-3.5 h-3.5" />
+                              <span className="truncate max-w-[120px]">{expense.receipt?.fileName}</span>
+                            </span>
+                          ) : (
+                            <span className="text-xs text-slate-400">Sin comprobante</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {hasReceipt ? (
+                            <span className={cn(
+                              'text-xs px-1.5 py-0.5 rounded',
+                              expense.receiptStatus === 'VERIFIED' && 'bg-emerald-500/10 text-emerald-600',
+                              expense.receiptStatus === 'PENDING' && 'bg-amber-500/10 text-amber-600',
+                              expense.receiptStatus === 'REJECTED' && 'bg-red-500/10 text-red-600',
+                            )}>
+                              {expense.receiptStatus === 'VERIFIED' ? 'Verificado' : expense.receiptStatus === 'PENDING' ? 'Pendiente' : 'Rechazado'}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-slate-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {hasReceipt && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => window.open(`/api/invoices/${expense.receiptId}/file`, '_blank')}
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+                                  onClick={() => updateReceiptStatus(expense.id, expense.receiptStatus || '', 'VERIFIED')}
+                                >
+                                  <Check className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-500/10"
+                                  onClick={() => updateReceiptStatus(expense.id, expense.receiptStatus || '', 'REJECTED')}
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Filters & Search */}
       <Card className="border-slate-100 shadow-sm bg-white overflow-hidden">
