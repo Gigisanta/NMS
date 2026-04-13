@@ -1,20 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import { Sun, Moon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
-  // Inicialización directa — evita setState en useEffect y hydration mismatch
-  const [mounted] = useState(() => typeof window !== 'undefined')
-  const isDark = theme === 'dark'
+  const { resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => setMounted(true), [])
 
   if (!mounted) {
-    // Placeholder estático durante SSR para evitar layout shift
     return <div className="h-10 w-10 rounded-full" />
   }
+
+  const isDark = resolvedTheme === 'dark'
 
   return (
     <button
