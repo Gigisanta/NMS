@@ -65,10 +65,13 @@ model Expense {
   userId      String?  // Relación con usuario si es un gasto de sueldo
   supplier    String?  // Nombre del proveedor si aplica
   notes       String?
+  receiptId   String?   @unique // FK a Invoice para comprobante de gasto
+  receiptStatus String   @default("PENDING") // PENDING, VERIFIED, REJECTED
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  receipt     Invoice? @relation("ExpenseReceipt", fields: [receiptId], references: [id], onDelete: SetNull)
 
   @@index([category])
   @@index([date])
@@ -278,6 +281,7 @@ model Invoice {
   // Relations
   client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  expense      Expense?  @relation("ExpenseReceipt") // Receipt attached to expense
 
   @@index([subscriptionId])
 
