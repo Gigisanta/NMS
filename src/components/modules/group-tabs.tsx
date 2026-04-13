@@ -28,16 +28,15 @@ export function GroupTabs({ groups, selectedId, onChange, className, isAdmin = t
       >
         <ScrollArea className="w-full">
           <TabsList
-            className="inline-flex h-11 items-center justify-start px-1 w-auto min-w-full"
-            style={{ background: 'rgba(0, 168, 232, 0.08)' }}
+            className="inline-flex h-11 items-center justify-start px-1 w-auto min-w-full bg-secondary/20"
           >
             {isAdmin && (
               <TabsTrigger
                 value="all"
                 className="px-5 py-2 text-sm font-medium transition-all"
                 style={{
-                  color: selectedId === null ? '#FFFFFF' : '#4A5568',
-                  background: selectedId === null ? 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' : 'transparent',
+                  color: selectedId === null ? 'var(--foreground)' : 'var(--muted-foreground)',
+                  background: selectedId === null ? 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)' : 'transparent',
                 }}
               >
                 Todos los grupos
@@ -48,17 +47,17 @@ export function GroupTabs({ groups, selectedId, onChange, className, isAdmin = t
                 key={group.id}
                 value={group.id}
                 className="px-5 py-2 text-sm font-medium transition-all relative overflow-hidden"
-                style={{ 
-                  color: selectedId === group.id ? '#FFFFFF' : '#4A5568',
-                  background: selectedId === group.id 
-                    ? `linear-gradient(135deg, ${group.color || '#005691'} 0%, ${group.color ? adjustColor(group.color, 30) : '#00A8E8'} 100%)`
+                style={{
+                  color: selectedId === group.id ? 'var(--foreground)' : 'var(--muted-foreground)',
+                  background: selectedId === group.id
+                    ? `linear-gradient(135deg, ${group.color || 'var(--primary)'} 0%, ${group.color ? adjustColor(group.color, 30) : 'var(--secondary)'} 100%)`
                     : 'transparent',
                 }}
               >
                 <span
                   className="absolute bottom-0 left-0 h-0.5 w-full transition-opacity duration-200"
                   style={{
-                    backgroundColor: group.color || '#00A8E8',
+                    backgroundColor: group.color || 'var(--secondary)',
                     opacity: selectedId === group.id ? 1 : 0.25,
                   }}
                 />

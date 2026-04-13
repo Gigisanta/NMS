@@ -96,17 +96,16 @@ const StatCard = memo(function StatCard({
 
   return (
     <div
-      className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm card-lift"
+      className="bg-background p-3 sm:p-4 rounded-xl border border-border shadow-sm card-lift"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider truncate">{title}</p>
-          <p className="text-2xl font-semibold text-slate-900 mt-1 tabular-nums">{displayValue}</p>
-          {trend && <p className="text-xs text-slate-400 mt-1">{trend}</p>}
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">{title}</p>
+          <p className="text-2xl font-semibold text-foreground mt-1 tabular-nums">{displayValue}</p>
+          {trend && <p className="text-xs text-muted-foreground mt-1">{trend}</p>}
         </div>
         <div
-          className="p-2.5 rounded-lg shrink-0 mt-0.5"
-          style={{ background: `${accent}18` }}
+          className="p-2.5 rounded-lg shrink-0 mt-0.5 bg-primary/10"
         >
           <span style={{ color: accent }}>
             <Icon className="w-4 h-4" />
@@ -131,17 +130,16 @@ const ClientItem = memo(function ClientItem({ client, showStatus, status }: {
   const statusConfig = status ? getPaymentStatusConfig(status) : null
 
   return (
-    <div className="flex items-center gap-3 py-2 px-1 rounded-lg transition-colors duration-150 hover:bg-slate-50">
+    <div className="flex items-center gap-3 py-2 px-1 rounded-lg transition-colors duration-150 hover:bg-muted">
       <div
-        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xs font-semibold"
-        style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}
+        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white text-xs font-semibold bg-gradient-to-br from-primary to-secondary"
       >
         {initials}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-700 truncate">{fullName}</p>
+        <p className="text-sm font-medium text-foreground truncate">{fullName}</p>
         {grupo && (
-          <span 
+          <span
             className="text-xs px-1.5 py-0.5 rounded"
             style={{ backgroundColor: `${grupo.color}20`, color: grupo.color }}
           >
@@ -227,15 +225,14 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
-          <p className="text-sm text-slate-500">{monthLabel}</p>
+          <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">{monthLabel}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
             onClick={() => handleNavigate('asistencias')}
             size="sm"
             className="gap-1.5 text-white"
-            style={{ background: '#005691' }}
           >
             <Calendar className="w-4 h-4" />
             <span className="hidden sm:inline">Asistencias</span>
@@ -299,7 +296,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
             <TimeClockWidget />
           </div>
           <div className="lg:col-span-2">
-            <Card className="border-slate-100 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-500" />
@@ -309,12 +306,12 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
               <CardContent>
                 {pendingClients.length === 0
                   ? <div className="text-center py-8">
-                      <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-2">
+                      <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-2">
                         <UserCheck className="w-4 h-4 text-emerald-500" />
                       </div>
-                      <p className="text-sm text-slate-400">Todo al día</p>
+                      <p className="text-sm text-muted-foreground">Todo al día</p>
                     </div>
-                  : <div className="divide-y divide-slate-100">
+                  : <div className="divide-y divide-border">
                       {displayPendingClients.map((item) => (
                         <ClientItem
                           key={item.client.id}
@@ -335,7 +332,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
       {!isEmployee && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {/* Revenue */}
-          <Card className="border-slate-100 shadow-sm card-lift">
+          <Card className="border-border shadow-sm card-lift">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-emerald-500" />
@@ -343,16 +340,16 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-semibold text-slate-900">
+              <div className="text-3xl font-semibold text-foreground">
                 {formatCurrency(stats?.monthRevenue ?? 0)}
               </div>
-              <p className="text-xs text-slate-400 mt-2">Mes actual</p>
+              <p className="text-xs text-muted-foreground mt-2">Mes actual</p>
               <div className="mt-3">
-                <div className="flex justify-between text-xs text-slate-500 mb-1">
+                <div className="flex justify-between text-xs text-muted-foreground mb-1">
                   <span>Al día</span>
                   <span>{stats?.alDiaClients ?? 0} de {stats?.activeClients ?? 0}</span>
                 </div>
-                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-emerald-500 rounded-full progress-bar-animated"
                     style={{
@@ -365,35 +362,35 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
               </div>
               {data?.groupRevenue && data.groupRevenue.length > 0 && (
                 <div className="mt-4 pt-3 border-t">
-                  <p className="text-xs font-medium text-slate-500 mb-2">Ingresos por Grupo</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Ingresos por Grupo</p>
                   <div className="space-y-3">
                     {data.groupRevenue.map((group) => (
-                      <div key={group.id} className="p-2 rounded-lg bg-slate-50/50 border border-slate-100">
+                      <div key={group.id} className="p-2 rounded-lg bg-muted border-border">
                         <div className="flex items-center justify-between mb-1.5">
                           <div className="flex items-center gap-2">
-                            <div 
+                            <div
                               className="w-2.5 h-2.5 rounded-full"
                               style={{ backgroundColor: group.color }}
                             />
-                            <span className="font-medium text-slate-800" style={{ color: group.color }}>{group.name}</span>
+                            <span className="font-medium" style={{ color: group.color }}>{group.name}</span>
                           </div>
-                          <span className="text-xs text-slate-400">{group.clientCount} clientes</span>
+                          <span className="text-xs text-muted-foreground">{group.clientCount} clientes</span>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <div className="space-y-0.5">
-                            <p className="text-[10px] text-slate-400 uppercase">Proyección</p>
-                            <p className="text-sm font-semibold text-slate-700">
+                            <p className="text-[10px] text-muted-foreground uppercase">Proyección</p>
+                            <p className="text-sm font-semibold text-foreground">
                               {formatCurrency(group.revenue)}
                             </p>
                           </div>
                           <div className="space-y-0.5 text-right">
-                            <p className="text-[10px] text-slate-400 uppercase">Cobrado</p>
-                            <p className="text-sm font-semibold text-emerald-600">
+                            <p className="text-[10px] text-muted-foreground uppercase">Cobrado</p>
+                            <p className="text-sm font-semibold text-emerald-500">
                               {formatCurrency(group.collected)}
                             </p>
                           </div>
                         </div>
-                        <div className="mt-2 h-1 bg-slate-200 rounded-full overflow-hidden">
+                        <div className="mt-2 h-1 bg-muted-foreground/20 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-emerald-500 rounded-full progress-bar-animated"
                             style={{
@@ -410,20 +407,20 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           </Card>
 
           {/* Recent Clients */}
-          <Card className="border-slate-100 shadow-sm card-lift">
+          <Card className="border-border shadow-sm card-lift">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Users className="w-4 h-4 text-slate-400" />
+                <Users className="w-4 h-4 text-muted-foreground" />
                 Recientes
               </CardTitle>
             </CardHeader>
             <CardContent>
               {recentClients.length === 0
                 ? <div className="text-center py-8 px-4">
-                    <Users className="w-8 h-8 text-slate-200 mx-auto mb-2" />
-                    <p className="text-sm text-slate-400">Aún no hay clientes registrados</p>
+                    <Users className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Aún no hay clientes registrados</p>
                   </div>
-                : <div className="divide-y divide-slate-100">
+                : <div className="divide-y divide-border">
                     {recentClients.map((client) => (
                       <ClientItem key={client.id} client={client} />
                     ))}
@@ -433,7 +430,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           </Card>
 
           {/* Pending Payments */}
-          <Card className="border-slate-100 shadow-sm card-lift">
+          <Card className="border-border shadow-sm card-lift">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-500" />
@@ -443,12 +440,12 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
             <CardContent>
               {pendingClients.length === 0
                 ? <div className="text-center py-8 px-4">
-                    <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-2">
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-2">
                       <UserCheck className="w-4 h-4 text-emerald-500" />
                     </div>
-                    <p className="text-sm text-slate-400">Todo al día</p>
+                    <p className="text-sm text-muted-foreground">Todo al día</p>
                   </div>
-                : <div className="divide-y divide-slate-100">
+                : <div className="divide-y divide-border">
                     {displayPendingClients.map((item) => (
                       <ClientItem
                         key={item.client.id}
@@ -460,8 +457,8 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                   </div>
               }
               {pendingClients.length > 5 && (
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="sm"
                   className="w-full mt-2 text-xs"
                   onClick={() => handleNavigate('pagos')}

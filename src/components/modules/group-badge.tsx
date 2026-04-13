@@ -26,15 +26,10 @@ export function GroupBadge({ group, className, size = 'md', onClick, interactive
       <span
         className={cn(
           'inline-flex items-center gap-1.5 font-medium border rounded-full',
-          'text-xs px-2.5 py-0.5',
+          'text-xs px-2.5 py-0.5 bg-secondary/20 text-muted-foreground border-secondary/20',
           interactive && 'cursor-pointer transition-all duration-150 hover:scale-105',
           className
         )}
-        style={{
-          background: 'rgba(0, 168, 232, 0.08)',
-          color: '#86868b',
-          borderColor: 'rgba(0, 168, 232, 0.2)',
-        }}
         onClick={onClick}
       >
         Sin grupo
