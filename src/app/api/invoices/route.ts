@@ -92,23 +92,32 @@ export async function POST(request: NextRequest) {
     const description = formData.get('description') as string | null
     const subscriptionId = formData.get('subscriptionId') as string | null
 
-    if (!clientId) {
-      return NextResponse.json(
-        { success: false, error: 'clientId es requerido' },
-        { status: 400 }
-      )
+    // For RECEIPT type (expense receipts), clientId may be a placeholder
+    const isReceiptType = type === 'RECEIPT'
+
+    if (!clientId || clientId === 'SYSTEM') {
+      if (!isReceiptType) {
+        return NextResponse.json(
+          { success: false, error: 'clientId es requerido' },
+          { status: 400 }
+        )
+      }
+      // Use placeholder ID for system receipts
+      clientId = '00000000-0000-0000-0000-000000000000'
     }
 
-    // Verify client exists
-    const client = await db.client.findUnique({
-      where: { id: clientId },
-    })
+    // Verify client exists (skip for RECEIPT type)
+    if (!isReceiptType) {
+      const client = await db.client.findUnique({
+        where: { id: clientId },
+      })
 
-    if (!client) {
-      return NextResponse.json(
-        { success: false, error: 'Cliente no encontrado' },
-        { status: 404 }
-      )
+      if (!client) {
+        return NextResponse.json(
+          { success: false, error: 'Cliente no encontrado' },
+          { status: 404 }
+        )
+      }
     }
 
     let fileName = 'unknown'
