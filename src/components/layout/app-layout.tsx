@@ -58,32 +58,35 @@ const mobileNavItems = [
    WATER WAVES SVG PATTERN
    ============================================ */
 const WaterWavesPattern = () => (
-  <svg 
-    className="absolute inset-0 w-full h-full pointer-events-none opacity-30" 
+  <svg
+    className="absolute inset-0 w-full h-full pointer-events-none opacity-30"
     xmlns="http://www.w3.org/2000/svg"
   >
     <defs>
       <pattern id="waterWaves" x="0" y="0" width="200" height="100" patternUnits="userSpaceOnUse">
-        <path 
-          d="M0 50 Q 25 25, 50 50 T 100 50 T 150 50 T 200 50" 
-          fill="none" 
-          stroke="#005691" 
-          strokeWidth="0.5" 
+        <path
+          d="M0 50 Q 25 25, 50 50 T 100 50 T 150 50 T 200 50"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="0.5"
           opacity="0.3"
+          className="text-primary/40 dark:text-primary/30"
         />
-        <path 
-          d="M0 70 Q 25 45, 50 70 T 100 70 T 150 70 T 200 70" 
-          fill="none" 
-          stroke="#00A8E8" 
-          strokeWidth="0.5" 
+        <path
+          d="M0 70 Q 25 45, 50 70 T 100 70 T 150 70 T 200 70"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="0.5"
           opacity="0.2"
+          className="text-secondary/40 dark:text-secondary/30"
         />
-        <path 
-          d="M0 30 Q 25 55, 50 30 T 100 30 T 150 30 T 200 30" 
-          fill="none" 
-          stroke="#005691" 
-          strokeWidth="0.5" 
+        <path
+          d="M0 30 Q 25 55, 50 30 T 100 30 T 150 30 T 200 30"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="0.5"
           opacity="0.15"
+          className="text-primary/30 dark:text-primary/20"
         />
       </pattern>
     </defs>
@@ -199,24 +202,22 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
           }}
         />
         {/* Overlay para oscurecer y mejorar contraste */}
-        <div 
+        <div
           className="absolute inset-0 -z-10 pointer-events-none"
           style={{
-            background: 'linear-gradient(180deg, rgba(0, 86, 145, 0.85) 0%, rgba(0, 168, 232, 0.75) 100%)',
+            background: 'linear-gradient(180deg, oklch(from var(--primary) calc(l + 0.15) c h / 0.85) 0%, oklch(from var(--secondary) calc(l + 0.15) c h / 0.75) 100%)',
           }}
         />
-        <div 
-          className="flex flex-col h-full m-4"
+        <div
+          className="flex flex-col h-full m-4 bg-sidebar text-sidebar-foreground border-sidebar-border"
           style={{
-            background: 'linear-gradient(180deg, rgba(240, 248, 255, 0.95) 0%, rgba(255, 255, 255, 0.92) 100%)',
-            border: '1px solid rgba(0, 168, 232, 0.25)',
-            boxShadow: '0 4px 20px rgba(0, 86, 145, 0.15), 0 8px 30px rgba(0, 86, 145, 0.1)',
+            border: '1px solid var(--sidebar-border)',
+            boxShadow: '0 4px 20px var(--shadow-md), 0 8px 30px var(--shadow-lg)',
           }}
         >
           {/* Logo */}
           <div
-            className="relative h-20 px-4 flex items-center justify-center"
-            style={{ borderBottom: '1px solid rgba(0, 168, 232, 0.3)' }}
+            className="relative h-20 px-4 flex items-center justify-center border-b border-sidebar-border"
           >
             <img
               src="/logo-natatorio.png"
@@ -255,43 +256,38 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
                     className={cn(
                       "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 group relative",
                       isActive
-                        ? "text-[#005691] shadow-sm"
-                        : "text-slate-600 hover:text-[#005691] sidebar-nav-inactive"
+                        ? "text-primary shadow-sm dark:text-primary-light"
+                        : "text-muted-foreground hover:text-primary dark:text-sidebar-foreground/70 dark:hover:text-primary sidebar-nav-inactive"
                     )}
                     style={{
                       background: isActive
-                        ? 'rgba(255, 255, 255, 0.97)'
+                        ? 'var(--sidebar-accent)'
                         : 'transparent',
                       border: isActive
-                        ? '1px solid rgba(0, 168, 232, 0.35)'
+                        ? '1px solid var(--sidebar-border)'
                         : '1px solid transparent',
-                      boxShadow: isActive ? '0 1px 8px rgba(0, 168, 232, 0.15)' : 'none',
+                      boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
                     }}
                   >
                     {/* Acento lateral activo */}
                     {isActive && (
                       <span
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full"
-                        style={{ background: '#00A8E8' }}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-secondary"
                       />
                     )}
                     <Icon
                       className={cn(
                         "w-4.5 h-4.5 shrink-0 transition-colors",
-                        isActive ? "text-[#00A8E8]" : "text-slate-400 group-hover:text-[#00A8E8]"
+                        isActive ? "text-secondary" : "text-muted-foreground group-hover:text-secondary dark:text-sidebar-foreground/50 dark:group-hover:text-secondary"
                       )}
                     />
                     <span className="flex-1 text-left">{item.name}</span>
                     {item.shortcut && (
                       <kbd
                         className={cn(
-                          "text-[10px] px-1.5 py-0.5 rounded font-mono transition-opacity",
+                          "text-[10px] px-1.5 py-0.5 rounded font-mono transition-opacity bg-secondary/20 text-secondary",
                           isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60"
                         )}
-                        style={{
-                          background: 'rgba(0, 168, 232, 0.12)',
-                          color: '#00A8E8',
-                        }}
                       >
                         {item.shortcut}
                       </kbd>
@@ -303,23 +299,17 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
           </ScrollArea>
 
           {/* User section */}
-          <div className="p-4" style={{ borderTop: '1px solid rgba(0, 168, 232, 0.3)' }}>
-            <div 
-              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
-              style={{
-                background: 'rgba(255, 255, 255, 0.95)',
-                border: '1px solid rgba(0, 168, 232, 0.3)',
-                boxShadow: '0 2px 8px rgba(0, 168, 232, 0.15)',
-              }}
+          <div className="p-4 border-t border-sidebar-border">
+            <div
+              className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer bg-sidebar-accent/50 border border-sidebar-border"
             >
-              <div 
-                className="w-10 h-10 flex items-center justify-center rounded-xl"
+              <div
+                className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-secondary to-primary"
                 style={{
-                  background: 'linear-gradient(135deg, #00A8E8 0%, #005691 100%)',
-                  boxShadow: '0 2px 10px rgba(0, 168, 232, 0.4)',
+                  boxShadow: '0 2px 10px var(--shadow-md)',
                 }}
               >
-                <span className="text-sm font-semibold text-white">
+                <span className="text-sm font-semibold text-primary-foreground">
                   {session?.user?.name?.[0]?.toUpperCase() || 'U'}
                 </span>
               </div>
@@ -341,11 +331,9 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
         {/* Top bar - Oro Azul Premium con ondas */}
         <header className="sticky top-0 z-30 h-14 sm:h-16 lg:h-20">
           <div
-            className="flex items-center justify-between h-full mx-2 sm:mx-3 lg:mx-4 mt-2 sm:mt-3 lg:mt-4 relative overflow-hidden"
+            className="flex items-center justify-between h-full mx-2 sm:mx-3 lg:mx-4 mt-2 sm:mt-3 lg:mt-4 relative overflow-hidden bg-surface border-border"
             style={{
-              background: 'linear-gradient(135deg, rgba(0, 86, 145, 0.03) 0%, rgba(0, 168, 232, 0.05) 100%)',
-              border: '1px solid rgba(0, 168, 232, 0.12)',
-              boxShadow: '0 2px 12px rgba(0, 86, 145, 0.08)',
+              boxShadow: '0 2px 12px var(--shadow-sm)',
             }}
           >
             {/* Water waves pattern */}
@@ -389,8 +377,7 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
               <div className="flex items-center gap-2 sm:gap-4">
                 {/* Search en mobile */}
                 <button
-                  className="lg:hidden h-10 w-10 flex items-center justify-center rounded-lg transition-colors hover:bg-slate-100"
-                  style={{ color: 'var(--primary)' }}
+                  className="lg:hidden h-10 w-10 flex items-center justify-center rounded-lg transition-colors hover:bg-secondary/20 text-primary"
                   onClick={() => setCommandPaletteOpen(true)}
                 >
                   <Search className="w-4 h-4" />
@@ -421,11 +408,10 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
             onNewClient()
             onViewChange('clientes')
           }}
-          className="lg:hidden fixed right-4 z-30 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95"
+          className="lg:hidden fixed right-4 z-30 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 gradient-oro-azul"
           style={{
             bottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px) + 1rem)',
-            background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
-            boxShadow: '0 4px 20px rgba(0, 86, 145, 0.4)',
+            boxShadow: '0 4px 20px var(--shadow-lg)',
           }}
           aria-label="Nuevo cliente"
         >
@@ -435,10 +421,10 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
 
       {/* Mobile Bottom Navigation */}
       <nav
-        className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-100"
+        className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t border-border"
         style={{
           paddingBottom: 'env(safe-area-inset-bottom)',
-          boxShadow: '0 -1px 12px rgba(0,86,145,0.08)',
+          boxShadow: '0 -1px 12px var(--shadow-sm)',
         }}
       >
         <div className="flex items-stretch h-14">
@@ -452,26 +438,23 @@ export function AppLayout({ children, currentView, onViewChange, onNewClient }: 
                   if (currentView !== item.id) setLoadBarKey(k => k + 1)
                   onViewChange(item.id)
                 }}
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-colors"
-                style={{ color: isActive ? 'var(--primary)' : 'var(--muted-foreground)' }}
+                className="flex-1 flex flex-col items-center justify-center gap-0.5 relative transition-colors text-muted-foreground hover:text-primary"
                 aria-label={item.name}
               >
                 {isActive && (
                   <span
-                    className="absolute top-0 inset-x-[28%] h-0.5 rounded-b-full"
-                    style={{ background: 'linear-gradient(90deg, #005691, #00A8E8)' }}
+                    className="absolute top-0 inset-x-[28%] h-0.5 rounded-b-full bg-gradient-to-r from-primary to-secondary"
                   />
                 )}
                 <Icon className={`w-5 h-5 transition-transform duration-150 ${isActive ? 'scale-110' : ''}`} />
-                <span className={`text-[10px] ${isActive ? 'font-semibold' : 'font-medium'}`}>{item.name}</span>
+                <span className={`text-[10px] ${isActive ? 'font-semibold text-primary' : 'font-medium'}`}>{item.name}</span>
               </button>
             )
           })}
           {/* More — opens full sidebar */}
           <button
             onClick={() => setSidebarOpen(true)}
-            className="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors"
-            style={{ color: 'var(--muted-foreground)' }}
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors text-muted-foreground hover:text-primary"
             aria-label="Más opciones"
           >
             <Menu className="w-5 h-5" />

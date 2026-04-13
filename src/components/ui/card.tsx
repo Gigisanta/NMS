@@ -12,14 +12,9 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "border px-6 py-6 rounded-3xl transition-all duration-300",
+        "border px-6 py-6 rounded-3xl transition-all duration-300 bg-card text-card-foreground border-border",
         className
       )}
-      style={{
-        background: '#FFFFFF',
-        border: '1px solid rgba(0, 86, 145, 0.1)',
-        boxShadow: '0 2px 8px rgba(0, 86, 145, 0.06), 0 4px 12px rgba(0, 86, 145, 0.04)',
-      }}
       {...props}
     />
   )
@@ -42,11 +37,8 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
-      className={cn("font-semibold text-lg leading-tight", className)}
-      style={{ 
-        color: '#1A1A1A', 
-        letterSpacing: '-0.02em' 
-      }}
+      className={cn("font-semibold text-lg leading-tight text-card-foreground", className)}
+      style={{ letterSpacing: '-0.02em' }}
       {...props}
     />
   )
@@ -56,8 +48,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-sm", className)}
-      style={{ color: '#4A5568' }}
+      className={cn("text-sm text-muted-foreground", className)}
       {...props}
     />
   )
@@ -90,8 +81,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-footer"
-      className={cn("flex items-center pt-4", className)}
-      style={{ borderTop: '1px solid rgba(0, 86, 145, 0.08)' }}
+      className={cn("flex items-center pt-4 border-t border-border", className)}
       {...props}
     />
   )
@@ -107,13 +97,9 @@ function CardHover({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "border px-6 py-6 rounded-3xl transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer",
+        "border px-6 py-6 rounded-3xl transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer bg-card text-card-foreground border-border",
         className
       )}
-      style={{
-        background: '#FFFFFF',
-        border: '1px solid rgba(0, 86, 145, 0.1)',
-      }}
       {...props}
     />
   )
@@ -125,14 +111,9 @@ function CardSurface({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "border px-6 py-6 rounded-3xl transition-all duration-300",
+        "border px-6 py-6 rounded-3xl transition-all duration-300 bg-muted text-muted-foreground border-border",
         className
       )}
-      style={{
-        background: '#F0F8FF',
-        border: '1px solid rgba(0, 168, 232, 0.15)',
-        boxShadow: '0 2px 6px rgba(0, 86, 145, 0.04)',
-      }}
       {...props}
     />
   )
@@ -144,14 +125,9 @@ function CardGradient({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "border px-6 py-6 rounded-3xl transition-all duration-300 hover:shadow-lg",
+        "border px-6 py-6 rounded-3xl transition-all duration-300 hover:shadow-lg bg-card text-card-foreground border-border",
         className
       )}
-      style={{
-        background: 'linear-gradient(135deg, #FFFFFF 0%, #F0F8FF 100%)',
-        border: '1px solid rgba(0, 168, 232, 0.12)',
-        boxShadow: '0 4px 12px rgba(0, 86, 145, 0.08)',
-      }}
       {...props}
     />
   )
