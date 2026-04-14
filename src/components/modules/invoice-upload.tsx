@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, memo } from 'react'
+import { useState, useCallback, memo, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -41,8 +41,10 @@ import {
   DollarSign,
   Calendar,
   FileCheck,
+  Check,
+  X,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { queryClient } from '@/lib/queryClient'
@@ -83,8 +85,8 @@ const INVOICE_TYPES: Record<string, string> = {
 
 // Status config
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-  PENDING: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Clock },
-  VERIFIED: { label: 'Verificado', color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle },
+  PENDING: { label: 'Pendiente', color: 'bg-amber-100 text-amber-700 border-amber-200', icon: Clock },
+  VERIFIED: { label: 'Verificado', color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle },
   REJECTED: { label: 'Rechazado', color: 'bg-red-100 text-red-700 border-red-200', icon: XCircle },
 }
 
@@ -351,6 +353,46 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
     window.open(`/api/invoices/${invoice.id}/file`, '_blank')
   }, [])
 
+  // Group invoices by month/year (descending - newest first)
+  const groupedInvoices = useMemo(() => {
+    const groups: Record<string, typeof invoices> = {}
+    invoices.forEach((inv) => {
+      const date = inv.issueDate ? new Date(inv.issueDate) : new Date(inv.uploadedAt)
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      if (!groups[key]) groups[key] = []
+      groups[key].push(inv)
+    })
+    return Object.entries(groups)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([key, items]) => {
+        const [year, month] = key.split('-')
+        return { year: parseInt(year), month: parseInt(month), invoices: items }
+      })
+  }, [invoices])
+
+  const changeStatus = useCallback(async (invoiceId: string, currentStatus: string, newStatus: string) => {
+    if (currentStatus === newStatus) return
+    await handleStatusChange(invoiceId, newStatus, newStatus === 'VERIFIED')
+  }, [handleStatusChange])
+
+  const deleteInvoice = useCallback(async (invoiceId: string) => {
+    await handleDelete(invoiceId)
+  }, [handleDelete])
+
+  const StatusBadge = ({ status }: { status: string }) => {
+    const config = STATUS_CONFIG[status] || STATUS_CONFIG.PENDING
+    return (
+      <span className={cn(
+        'text-xs px-1.5 py-0.5 rounded',
+        status === 'VERIFIED' && 'bg-emerald-500/10 text-emerald-600',
+        status === 'PENDING' && 'bg-amber-500/10 text-amber-600',
+        status === 'REJECTED' && 'bg-red-500/10 text-red-600',
+      )}>
+        {config.label}
+      </span>
+    )
+  }
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -490,21 +532,107 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
         </Dialog>
       </div>
 
-      {/* Invoice list */}
+      {/* Invoice list grouped by month */}
       {invoices.length > 0 ? (
-        <ScrollArea className="max-h-96">
-          <div className="space-y-2 pr-4">
-            {invoices.map((invoice) => (
-              <InvoiceItem
-                key={invoice.id}
-                invoice={invoice}
-                onDelete={() => handleDelete(invoice.id)}
-                onStatusChange={(status, verified) => handleStatusChange(invoice.id, status, verified)}
-                onView={() => handleView(invoice)}
-              />
-            ))}
-          </div>
-        </ScrollArea>
+        <div className="space-y-4">
+          {groupedInvoices.map(({ year, month, invoices: monthInvoices }) => (
+            <div key={`${year}-${month}`} className="rounded-lg border overflow-hidden">
+              <div className="px-4 py-2 bg-muted/50 border-b">
+                <h4 className="text-sm font-semibold capitalize">
+                  {format(new Date(year, month - 1), 'MMMM yyyy', { locale: es })}
+                </h4>
+              </div>
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-muted/30">
+                    <td className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase">N°</td>
+                    <td className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase">Fecha</td>
+                    <td className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase">Tipo</td>
+                    <td className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase text-right">Monto</td>
+                    <td className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase">Estado</td>
+                    <td className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase text-right">Acciones</td>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {monthInvoices.map((inv) => (
+                    <tr key={inv.id} className="table-row-hover">
+                      <td className="px-4 py-3 text-sm">{inv.invoiceNumber || '—'}</td>
+                      <td className="px-4 py-3 text-sm">
+                        {inv.issueDate ? format(new Date(inv.issueDate), 'dd/MM/yyyy') : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <Badge variant="outline" className="text-xs">{INVOICE_TYPES[inv.type] || inv.type}</Badge>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right tabular-nums">
+                        {inv.amount ? formatCurrency(inv.amount) : '—'}
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={inv.status} />
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {inv.filePath && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleView(inv)}
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+                            onClick={() => changeStatus(inv.id, inv.status, 'VERIFIED')}
+                            disabled={inv.status === 'VERIFIED'}
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-500/10"
+                            onClick={() => changeStatus(inv.id, inv.status, 'REJECTED')}
+                            disabled={inv.status === 'REJECTED'}
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 hover:bg-destructive/10"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>¿Eliminar factura?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta acción no se puede deshacer. El archivo será eliminado permanentemente.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteInvoice(inv.id)} className="bg-red-600 hover:bg-red-700">
+                                  Eliminar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
       ) : (
         <Card className="border-dashed">
           <CardContent className="py-8 text-center">
