@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
     const file = formData.get('file') as File | null
-    const clientId = formData.get('clientId') as string
+    let clientId = formData.get('clientId') as string
     const invoiceNumber = formData.get('invoiceNumber') as string | null
     const amount = formData.get('amount') as string | null
     const issueDate = formData.get('issueDate') as string | null

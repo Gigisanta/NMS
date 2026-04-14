@@ -12,7 +12,7 @@ interface ReceiptUploaderProps {
   onRemove?: () => Promise<void>
   currentReceiptId?: string | null
   currentFileName?: string | null
-  currentStatus?: string
+  currentStatus?: string | null
   disabled?: boolean
   className?: string
 }
