@@ -23,3 +23,7 @@
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
+
+## 2026-03-05 - Efficient Missing Record Detection and Bulk Insertion
+**Learning:** Checking for missing records in a one-to-many relationship (e.g., clients without subscriptions) is most efficient using Prisma's `none` filter in a single `findMany`. Generating these missing records using `$transaction` with individual `create` calls is O(N); `createMany` reduces this to O(1).
+**Action:** Use `where: { relation: { none: { ... } } }` to identify gaps and `createMany` for bulk healing of data. Always prioritize custom client-level rates over system defaults during auto-generation.

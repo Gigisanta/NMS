@@ -20,6 +20,7 @@ export const CacheKeys = {
   groups: () => 'groups:all',
   clients: (params: Record<string, string>) => `clients:${JSON.stringify(params)}`,
   client: (id: string) => `client:${id}`,
+  subscriptions: (params: Record<string, string>) => `subscriptions:${JSON.stringify(params)}`,
   dashboard: () => 'dashboard:stats',
   attendanceToday: () => `attendance:today`,
 } as const
@@ -93,6 +94,7 @@ export function invalidateClientCache(): void {
   invalidateCachePattern('client:')
   invalidateCachePattern('dashboard')
   invalidateCachePattern('attendance')
+  invalidateCachePattern('subscriptions')
 }
 
 /**
