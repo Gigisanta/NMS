@@ -26,7 +26,9 @@ export const clientSchema = z.object({
   dni: z.string().regex(/^\d{7,8}$/, 'El DNI debe tener 7 u 8 dígitos').optional().nullable(),
   telefono: z.string()
     .min(8, 'El teléfono debe tener al menos 8 dígitos')
-    .regex(/^\+?[\d\s\-]+$/, 'El teléfono debe tener formato válido (+54 11 ... ó 11 ...)'),
+    .regex(/^\+?[\d\s\-]+$/, 'El teléfono debe tener formato válido (+54 11 ... ó 11 ...)')
+    .optional()
+    .nullable(),
   grupoId: z.string().optional().nullable(),
   preferredDays: z.string().optional().nullable(),
   preferredTime: z.string().optional().nullable(),
