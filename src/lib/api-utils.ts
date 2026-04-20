@@ -22,6 +22,7 @@ export const CacheKeys = {
   client: (id: string) => `client:${id}`,
   dashboard: () => 'dashboard:stats',
   attendanceToday: () => `attendance:today`,
+  subscriptions: (params: Record<string, string>) => `subscriptions:${JSON.stringify(params)}`,
 } as const
 
 /**
@@ -86,13 +87,14 @@ export function invalidateGroupsCache(): void {
 
 /**
  * Invalidate client-related caches (both list and details)
- * Clears lists, specific details, dashboard and attendance
+ * Clears lists, specific details, dashboard, attendance and subscriptions
  */
 export function invalidateClientCache(): void {
   invalidateCachePattern('clients')
   invalidateCachePattern('client:')
   invalidateCachePattern('dashboard')
   invalidateCachePattern('attendance')
+  invalidateCachePattern('subscriptions')
 }
 
 /**
