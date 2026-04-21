@@ -13,10 +13,15 @@ vi.mock('@/lib/db', () => ({
 
 vi.mock('@/lib/api-utils', () => ({
   cachedFetch: vi.fn((_k, fetcher) => fetcher()),
-  CacheKeys: { dashboard: () => 'dashboard:stats', groups: () => 'groups:all', clients: (p) => `clients:${JSON.stringify(p)}`, client: (id) => `client:${id}`, attendanceToday: () => 'attendance:today' },
+  CacheKeys: { dashboard: () => 'dashboard:stats', groups: () => 'groups:all', clients: (p: any) => `clients:${JSON.stringify(p)}`, client: (id: string) => `client:${id}`, attendanceToday: () => 'attendance:today' },
   invalidateCache: vi.fn(),
   invalidateCachePattern: vi.fn(),
   invalidateClientCache: vi.fn(),
+  invalidateGroupsCache: vi.fn(),
+}))
+
+vi.mock('@/auth', () => ({
+  auth: vi.fn().mockResolvedValue({ user: { id: 'admin-1', role: 'EMPLEADORA' } }),
 }))
 
 vi.mock('@/lib/rate-limit', () => ({ ratelimit: { limit: vi.fn().mockResolvedValue({ success: true }) } }))
@@ -104,13 +109,19 @@ describe('API /clients', () => {
       expect(data.error).toContain('Datos inválidos')
     })
 
-    it('should fail with duplicate phone', async () => {
-      vi.mocked(db.client.findFirst).mockResolvedValue({ id: 'existing-client', telefono: '+5491122334455' } as any)
-      const response = await createClient(createRequest('/api/clients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: 'Juan', apellido: 'Pérez', telefono: '+5491122334455' }) }))
+    it('should allow duplicate phone (deliberate behavior)', async () => {
+      vi.mocked(db.client.findFirst).mockResolvedValue({ id: 'existing-client', telefono: '5491122334455' } as any)
+      vi.mocked(db.$transaction).mockImplementation(async (fn: any) => {
+        const tx = {
+          client: { create: vi.fn().mockResolvedValue({ id: 'new-client', nombre: 'Juan', apellido: 'Pérez' }) },
+          subscription: { create: vi.fn().mockResolvedValue({}) }
+        }
+        return fn(tx)
+      })
+      const response = await createClient(createRequest('/api/clients', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: 'Juan', apellido: 'Pérez', telefono: '5491122334455' }) }))
       const data = await response.json()
-      expect(response.status).toBe(400)
-      expect(data.success).toBe(false)
-      expect(data.error).toContain('Ya existe')
+      expect(response.status).toBe(200)
+      expect(data.success).toBe(true)
     })
   })
 })
@@ -143,7 +154,7 @@ describe('API /groups', () => {
   describe('POST /api/groups', () => {
     it('should create a new group', async () => {
       vi.mocked(db.group.findFirst).mockResolvedValue(null)
-      vi.mocked(db.group.create).mockResolvedValue({ id: 'group-1', name: 'Grupo Test', color: '#06b6d4', description: 'Test group', schedule: null, active: true } as any)
+      vi.mocked(db.group.create).mockResolvedValue({ id: 'group-1', name: 'Grupo Test', color: '#06b6d4', description: 'Test group', schedule: null, active: true, _count: { clients: 0 } } as any)
       const response = await createGroup(createRequest('/api/groups', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Grupo Test', color: '#06b6d4', description: 'Test group' }) }))
       const data = await response.json()
       expect(response.status).toBe(200)

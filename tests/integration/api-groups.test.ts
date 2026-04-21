@@ -15,6 +15,11 @@ vi.mock('@/lib/api-utils', () => ({
   invalidateCache: vi.fn(),
   invalidateCachePattern: vi.fn(),
   invalidateClientCache: vi.fn(),
+  invalidateGroupsCache: vi.fn(),
+}))
+
+vi.mock('@/auth', () => ({
+  auth: vi.fn().mockResolvedValue({ user: { id: 'admin-1', role: 'EMPLEADORA' } }),
 }))
 
 import { db } from '@/lib/db'
@@ -56,7 +61,7 @@ describe('API /groups', () => {
   describe('POST /api/groups', () => {
     it('should create a new group with valid data', async () => {
       vi.mocked(db.group.findFirst).mockResolvedValue(null)
-      vi.mocked(db.group.create).mockResolvedValue({ id: 'gn', name: 'Grupo Test', color: '#06b6d4', description: 'Test group', schedule: null, active: true } as any)
+      vi.mocked(db.group.create).mockResolvedValue({ id: 'gn', name: 'Grupo Test', color: '#06b6d4', description: 'Test group', schedule: null, active: true, _count: { clients: 0 } } as any)
       const response = await createGroup(createRequest('/api/groups', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Grupo Test', color: '#06b6d4', description: 'Test group' }) }))
       const data = await response.json()
       expect(response.status).toBe(200)
@@ -109,7 +114,7 @@ describe('API /groups/[id]', () => {
   describe('PUT /api/groups/[id]', () => {
     it('should update a group with valid data', async () => {
       vi.mocked(db.group.findFirst).mockResolvedValue(null)
-      vi.mocked(db.group.update).mockResolvedValue({ id: 'g1', name: 'Grupo Updated', color: '#06b6d4', description: 'Updated description', schedule: null, active: true } as any)
+      vi.mocked(db.group.update).mockResolvedValue({ id: 'g1', name: 'Grupo Updated', color: '#06b6d4', description: 'Updated description', schedule: null, active: true, _count: { clients: 0 } } as any)
       const response = await updateGroup(createRequest('/api/groups/g1', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Grupo Updated', description: 'Updated description' }) }), makeCtx('g1'))
       const data = await response.json()
       expect(response.status).toBe(200)
