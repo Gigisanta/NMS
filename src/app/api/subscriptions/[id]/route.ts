@@ -44,9 +44,9 @@ export async function PUT(
       data: updateData,
     })
 
-    // BOLT: Invalidate clients and dashboard cache when subscription changes
+    // BOLT: Invalidate client-related caches when subscription changes
+    // (includes clients, dashboard, attendance, and subscriptions)
     invalidateClientCache()
-    invalidateCachePattern('dashboard')
 
     return NextResponse.json({
       success: true,

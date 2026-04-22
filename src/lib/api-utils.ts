@@ -93,6 +93,7 @@ export function invalidateClientCache(): void {
   invalidateCachePattern('client:')
   invalidateCachePattern('dashboard')
   invalidateCachePattern('attendance')
+  invalidateCachePattern('subscriptions')
 }
 
 /**

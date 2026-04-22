@@ -198,8 +198,6 @@ export async function POST(request: NextRequest) {
     })
 
     // Invalidate caches
-    invalidateCachePattern('attendance')
-    invalidateCachePattern('dashboard')
     invalidateClientCache()
 
     return NextResponse.json({
@@ -281,8 +279,6 @@ export async function DELETE(request: NextRequest) {
     })
 
     // Invalidate caches
-    invalidateCachePattern('attendance')
-    invalidateCachePattern('dashboard')
     invalidateClientCache()
 
     return NextResponse.json({

@@ -3,41 +3,44 @@ import { db } from '@/lib/db'
 import { auth } from '@/auth'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
 
+/**
+ * BOLT OPTIMIZATION: Optimized subscription generation
+ * 1. Uses Prisma 'none' filter to find missing records in a single query
+ * 2. Parallelizes settings fetching with the client query
+ * 3. Uses 'createMany' for O(1) database roundtrips instead of O(N)
+ */
 async function ensureSubscriptionsExist(month: number, year: number) {
-  const clients = await db.client.findMany({ select: { id: true } })
-  const existingSubs = await db.subscription.findMany({
-    where: { month, year },
-    select: { clientId: true },
-  })
-  const existingClientIds = new Set(existingSubs.map(s => s.clientId))
-  const missingClients = clients.filter(c => !existingClientIds.has(c.id))
+  // Check for missing subscriptions in parallel with settings
+  const [missingClients, defaultClassesSetting, defaultPriceSetting] = await Promise.all([
+    db.client.findMany({
+      where: {
+        subscriptions: {
+          none: { month, year }
+        }
+      },
+      select: { id: true }
+    }),
+    db.settings.findUnique({ where: { key: 'payment.defaultClasses' } }),
+    db.settings.findUnique({ where: { key: 'payment.defaultPrice' } }),
+  ])
 
   if (missingClients.length > 0) {
-    const defaultClassesSetting = await db.settings.findUnique({
-      where: { key: 'payment.defaultClasses' },
-    })
-    const defaultPriceSetting = await db.settings.findUnique({
-      where: { key: 'payment.defaultPrice' },
-    })
     const defaultClasses = defaultClassesSetting ? parseInt(defaultClassesSetting.value) : 4
     const defaultPrice = defaultPriceSetting ? parseInt(defaultPriceSetting.value) : 5000
 
-    await db.$transaction(
-      missingClients.map(client =>
-        db.subscription.create({
-          data: {
-            clientId: client.id,
-            month,
-            year,
-            status: 'PENDIENTE',
-            billingPeriod: 'FULL',
-            classesTotal: defaultClasses,
-            classesUsed: 0,
-            amount: defaultPrice,
-          },
-        })
-      )
-    )
+    await db.subscription.createMany({
+      data: missingClients.map(client => ({
+        clientId: client.id,
+        month,
+        year,
+        status: 'PENDIENTE',
+        billingPeriod: 'FULL',
+        classesTotal: defaultClasses,
+        classesUsed: 0,
+        amount: defaultPrice,
+      })),
+      skipDuplicates: true,
+    })
   }
 }
 
