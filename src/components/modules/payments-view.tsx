@@ -157,12 +157,16 @@ export function PaymentsView() {
     return matchesStatus && matchesGroup
   }), [subscriptions, statusFilter, selectedGrupo])
 
-  const stats = useMemo(() => ({
-    total: subscriptions.length,
-    alDia: subscriptions.filter(s => s.status === 'AL_DIA').length,
-    pendiente: subscriptions.filter(s => s.status === 'PENDIENTE').length,
-    deudor: subscriptions.filter(s => s.status === 'DEUDOR').length,
-  }), [subscriptions])
+  // BOLT OPTIMIZATION: Single-pass stats calculation (O(N) instead of O(4N))
+  const stats = useMemo(() => {
+    return subscriptions.reduce((acc, s) => {
+      acc.total++
+      if (s.status === 'AL_DIA') acc.alDia++
+      else if (s.status === 'PENDIENTE') acc.pendiente++
+      else if (s.status === 'DEUDOR') acc.deudor++
+      return acc
+    }, { total: 0, alDia: 0, pendiente: 0, deudor: 0 })
+  }, [subscriptions])
 
   const months = Array.from({ length: 12 }, (_, i) => i + 1)
   const years = [selectedYear - 1, selectedYear, selectedYear + 1]

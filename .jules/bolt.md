@@ -8,6 +8,10 @@
 **Learning:** Prisma's `groupBy` is efficient for simple groupings, but when grouping by a related field is required, it often leads to N+1 query patterns (e.g., mapping over groups and running an aggregation for each).
 **Action:** Use a single `findMany` with `select` to fetch all relevant records in one batch, then use `reduce` to aggregate data in-memory. This reduces database roundtrips from O(N) to O(1) with minimal memory overhead.
 
+## 2026-03-04 - Batch-identifying and Bulk-inserting Missing Relations
+**Learning:** Identifying records missing a one-to-many relationship (e.g. Clients without a Subscription for the current month) can be done in a single O(1) database query using Prisma's `none` filter. Combining this with `createMany` for bulk insertion eliminates the need for O(N) sequential transaction logic.
+**Action:** Use `where: { relation: { none: { ... } } }` to find missing records and `db.model.createMany({ skipDuplicates: true })` for efficient initialization of related data.
+
 ## 2025-05-15 - Initializing Bolt's Journal
 **Learning:** Starting the mission to optimize the codebase.
 **Action:** Always measure before optimizing.
