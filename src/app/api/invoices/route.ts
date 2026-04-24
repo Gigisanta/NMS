@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
         filePath,
         fileSize,
         mimeType,
-        fileData: fileData as any,
+        fileData: fileData ? Uint8Array.from(fileData) : undefined,
         invoiceNumber: invoiceNumber || null,
         amount: amount ? parseFloat(amount) : null,
         issueDate: issueDate ? new Date(issueDate) : null,
@@ -208,7 +208,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error uploading invoice:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const errorCode = error instanceof Error && 'code' in error ? (error as any).code : 'UNKNOWN'
+    const errorCode = error instanceof Error && 'code' in error
+      ? String((error as Record<string, unknown>).code)
+      : 'UNKNOWN'
     return NextResponse.json(
       { success: false, error: `Error al subir factura: ${errorMessage}`, code: errorCode },
       { status: 500 }

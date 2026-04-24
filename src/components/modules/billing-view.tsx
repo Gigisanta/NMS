@@ -63,6 +63,7 @@ export function BillingView() {
   }, [selectedMonth, selectedYear])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchBillableItems()
   }, [fetchBillableItems])
 
@@ -158,8 +159,8 @@ export function BillingView() {
                 <span className="text-xs text-slate-400">Conectado</span>
               </div>
             </div>
-            <div className="p-2.5 rounded-lg shrink-0 mt-0.5" style={{ background: '#005691' + '18' }}>
-              <Receipt className="w-4 h-4" style={{ color: '#005691' }} />
+            <div className="p-2.5 rounded-lg shrink-0 mt-0.5 bg-primary/10">
+              <Receipt className="w-4 h-4 text-primary" />
             </div>
           </div>
         </div>
@@ -174,8 +175,8 @@ export function BillingView() {
                 <span className="text-xs text-slate-400">Activo para conciliación</span>
               </div>
             </div>
-            <div className="p-2.5 rounded-lg shrink-0 mt-0.5" style={{ background: '#00A8E8' + '18' }}>
-              <ExternalLink className="w-4 h-4" style={{ color: '#00A8E8' }} />
+            <div className="p-2.5 rounded-lg shrink-0 mt-0.5 bg-secondary/10">
+              <ExternalLink className="w-4 h-4 text-secondary" />
             </div>
           </div>
         </div>
@@ -189,8 +190,8 @@ export function BillingView() {
               </p>
               <p className="text-xs text-slate-400 mt-1">Items sin facturar</p>
             </div>
-            <div className="p-2.5 rounded-lg shrink-0 mt-0.5" style={{ background: '#f59e0b18' }}>
-              <AlertTriangle className="w-4 h-4" style={{ color: '#f59e0b' }} />
+            <div className="p-2.5 rounded-lg shrink-0 mt-0.5 bg-warning/10">
+              <AlertTriangle className="w-4 h-4 text-warning" />
             </div>
           </div>
         </div>
@@ -206,8 +207,7 @@ export function BillingView() {
             <Button
               disabled={selectedIds.size === 0 || processing}
               onClick={handleProcessBilling}
-              className="shadow-sm transition-all active:scale-95"
-              style={{ background: '#005691' }}
+              className="shadow-sm transition-all active:scale-95 bg-primary hover:bg-primary/90"
             >
               {processing ? (
                 <>
@@ -226,7 +226,7 @@ export function BillingView() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-14">
-              <Loader2 className="w-6 h-6 animate-spin text-[#00A8E8]" />
+              <Loader2 className="w-6 h-6 animate-spin text-secondary" />
             </div>
           ) : subscriptions.length === 0 ? (
             <div className="flex flex-col items-center py-14 gap-3">

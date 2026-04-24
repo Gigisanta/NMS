@@ -1,14 +1,21 @@
 'use client'
 
 import { useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Form, FormField, FormLabel, FormControl, FormMessage, FormItem } from '@/components/ui/form'
+import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2, Check, Calendar, Clock, FileText, User, Phone, Hash, DollarSign, X } from 'lucide-react'
+import { Loader2, Check, Calendar, Clock, FileText, User, Phone, Hash, DollarSign } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn, parseArsAmount } from '@/lib/utils'
 import { ScheduleSelector } from './schedule-selector'
+import { createClientSchema, type CreateClientInput } from '@/schemas/client'
 
 interface Group {
   id: string
@@ -29,6 +36,8 @@ interface Client {
   monthlyAmount: number | null
   registrationFeePaid1: boolean
   registrationFeePaid2: boolean
+  classesTotal?: number
+  billingPeriod?: 'FULL' | 'HALF'
 }
 
 interface ClientFormProps {
@@ -39,57 +48,53 @@ interface ClientFormProps {
 }
 
 export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientFormProps) {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [activeSection, setActiveSection] = useState<'personal' | 'schedule' | 'subscription'>('personal')
+  const [activeTab, setActiveTab] = useState<'personal' | 'schedule' | 'subscription'>('personal')
   const [additionalGroups, setAdditionalGroups] = useState<string[]>([])
 
-  const [formData, setFormData] = useState({
-    nombre: client?.nombre || '',
-    apellido: client?.apellido || '',
-    dni: client?.dni || '',
-    telefono: client?.telefono || '',
-    grupoId: client?.grupoId || '',
-    preferredDays: client?.preferredDays || '',
-    preferredTime: client?.preferredTime || '',
-    notes: client?.notes || '',
-    classesTotal: 4,
-    billingPeriod: 'FULL' as 'FULL' | 'HALF',
-    monthlyAmount: client?.monthlyAmount || null,
-    registrationFeePaid1: client?.registrationFeePaid1 || false,
-    registrationFeePaid2: client?.registrationFeePaid2 || false,
+  const form = useForm<CreateClientInput>({
+    resolver: zodResolver(createClientSchema) as any,
+    defaultValues: {
+      nombre: client?.nombre || '',
+      apellido: client?.apellido || '',
+      dni: client?.dni || undefined,
+      telefono: client?.telefono || undefined,
+      grupoId: client?.grupoId || undefined,
+      preferredDays: client?.preferredDays || undefined,
+      preferredTime: client?.preferredTime || undefined,
+      notes: client?.notes || undefined,
+      monthlyAmount: client?.monthlyAmount || undefined,
+      registrationFeePaid1: client?.registrationFeePaid1 || false,
+      registrationFeePaid2: client?.registrationFeePaid2 || false,
+      classesTotal: client?.classesTotal || 4,
+      billingPeriod: client?.billingPeriod || 'FULL',
+    },
   })
 
-  const sections = [
-    { id: 'personal', label: 'Datos', icon: User },
-    { id: 'schedule', label: 'Horario', icon: Clock },
-    { id: 'subscription', label: 'Plan', icon: Calendar },
-  ]
+  const watchedClassesTotal = useWatch({ control: form.control, name: 'classesTotal' }) ?? 4
+  const watchedGrupoId = useWatch({ control: form.control, name: 'grupoId' })
+  const watchedPreferredDays = useWatch({ control: form.control, name: 'preferredDays' }) ?? ''
+  const watchedPreferredTime = useWatch({ control: form.control, name: 'preferredTime' }) ?? ''
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
+  const toggleAdditionalGroup = (groupId: string) => {
+    setAdditionalGroups(prev =>
+      prev.includes(groupId) ? prev.filter(id => id !== groupId) : [...prev, groupId]
+    )
+  }
 
+  const onSubmit = async (data: CreateClientInput) => {
     try {
       const url = client?.id ? `/api/clients/${client.id}` : '/api/clients'
       const response = await fetch(url, {
         method: client?.id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nombre: formData.nombre,
-          apellido: formData.apellido,
-          dni: formData.dni || null,
-          telefono: formData.telefono || null,
-          grupoId: formData.grupoId || null,
-          preferredDays: formData.preferredDays || null,
-          preferredTime: formData.preferredTime || null,
-          notes: formData.notes || null,
-          classesTotal: formData.classesTotal,
-          billingPeriod: formData.billingPeriod,
-          monthlyAmount: formData.monthlyAmount,
-          registrationFeePaid1: formData.registrationFeePaid1,
-          registrationFeePaid2: formData.registrationFeePaid2,
+          ...data,
+          dni: data.dni || null,
+          telefono: data.telefono || null,
+          grupoId: data.grupoId || null,
+          preferredDays: data.preferredDays || null,
+          preferredTime: data.preferredTime || null,
+          notes: data.notes || null,
         }),
       })
 
@@ -114,105 +119,100 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
         }
         onSuccess()
       } else {
-        setError(result.error || 'Error al guardar cliente')
+        toast.error(result.error || 'Error al guardar cliente')
       }
-    } catch (err) {
-      setError('Error de conexión')
-      console.error('Error saving client:', err)
-    } finally {
-      setLoading(false)
+    } catch {
+      toast.error('Error de conexión')
     }
   }
 
-  const toggleAdditionalGroup = (groupId: string) => {
-    setAdditionalGroups(prev =>
-      prev.includes(groupId) ? prev.filter(id => id !== groupId) : [...prev, groupId]
-    )
-  }
+  const selectedGroupId = watchedGrupoId
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100">
-          {error}
-        </div>
-      )}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="personal" className="gap-1.5">
+              <User className="w-4 h-4" />
+              <span className="hidden sm:inline">Datos</span>
+            </TabsTrigger>
+            <TabsTrigger value="schedule" className="gap-1.5">
+              <Clock className="w-4 h-4" />
+              <span className="hidden sm:inline">Horario</span>
+            </TabsTrigger>
+            <TabsTrigger value="subscription" className="gap-1.5">
+              <Calendar className="w-4 h-4" />
+              <span className="hidden sm:inline">Plan</span>
+            </TabsTrigger>
+          </TabsList>
 
-      {/* Section Tabs */}
-      <div className="flex gap-1 p-1 rounded-xl" style={{ background: 'rgba(0, 168, 232, 0.1)' }}>
-        {sections.map((section) => {
-          const Icon = section.icon
-          return (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => setActiveSection(section.id as typeof activeSection)}
-              className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-all',
-                activeSection === section.id ? 'shadow-sm text-white' : 'text-[#4A5568] hover:bg-white/50'
-              )}
-              style={activeSection === section.id ? {
-                background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)',
-              } : {}}
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              <span className="hidden sm:inline">{section.label}</span>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Content — no fixed height, outer card handles scrolling */}
-      <div className="min-h-0">
-        {activeSection === 'personal' && (
-          <div className="space-y-4">
+          <TabsContent value="personal" className="mt-4 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <User className="w-3 h-3 text-slate-400" />
-                  Nombre *
-                </Label>
-                <Input
-                  value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  placeholder="Juan"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Apellido *</Label>
-                <Input
-                  value={formData.apellido}
-                  onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
-                  placeholder="Pérez"
-                  required
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="nombre"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <User className="w-3 h-3 text-muted-foreground" />
+                      Nombre *
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="Juan" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="apellido"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Apellido *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Pérez" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Hash className="w-3 h-3 text-slate-400" />
-                  DNI
-                </Label>
-                <Input
-                  value={formData.dni || ''}
-                  onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
-                  placeholder="12345678"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Phone className="w-3 h-3" style={{ color: '#00A8E8' }} />
-                  Teléfono
-                </Label>
-                <Input
-                  value={formData.telefono}
-                  onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                  placeholder="3512345678"
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="dni"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Hash className="w-3 h-3 text-muted-foreground" />
+                      DNI
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="12345678" {...field} value={field.value || ''} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="telefono"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      <Phone className="w-3 h-3 text-muted-foreground" />
+                      Teléfono
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="3512345678" {...field} value={field.value || ''} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="space-y-2">
@@ -220,12 +220,12 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, grupoId: '' })}
+                  onClick={() => form.setValue('grupoId', undefined, { shouldValidate: true })}
                   className={cn(
                     'px-3 py-2 text-sm rounded-xl border-2 transition-all',
-                    !formData.grupoId
-                      ? 'border-[#00A8E8] text-[#005691] bg-[rgba(0,168,232,0.1)]'
-                      : 'border-[rgba(0,168,232,0.2)] hover:border-[rgba(0,168,232,0.4)]'
+                    !selectedGroupId
+                      ? 'border-primary text-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50'
                   )}
                 >
                   Sin grupo
@@ -234,12 +234,12 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                   <button
                     key={group.id}
                     type="button"
-                    onClick={() => setFormData({ ...formData, grupoId: group.id })}
+                    onClick={() => form.setValue('grupoId', group.id, { shouldValidate: true })}
                     className={cn(
                       'px-3 py-2 text-sm rounded-xl border-2 transition-all',
-                      formData.grupoId === group.id ? 'shadow-md' : 'border-[rgba(0,168,232,0.2)] hover:border-[rgba(0,168,232,0.4)]'
+                      selectedGroupId === group.id ? 'shadow-md' : 'border-border hover:border-primary/50'
                     )}
-                    style={formData.grupoId === group.id ? {
+                    style={selectedGroupId === group.id ? {
                       backgroundColor: `${group.color}15`,
                       borderColor: group.color,
                       color: group.color,
@@ -251,13 +251,13 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
               </div>
             </div>
 
-            {!client?.id && groups.filter(g => g.id !== formData.grupoId).length > 0 && (
+            {!client?.id && groups.filter(g => g.id !== selectedGroupId).length > 0 && (
               <div className="space-y-2">
                 <Label>Grupos Adicionales</Label>
-                <p className="text-xs text-slate-500">Para clientes que asisten a más de un horario</p>
+                <p className="text-xs text-muted-foreground">Para clientes que asisten a más de un horario</p>
                 <div className="flex flex-wrap gap-2">
                   {groups
-                    .filter(group => group.id !== formData.grupoId)
+                    .filter(group => group.id !== selectedGroupId)
                     .map((group) => (
                       <button
                         key={group.id}
@@ -265,7 +265,7 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                         onClick={() => toggleAdditionalGroup(group.id)}
                         className={cn(
                           'px-3 py-2 text-sm rounded-xl border-2 transition-all',
-                          additionalGroups.includes(group.id) ? 'shadow-md' : 'border-[rgba(0,168,232,0.2)] hover:border-[rgba(0,168,232,0.4)]'
+                          additionalGroups.includes(group.id) ? 'shadow-md' : 'border-border hover:border-primary/50'
                         )}
                         style={additionalGroups.includes(group.id) ? {
                           backgroundColor: `${group.color}15`,
@@ -281,109 +281,122 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <FileText className="w-3 h-3" style={{ color: '#00A8E8' }} />
-                Notas
-              </Label>
-              <Textarea
-                value={formData.notes || ''}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Notas sobre el cliente..."
-                className="min-h-[80px] resize-none"
-              />
-            </div>
-          </div>
-        )}
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <FileText className="w-3 h-3 text-muted-foreground" />
+                    Notas
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Notas sobre el cliente..."
+                      className="min-h-[80px] resize-none"
+                      {...field}
+                      value={field.value || ''}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </TabsContent>
 
-        {activeSection === 'schedule' && (
-          <ScheduleSelector
-            preferredDays={formData.preferredDays}
-            preferredTime={formData.preferredTime}
-            onChange={(days, time) => setFormData({ ...formData, preferredDays: days, preferredTime: time })}
-          />
-        )}
+          <TabsContent value="schedule" className="mt-4">
+            <ScheduleSelector
+              preferredDays={watchedPreferredDays}
+              preferredTime={watchedPreferredTime}
+              onChange={(days, time) => {
+                form.setValue('preferredDays', days, { shouldValidate: true })
+                form.setValue('preferredTime', time, { shouldValidate: true })
+              }}
+            />
+          </TabsContent>
 
-        {activeSection === 'subscription' && (
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <DollarSign className="w-3 h-3" style={{ color: '#00A8E8' }} />
-                Monto Mensual *
-              </Label>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-medium text-slate-700">$</span>
-                <Input
-                  type="number"
-                  value={formData.monthlyAmount || ''}
-                  onChange={(e) => setFormData({ ...formData, monthlyAmount: e.target.value ? parseArsAmount(e.target.value) : null })}
-                  placeholder="0.00"
-                  required
-                  className="text-lg font-semibold h-12"
-                />
-              </div>
-            </div>
+          <TabsContent value="subscription" className="mt-4 space-y-5">
+            <FormField
+              control={form.control}
+              name="monthlyAmount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <DollarSign className="w-3 h-3 text-muted-foreground" />
+                    Monto Mensual *
+                  </FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-medium text-muted-foreground">$</span>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        className="text-lg font-semibold h-12"
+                        {...field}
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value ? parseArsAmount(e.target.value) : undefined)}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Calendar className="w-3 h-3" style={{ color: '#00A8E8' }} />
-                Periodo de Facturación
-              </Label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, billingPeriod: 'FULL' })}
-                  className={cn(
-                    'py-3 px-4 rounded-xl border-2 transition-all text-sm font-medium',
-                    formData.billingPeriod === 'FULL'
-                      ? 'border-[#00A8E8] text-[#005691] bg-[rgba(0,168,232,0.1)]'
-                      : 'border-[rgba(0,168,232,0.2)] text-slate-600 hover:border-[rgba(0,168,232,0.4)]'
-                  )}
-                >
-                  Mes completo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, billingPeriod: 'HALF' })}
-                  className={cn(
-                    'py-3 px-4 rounded-xl border-2 transition-all text-sm font-medium',
-                    formData.billingPeriod === 'HALF'
-                      ? 'border-[#00A8E8] text-[#005691] bg-[rgba(0,168,232,0.1)]'
-                      : 'border-[rgba(0,168,232,0.2)] text-slate-600 hover:border-[rgba(0,168,232,0.4)]'
-                  )}
-                >
-                  1/2 mes
-                </button>
-              </div>
-            </div>
+            <FormField
+              control={form.control}
+              name="billingPeriod"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Calendar className="w-3 h-3 text-muted-foreground" />
+                    Periodo de Facturación
+                  </FormLabel>
+                  <FormControl>
+                    <ToggleGroup
+                      type="single"
+                      value={field.value}
+                      onValueChange={(v) => v && field.onChange(v)}
+                      className="grid grid-cols-2 gap-2"
+                    >
+                      <ToggleGroupItem value="FULL" className="rounded-xl">
+                        Mes completo
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="HALF" className="rounded-xl">
+                        1/2 mes
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="space-y-3">
               <Label className="flex items-center gap-2">
-                <Hash className="w-3 h-3" style={{ color: '#00A8E8' }} />
+                <Hash className="w-3 h-3 text-muted-foreground" />
                 Clases contratadas
               </Label>
-              <div className="flex items-center gap-4 bg-white/50 p-4 rounded-xl border border-[rgba(0,168,232,0.15)]">
+              <div className="flex items-center gap-4 bg-muted/30 p-4 rounded-xl border border-border">
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="h-10 w-10 rounded-full border-2 shrink-0"
-                  style={{ borderColor: 'rgba(0, 168, 232, 0.3)', color: '#005691' }}
-                  onClick={() => setFormData({ ...formData, classesTotal: Math.max(1, formData.classesTotal - 1) })}
+                  className="h-10 w-10 rounded-full border-2 shrink-0 border-primary text-primary hover:bg-primary/10"
+                  onClick={() => form.setValue('classesTotal', Math.max(1, watchedClassesTotal - 1), { shouldValidate: true })}
                 >
                   <span className="text-lg leading-none">−</span>
                 </Button>
                 <div className="flex-1 text-center">
-                  <span className="text-3xl font-semibold text-[#005691]">{formData.classesTotal}</span>
-                  <span className="text-sm text-slate-500 ml-2">clases/mes</span>
+                  <span className="text-3xl font-semibold text-primary">{watchedClassesTotal}</span>
+                  <span className="text-sm text-muted-foreground ml-2">clases/mes</span>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="h-10 w-10 rounded-full border-2 shrink-0"
-                  style={{ borderColor: 'rgba(0, 168, 232, 0.3)', color: '#005691' }}
-                  onClick={() => setFormData({ ...formData, classesTotal: Math.min(30, formData.classesTotal + 1) })}
+                  className="h-10 w-10 rounded-full border-2 shrink-0 border-primary text-primary hover:bg-primary/10"
+                  onClick={() => form.setValue('classesTotal', Math.min(30, watchedClassesTotal + 1), { shouldValidate: true })}
                 >
                   <span className="text-lg leading-none">+</span>
                 </Button>
@@ -392,61 +405,73 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
 
             <div className="space-y-3">
               <Label>Cuotas de Inscripción</Label>
-              {[
-                { key: 'registrationFeePaid1' as const, label: 'Cuota 1' },
-                { key: 'registrationFeePaid2' as const, label: 'Cuota 2' },
-              ].map(({ key, label }) => (
-                <div key={key} className="flex items-center justify-between p-3 rounded-xl border" style={{ background: 'rgba(0, 168, 232, 0.05)' }}>
-                  <div>
-                    <p className="text-sm font-medium">{label} — Inscripción ($25.000)</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, [key]: !formData[key] })}
-                    className={cn(
-                      'relative inline-flex h-7 w-12 items-center rounded-full transition-all shrink-0',
-                      formData[key] ? 'bg-[#34C759]' : 'bg-[rgba(0,168,232,0.3)]'
-                    )}
-                  >
-                    <span className={cn(
-                      'inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-all',
-                      formData[key] ? 'translate-x-6' : 'translate-x-1'
-                    )} />
-                  </button>
-                </div>
-              ))}
+              <FormField
+                control={form.control}
+                name="registrationFeePaid1"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between p-3 rounded-xl border bg-muted/30">
+                      <div>
+                        <p className="text-sm font-medium">Cuota 1 — Inscripción ($25.000)</p>
+                      </div>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        aria-label="Cuota 1 de inscripción"
+                      />
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="registrationFeePaid2"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between p-3 rounded-xl border bg-muted/30">
+                      <div>
+                        <p className="text-sm font-medium">Cuota 2 — Inscripción ($25.000)</p>
+                      </div>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        aria-label="Cuota 2 de inscripción"
+                      />
+                    </div>
+                  </FormItem>
+                )}
+              />
             </div>
 
-            <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+            <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
               <p className="text-xs text-amber-700">
                 <Calendar className="w-3 h-3 inline mr-1" />
                 Se creará una suscripción pendiente para el mes actual
               </p>
             </div>
-          </div>
-        )}
-      </div>
+          </TabsContent>
+        </Tabs>
 
-      <div className="flex gap-3 pt-2 border-t border-slate-100">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          className="flex-1"
-          disabled={loading}
-        >
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          className="flex-1 text-white"
-          style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}
-          disabled={loading}
-        >
-          {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          {client?.id ? 'Guardar Cambios' : 'Crear Cliente'}
-        </Button>
-      </div>
-    </form>
+        <div className="flex gap-3 pt-2 border-t border-border">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="flex-1"
+            disabled={form.formState.isSubmitting}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            className="flex-1 text-white gradient-oro-azul"
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {client?.id ? 'Guardar Cambios' : 'Crear Cliente'}
+          </Button>
+        </div>
+      </form>
+    </Form>
   )
 }

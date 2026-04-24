@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { auth } from '@/auth'
+import type { Prisma } from '@prisma/client'
 
 // Default settings configuration
 const DEFAULT_SETTINGS: Record<string, { value: string; category: string; description: string }> = {
@@ -127,7 +128,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update settings in transaction
-    const updates: any[] = []
+    const updates: Prisma.PrismaPromise<unknown>[] = []
     for (const [key, value] of Object.entries(settings)) {
       // Validate key exists in defaults or is a valid setting
       const existingSetting = await db.settings.findUnique({ where: { key } })

@@ -406,7 +406,7 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
 
         <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (open) setError(null); }}>
           <DialogTrigger asChild>
-            <Button className="gap-2 text-white" style={{ background: '#005691' }}>
+            <Button className="gap-2 text-white bg-primary hover:bg-primary/90">
               <Upload className="w-4 h-4" />
               Subir Factura
             </Button>
@@ -512,8 +512,7 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
               <Button
                 onClick={handleUpload}
                 disabled={uploading || (!formData.file && !formData.invoiceNumber && !formData.amount)}
-                className="w-full text-white"
-                style={{ background: '#005691' }}
+                className="w-full text-white bg-primary hover:bg-primary/90"
               >
                 {uploading ? (
                   <>

@@ -81,6 +81,7 @@ export function UserManagement() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUsers()
   }, [fetchUsers])
 

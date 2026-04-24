@@ -1,7 +1,7 @@
 'use client'
 
 // NMS v0.2.4 - Deployment test
-import { useState, lazy, Suspense, useCallback, useEffect } from 'react'
+import { useState, lazy, Suspense, useCallback, useEffect, useRef, startTransition } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, usePathname } from 'next/navigation'
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -72,7 +72,9 @@ function Home() {
   useEffect(() => {
     const path = pathname === '/' ? 'dashboard' : pathname.slice(1)
     if (VALID_VIEWS.includes(path as ValidView)) {
-      setCurrentView(path as ValidView)
+      startTransition(() => {
+        setCurrentView(path as ValidView)
+      })
     }
   }, [pathname])
 
@@ -90,8 +92,10 @@ function Home() {
   }, [status, router])
 
   // Preload most used views in background after dashboard loads
+  const preloadRan = useRef(false)
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && !preloadRan.current) {
+      preloadRan.current = true
       const timer = setTimeout(() => {
         import('@/components/modules/clients-view')
         import('@/components/modules/payments-view')

@@ -14,17 +14,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  CreditCard,
-  CheckCircle2,
-  AlertTriangle,
-  Clock,
-  Filter,
-  Loader2,
-  AlertCircle,
-  Send
-} from 'lucide-react'
+import { motion } from 'framer-motion'
+import { CreditCard, CheckCircle2, AlertTriangle, Clock, Filter, Loader2, AlertCircle, Send } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
+import { Skeleton } from '@/components/ui/skeleton'
 import { formatFullName, getPaymentStatusConfig, formatMonthYear, getCurrentMonth, getCurrentYear } from '@/lib/utils'
 import { GroupBadge } from './group-badge'
 import { GroupTabs } from './group-tabs'
@@ -103,6 +96,7 @@ export function PaymentsView() {
   }, [selectedMonth, selectedYear])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSubscriptions()
   }, [fetchSubscriptions])
 
@@ -166,6 +160,9 @@ export function PaymentsView() {
 
   const months = Array.from({ length: 12 }, (_, i) => i + 1)
   const years = [selectedYear - 1, selectedYear, selectedYear + 1]
+
+  // Pre-compute today check outside JSX for performance
+  const isLateInMonth = new Date().getDate() > 10
 
   return (
     <div className="space-y-6">
@@ -271,19 +268,31 @@ export function PaymentsView() {
       <Card className="border-slate-100 shadow-sm overflow-hidden">
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex items-center justify-center py-14">
-              <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
+            <div className="p-4">
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="flex items-center gap-3 p-4 bg-slate-50/50 rounded-lg">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                    <div className="hidden sm:block">
+                      <Skeleton className="h-6 w-16 rounded-full" />
+                    </div>
+                    <Skeleton className="h-8 w-24" />
+                    <Skeleton className="h-8 w-16" />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : filteredSubscriptions.length === 0 ? (
-            <div className="flex flex-col items-center py-14 gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                <CreditCard className="w-7 h-7 text-emerald-400" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-semibold text-slate-700">Sin suscripciones</p>
-                <p className="text-xs text-slate-400 mt-1">No hay registros para el período y filtros seleccionados</p>
-              </div>
-            </div>
+            <EmptyState
+              illustration="payments"
+              title="Sin suscripciones"
+              description="No hay registros para el período y filtros seleccionados"
+              className="py-14"
+            />
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -297,29 +306,25 @@ export function PaymentsView() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <AnimatePresence>
-                    {filteredSubscriptions.map((sub, index) => {
-                      const statusConfig = getPaymentStatusConfig(sub.status)
-                      return (
-                        <motion.tr
-                          key={sub.id}
-                          className="hover:bg-[rgba(0,168,232,0.04)] transition-colors duration-150"
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.025, ease: [0.25, 0.46, 0.45, 0.94] }}
-                        >
-                          <TableCell>
-                            <div className="flex items-center gap-3 relative">
-                              {(() => {
-                                const today = new Date()
-                                const isLate = today.getDate() > 10 && sub.status === 'PENDIENTE'
-                                return isLate && (
-                                  <div className="absolute -left-2 top-0">
-                                    <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />
-                                  </div>
-                                )
-                              })()}
-                              <Avatar className="h-10 w-10 ring-2 ring-white shadow-sm" style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}>
+                  {filteredSubscriptions.map((sub, index) => {
+                    const statusConfig = getPaymentStatusConfig(sub.status)
+                    const isLate = isLateInMonth && sub.status === 'PENDIENTE'
+                    return (
+                      <motion.tr
+                        key={sub.id}
+                        className="hover:bg-[rgba(0,168,232,0.04)] transition-colors duration-150"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.025, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-3 relative">
+                            {isLate && (
+                              <div className="absolute -left-2 top-0">
+                                <AlertCircle className="w-4 h-4 text-red-500 animate-pulse" />
+                              </div>
+                            )}
+                              <Avatar className="h-10 w-10 ring-2 ring-white shadow-sm bg-gradient-to-br from-primary to-secondary">
                                 <AvatarFallback className="text-white text-sm">
                                   {sub.client.nombre[0]}{sub.client.apellido[0]}
                                 </AvatarFallback>
@@ -411,8 +416,7 @@ export function PaymentsView() {
                         </motion.tr>
                       )
                     })}
-                  </AnimatePresence>
-                </TableBody>
+                  </TableBody>
               </Table>
             </div>
           )}

@@ -95,6 +95,23 @@ export async function POST(request: NextRequest) {
     let mimeType = data.mimeType || 'application/pdf'
 
     if (data.fileUrl) {
+      // Validate URL domain to prevent SSRF attacks
+      const allowedDomains = ['blob.vercel-storage.com', 'neon.tech']
+      try {
+        const url = new URL(data.fileUrl)
+        if (!allowedDomains.some(d => url.hostname.endsWith(d))) {
+          return NextResponse.json(
+            { success: false, error: 'URL no permitida. Solo se permiten archivos de dominios autorizados.' },
+            { status: 400 }
+          )
+        }
+      } catch {
+        return NextResponse.json(
+          { success: false, error: 'URL inválida' },
+          { status: 400 }
+        )
+      }
+
       // Download file from URL
       try {
         const response = await fetch(data.fileUrl)

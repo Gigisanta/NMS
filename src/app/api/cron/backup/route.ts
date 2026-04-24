@@ -25,8 +25,8 @@ export async function POST(request: Request) {
 
     if (!cronSecret) {
       return NextResponse.json(
-        { success: false, error: 'CRON_SECRET no configurado' },
-        { status: 500 }
+        { success: false, error: 'Servicio no disponible' },
+        { status: 503 }
       )
     }
 

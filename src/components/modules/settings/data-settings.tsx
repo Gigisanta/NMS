@@ -116,8 +116,8 @@ export function DataSettings() {
       <Card className="border-slate-100 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg" style={{ background: '#00A8E818' }}>
-              <Database className="w-5 h-5" style={{ color: '#00A8E8' }} />
+            <div className="p-2 rounded-lg bg-secondary/10">
+              <Database className="w-5 h-5 text-secondary" />
             </div>
             <div>
               <CardTitle className="text-lg">Datos y Respaldo</CardTitle>

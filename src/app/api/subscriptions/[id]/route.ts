@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { invalidateCachePattern, invalidateClientCache } from '@/lib/api-utils'
 import { z } from 'zod'
 import { Prisma } from '@prisma/client'
+import { auth } from '@/auth'
 
 const updateSubscriptionSchema = z.object({
   status: z.enum(['AL_DIA', 'PENDIENTE', 'DEUDOR', 'SUSPENDIDO', 'CANCELADO']).optional(),
@@ -20,6 +21,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
+
     const { id } = await params
     const body = await request.json()
     const validated = updateSubscriptionSchema.parse(body)

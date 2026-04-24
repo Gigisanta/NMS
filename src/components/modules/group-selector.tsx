@@ -182,8 +182,7 @@ export function GroupSelector({
               </Button>
               <Button
                 size="sm"
-                className="flex-1 h-7 text-xs text-white"
-                style={{ background: '#005691' }}
+                className="flex-1 h-7 text-xs text-white bg-primary hover:bg-primary/90"
                 onClick={handleCreateGroup}
                 disabled={!newGroupName.trim() || creating}
               >

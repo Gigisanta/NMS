@@ -1,6 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState, useCallback } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import {
   Dialog,
   DialogContent,
@@ -11,7 +14,6 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -20,10 +22,28 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { Form, FormField, FormLabel, FormControl, FormMessage, FormItem } from '@/components/ui/form'
 import { ReceiptUploader } from '@/components/ui/receipt-uploader'
 import { Loader2, Calendar } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Expense, ExpenseCategory } from '../expenses-view'
+
+const expenseSchema = z.object({
+  description: z.string().min(1, 'La descripción es requerida'),
+  amount: z.string().min(1, 'El monto es requerido').refine(
+    (v) => !isNaN(parseFloat(v)) && parseFloat(v) > 0,
+    'Debe ser un número positivo'
+  ),
+  category: z.enum(['VARIABLE', 'FIJO', 'SUELDO', 'PROVEEDOR', 'OTROS']),
+  date: z.string().min(1, 'La fecha es requerida'),
+  month: z.string().optional(),
+  year: z.string().optional(),
+  userId: z.string().optional(),
+  supplier: z.string().optional(),
+  notes: z.string().optional(),
+})
+
+type ExpenseInput = z.infer<typeof expenseSchema>
 
 interface ExpenseFormProps {
   open: boolean
@@ -34,32 +54,54 @@ interface ExpenseFormProps {
 
 export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormProps) {
   const [loading, setLoading] = useState(false)
-  const [employees, setEmployees] = useState<{ id: string, name: string }[]>([])
+  const [employees, setEmployees] = useState<{ id: string; name: string }[]>([])
   const [loadingEmployees, setLoadingEmployees] = useState(false)
 
   const [currentReceiptId, setCurrentReceiptId] = useState<string | null>(null)
   const [currentReceiptFileName, setCurrentReceiptFileName] = useState<string | null>(null)
   const [currentReceiptStatus, setCurrentReceiptStatus] = useState<string | null>(null)
 
-  const [formData, setFormData] = useState({
-    description: '',
-    amount: '',
-    category: 'VARIABLE' as ExpenseCategory,
-    date: new Date().toISOString().split('T')[0],
-    month: (new Date().getMonth() + 1).toString(),
-    year: new Date().getFullYear().toString(),
-    userId: '',
-    supplier: '', // Used for custom employee name in SUELDO category
-    notes: '',
+  const [employeeMode, setEmployeeMode] = useState<'select' | 'custom'>('select')
+
+  const form = useForm<ExpenseInput>({
+    resolver: zodResolver(expenseSchema),
+    defaultValues: {
+      description: '',
+      amount: '',
+      category: 'VARIABLE',
+      date: new Date().toISOString().split('T')[0],
+      month: (new Date().getMonth() + 1).toString(),
+      year: new Date().getFullYear().toString(),
+      userId: '',
+      supplier: '',
+      notes: '',
+    },
   })
 
-  const [employeeMode, setEmployeeMode] = useState<'select' | 'custom'>('select')
+  const { setValue, reset, control } = form
+  const formCategory = useWatch({ control, name: 'category' })
+  const formUserId = useWatch({ control, name: 'userId' })
+  const formSupplier = useWatch({ control, name: 'supplier' })
+
+  const fetchEmployees = useCallback(async () => {
+    setLoadingEmployees(true)
+    try {
+      const response = await fetch('/api/employees?active=true')
+      const result = await response.json()
+      if (result.success) {
+        setEmployees(result.data)
+      }
+    } catch (error) {
+      console.error('Error fetching employees:', error)
+    } finally {
+      setLoadingEmployees(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (expense) {
-      // If there's a supplier but no userId, it's a custom employee
       const isCustomEmployee = expense.userId === null && expense.supplier
-      setFormData({
+      reset({
         description: expense.description,
         amount: expense.amount.toString(),
         category: expense.category,
@@ -70,12 +112,13 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
         supplier: expense.supplier || '',
         notes: expense.notes || '',
       })
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEmployeeMode(isCustomEmployee ? 'custom' : 'select')
       setCurrentReceiptId(expense.receiptId || null)
-      setCurrentReceiptFileName((expense as any).receipt?.fileName || null)
+      setCurrentReceiptFileName(expense.receipt?.fileName || null)
       setCurrentReceiptStatus(expense.receiptStatus || null)
     } else {
-      setFormData({
+      reset({
         description: '',
         amount: '',
         category: 'VARIABLE',
@@ -91,28 +134,14 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
       setCurrentReceiptFileName(null)
       setCurrentReceiptStatus(null)
     }
-  }, [expense, open])
+  }, [expense, open, reset])
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchEmployees()
     }
-  }, [open])
-
-  const fetchEmployees = async () => {
-    setLoadingEmployees(true)
-    try {
-      const response = await fetch('/api/employees?active=true')
-      const result = await response.json()
-      if (result.success) {
-        setEmployees(result.data)
-      }
-    } catch (error) {
-      console.error('Error fetching employees:', error)
-    } finally {
-      setLoadingEmployees(false)
-    }
-  }
+  }, [open, fetchEmployees])
 
   const handleReceiptUpload = async (file: File): Promise<{ id: string } | null> => {
     const formData = new FormData()
@@ -143,8 +172,7 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
     setCurrentReceiptStatus(null)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = async (data: ExpenseInput) => {
     setLoading(true)
 
     try {
@@ -152,7 +180,7 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
       const method = expense ? 'PUT' : 'POST'
 
       const payload = {
-        ...formData,
+        ...data,
         receiptId: currentReceiptId,
       }
 
@@ -177,237 +205,314 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
     }
   }
 
+  const handleEmployeeModeChange = (mode: 'select' | 'custom') => {
+    setEmployeeMode(mode)
+    if (mode === 'select') {
+      setValue('supplier', '')
+      setValue('userId', '')
+    } else {
+      setValue('userId', '')
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[450px] rounded-2xl overflow-hidden p-0 border-none shadow-2xl">
-        <div className="bg-[#005691] p-6 text-white relative">
+        <div className="bg-primary p-6 text-primary-foreground relative">
           <div className="absolute top-0 right-0 w-32 h-32 -mr-12 -mt-12 bg-white/10 rounded-full blur-2xl" />
           <DialogTitle className="text-xl font-semibold relative z-10">
             {expense ? 'Editar Registro de Gasto' : 'Registrar Nuevo Gasto'}
           </DialogTitle>
-          <p className="text-white/70 text-sm mt-1 relative z-10">
+          <DialogDescription className="text-primary-foreground/70 text-sm mt-1 relative z-10">
             Ingresa los detalles del egreso para el seguimiento contable.
-          </p>
+          </DialogDescription>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 bg-white">
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-slate-700 font-semibold">Descripción *</Label>
-            <Input 
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Ej: Pago de alquiler marzo"
-              required
-              className="h-11 border-slate-200 focus-visible:ring-[#00A8E8]"
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-4 bg-white">
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-slate-700 font-semibold">Descripción *</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="Ej: Pago de alquiler marzo"
+                      required
+                      className="h-11 border-slate-200 focus-visible:ring-primary"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="amount" className="text-slate-700 font-semibold">Monto ($) *</Label>
-              <Input 
-                id="amount"
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                placeholder="0.00"
-                required
-                className="h-11 border-slate-200 focus-visible:ring-[#00A8E8]"
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-700 font-semibold">Monto ($) *</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        required
+                        className="h-11 border-slate-200 focus-visible:ring-primary"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-700 font-semibold">Categoría *</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="h-11 border-slate-200">
+                          <SelectValue placeholder="Categoría" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="FIJO">Fijo</SelectItem>
+                          <SelectItem value="VARIABLE">Variable</SelectItem>
+                          <SelectItem value="SUELDO">Sueldo</SelectItem>
+                          <SelectItem value="PROVEEDOR">Proveedor</SelectItem>
+                          <SelectItem value="OTROS">Otros</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="category" className="text-slate-700 font-semibold">Categoría *</Label>
-              <Select 
-                value={formData.category} 
-                onValueChange={(v: ExpenseCategory) => setFormData({ ...formData, category: v })}
-              >
-                <SelectTrigger className="h-11 border-slate-200">
-                  <SelectValue placeholder="Categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FIJO">Fijo</SelectItem>
-                  <SelectItem value="VARIABLE">Variable</SelectItem>
-                  <SelectItem value="SUELDO">Sueldo</SelectItem>
-                  <SelectItem value="PROVEEDOR">Proveedor</SelectItem>
-                  <SelectItem value="OTROS">Otros</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date" className="text-slate-700 font-semibold">Fecha</Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                <Input 
-                  id="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="h-11 pl-10 border-slate-200 focus-visible:ring-[#00A8E8]"
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-700 font-semibold">Fecha</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <Input
+                          {...field}
+                          type="date"
+                          className="h-11 pl-10 border-slate-200 focus-visible:ring-primary"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {formCategory === 'SUELDO' || formCategory === 'FIJO' ? (
+                <FormField
+                  control={form.control}
+                  name="month"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-slate-700 font-semibold">Periodo (Mes)</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="h-11 border-slate-200">
+                            <SelectValue placeholder="Mes" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 12 }).map((_, i) => (
+                              <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                {new Date(2000, i).toLocaleString('es-AR', { month: 'long' })}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
+              ) : null}
             </div>
-            {formData.category === 'SUELDO' || formData.category === 'FIJO' ? (
-              <div className="space-y-2">
-                <Label htmlFor="month" className="text-slate-700 font-semibold">Periodo (Mes)</Label>
-                <Select 
-                  value={formData.month} 
-                  onValueChange={(v) => setFormData({ ...formData, month: v })}
-                >
-                  <SelectTrigger className="h-11 border-slate-200">
-                    <SelectValue placeholder="Mes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 12 }).map((_, i) => (
-                      <SelectItem key={i + 1} value={(i + 1).toString()}>
-                        {new Date(2000, i).toLocaleString('es-AR', { month: 'long' })}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : null}
-          </div>
 
-          {formData.category === 'SUELDO' && (
-            <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={employeeMode === 'select' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => {
-                    setEmployeeMode('select')
-                    setFormData({ ...formData, supplier: '', userId: '' })
-                  }}
-                  className={employeeMode === 'select' ? 'bg-[#005691] hover:bg-[#0078B0]' : ''}
-                >
-                  Seleccionar
-                </Button>
-                <Button
-                  type="button"
-                  variant={employeeMode === 'custom' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => {
-                    setEmployeeMode('custom')
-                    setFormData({ ...formData, userId: '' })
-                  }}
-                  className={employeeMode === 'custom' ? 'bg-[#005691] hover:bg-[#0078B0]' : ''}
-                >
-                  Otro nombre
-                </Button>
-              </div>
-
-              {employeeMode === 'select' ? (
-                <div>
-                  <Label htmlFor="employee" className="text-slate-700 font-semibold">Empleado existente *</Label>
-                  <Select 
-                    value={formData.userId} 
-                    onValueChange={(v) => setFormData({ ...formData, userId: v })}
-                    required={employeeMode === 'select'}
+            {formCategory === 'SUELDO' && (
+              <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={employeeMode === 'select' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleEmployeeModeChange('select')}
+                    className={employeeMode === 'select' ? 'bg-primary hover:bg-primary/90' : ''}
                   >
-                    <SelectTrigger className="h-11 border-slate-200 mt-1">
-                      {loadingEmployees ? (
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="w-4 h-4 animate-spin text-[#00A8E8]" />
-                          <span>Cargando...</span>
-                        </div>
-                      ) : (
-                        <SelectValue placeholder="Seleccionar empleado" />
-                      )}
-                    </SelectTrigger>
-                    <SelectContent>
-                      {employees.map(emp => (
-                        <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    Seleccionar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={employeeMode === 'custom' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleEmployeeModeChange('custom')}
+                    className={employeeMode === 'custom' ? 'bg-primary hover:bg-primary/90' : ''}
+                  >
+                    Otro nombre
+                  </Button>
                 </div>
-              ) : (
-                <div>
-                  <Label htmlFor="customEmployee" className="text-slate-700 font-semibold">Nombre del empleado *</Label>
-                  <Input 
-                    id="customEmployee"
-                    value={formData.supplier}
-                    onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
-                    placeholder="Ej: María González"
-                    required={employeeMode === 'custom'}
-                    className="h-11 border-slate-200 focus-visible:ring-[#00A8E8] mt-1"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">
-                    Ingresa el nombre del empleado que no está en la lista
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
 
-          {formData.category === 'PROVEEDOR' && (
-            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-              <Label htmlFor="supplier" className="text-slate-700 font-semibold">Proveedor</Label>
-              <Input 
-                id="supplier"
-                value={formData.supplier}
-                onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
-                placeholder="Ej: Distribuidora de Cloro"
-                className="h-11 border-slate-200 focus-visible:ring-[#00A8E8]"
+                {employeeMode === 'select' ? (
+                  <FormField
+                    control={form.control}
+                    name="userId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-700 font-semibold">Empleado existente *</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            required={employeeMode === 'select'}
+                          >
+                            <SelectTrigger className="h-11 border-slate-200 mt-1">
+                              {loadingEmployees ? (
+                                <div className="flex items-center gap-2">
+                                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                                  <span>Cargando...</span>
+                                </div>
+                              ) : (
+                                <SelectValue placeholder="Seleccionar empleado" />
+                              )}
+                            </SelectTrigger>
+                            <SelectContent>
+                              {employees.map(emp => (
+                                <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="supplier"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-700 font-semibold">Nombre del empleado *</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Ej: María González"
+                            required={employeeMode === 'custom'}
+                            className="h-11 border-slate-200 focus-visible:ring-primary mt-1"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        <p className="text-xs text-slate-500 mt-1">
+                          Ingresa el nombre del empleado que no está en la lista
+                        </p>
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            )}
+
+            {formCategory === 'PROVEEDOR' && (
+              <FormField
+                control={form.control}
+                name="supplier"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-700 font-semibold">Proveedor</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Ej: Distribuidora de Cloro"
+                        className="h-11 border-slate-200 focus-visible:ring-primary"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-slate-700 font-semibold">Notas (Opcional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Detalles adicionales del gasto..."
+                      className="resize-none border-slate-200 focus-visible:ring-primary"
+                      rows={3}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="border-t pt-4 mt-4">
+              <FormLabel className="text-slate-700 font-semibold mb-2 block">Comprobante</FormLabel>
+              <ReceiptUploader
+                onUpload={handleReceiptUpload}
+                onRemove={currentReceiptId ? handleReceiptRemove : undefined}
+                currentReceiptId={currentReceiptId}
+                currentFileName={currentReceiptFileName}
+                currentStatus={currentReceiptStatus}
+                disabled={loading}
               />
             </div>
-          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="notes" className="text-slate-700 font-semibold">Notas (Opcional)</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Detalles adicionales del gasto..."
-              className="resize-none border-slate-200 focus-visible:ring-[#00A8E8]"
-              rows={3}
-            />
-          </div>
-
-          <div className="border-t pt-4 mt-4">
-            <Label className="text-slate-700 font-semibold mb-2 block">Comprobante</Label>
-            <ReceiptUploader
-              onUpload={handleReceiptUpload}
-              onRemove={currentReceiptId ? handleReceiptRemove : undefined}
-              currentReceiptId={currentReceiptId}
-              currentFileName={currentReceiptFileName}
-              currentStatus={currentReceiptStatus}
-              disabled={loading}
-            />
-          </div>
-
-          <DialogFooter className="pt-4 gap-2">
-            <Button 
-              type="button" 
-              variant="ghost" 
-              onClick={onClose}
-              className="h-11 rounded-xl text-slate-500 hover:text-slate-700"
-            >
-              Cancelar
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={loading}
-              className="h-11 rounded-xl bg-[#005691] hover:bg-[#0078B0] text-white font-semibold flex-1 transition-all duration-300 shadow-md hover:shadow-lg"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Guardando...
-                </>
-              ) : (
-                expense ? 'Actualizar Gasto' : 'Registrar Gasto'
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter className="pt-4 gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onClose}
+                className="h-11 rounded-xl text-slate-500 hover:text-slate-700"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="h-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold flex-1 transition-all duration-300 shadow-md hover:shadow-lg"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  expense ? 'Actualizar Gasto' : 'Registrar Gasto'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   )

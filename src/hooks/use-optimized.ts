@@ -44,6 +44,7 @@ export function useCache<T>(
   }, [fetcher, ttl])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetch()
     return () => {
       if (abortController.current) {
@@ -158,17 +159,22 @@ export function useIntersectionObserver(
 ): [React.RefCallback<Element>, boolean] {
   const [isIntersecting, setIsIntersecting] = useState(false)
   const [element, setElement] = useState<Element | null>(null)
+  const optionsRef = useRef(options)
+
+  useEffect(() => {
+    optionsRef.current = options
+  }, [options])
 
   useEffect(() => {
     if (!element) return
 
     const observer = new IntersectionObserver(([entry]) => {
       setIsIntersecting(entry.isIntersecting)
-    }, { threshold: 0.1, ...options })
+    }, optionsRef.current) // usar ref, no objeto
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [element, options])
+  }, [element]) // SIN options como dependencia
 
   return [setElement, isIntersecting]
 }

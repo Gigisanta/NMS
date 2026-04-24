@@ -15,7 +15,11 @@ import { Badge } from '@/components/ui/badge'
 import { LogOut, Settings, User } from 'lucide-react'
 import Link from 'next/link'
 
-export function UserMenu() {
+interface UserMenuProps {
+  onNavigate?: (view: string) => void
+}
+
+export function UserMenu({ onNavigate }: UserMenuProps) {
   const { data: session } = useSession()
 
   if (!session?.user) {
@@ -40,6 +44,15 @@ export function UserMenu() {
     ? { background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }
     : {}
 
+  const handleNavigate = (view: string) => {
+    if (onNavigate) {
+      onNavigate(view)
+    } else {
+      window.history.pushState({}, '', `/${view}`)
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    }
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -60,8 +73,8 @@ export function UserMenu() {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium text-slate-900">{user.name}</p>
             <p className="text-xs text-slate-500">{user.email}</p>
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className="w-fit mt-1 text-xs"
               style={user.role === 'EMPLEADORA' ? { borderColor: '#00A8E8', color: '#005691' } : { borderColor: '#94a3b8', color: '#475569' }}
             >
@@ -70,20 +83,21 @@ export function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        
+
         {user.role === 'EMPLEADORA' && (
           <>
-            <DropdownMenuItem asChild>
-              <Link href="/configuracion" className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
-                Configuración
-              </Link>
+            <DropdownMenuItem
+              onClick={() => handleNavigate('configuracion')}
+              className="cursor-pointer"
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Configuración
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
         )}
-        
-        <DropdownMenuItem 
+
+        <DropdownMenuItem
           onClick={() => signOut({ callbackUrl: '/login' })}
           className="cursor-pointer text-red-600 focus:text-red-600"
         >

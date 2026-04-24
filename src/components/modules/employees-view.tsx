@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
+import {
   Users,
   UserPlus,
   MoreVertical,
@@ -50,6 +50,7 @@ import {
   Calendar,
   Briefcase,
 } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 import { formatCurrency } from '@/lib/utils'
 import { useDebounce } from '@/hooks/use-optimized'
 import { toast } from 'sonner'
@@ -137,7 +138,7 @@ const EmployeeCard = memo(function EmployeeCard({
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12 ring-2 ring-white shadow-md">
                 <AvatarImage src={employee.image || undefined} />
-                <AvatarFallback className="text-white font-medium" style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}>
+                <AvatarFallback className="text-white font-medium bg-gradient-to-br from-primary to-secondary">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -381,7 +382,7 @@ const EmployeeFormDialog = memo(function EmployeeFormDialog({
             <Button 
               type="submit" 
               disabled={loading}
-              className="text-white"
+              className="text-white bg-gradient-to-r from-primary to-secondary"
               style={{ background: '#005691' }}
             >
               {loading ? (
@@ -487,6 +488,7 @@ export function EmployeesView() {
   }, [showActiveOnly])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchEmployees()
   }, [fetchEmployees])
 
@@ -643,7 +645,7 @@ export function EmployeesView() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
+        <Loader2 className="w-6 h-6 animate-spin text-secondary" />
       </div>
     )
   }
@@ -663,20 +665,19 @@ export function EmployeesView() {
             setSelectedEmployee(null)
             setFormOpen(true)
           }}
-          className="gap-2"
-          style={{ background: '#005691' }}
-        >
-          <UserPlus className="w-4 h-4" />
-          Nuevo Empleado
-        </Button>
+          className="gap-2 bg-primary hover:bg-primary/90 text-white"
+          >
+            <UserPlus className="w-4 h-4" />
+            Nuevo Empleado
+          </Button>
       </div>
 
       {/* Stats */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 stagger-in">
         {[
-          { title: 'Total activos', value: stats.total, Icon: Users, accent: '#005691' },
+          { title: 'Total activos', value: stats.total, Icon: Users, accent: 'var(--primary)' },
           { title: 'Profesores', value: stats.profesores, Icon: Users, accent: '#8b5cf6' },
-          { title: 'Administrativos', value: stats.administrativos, Icon: Briefcase, accent: '#00A8E8' },
+          { title: 'Administrativos', value: stats.administrativos, Icon: Briefcase, accent: 'var(--secondary)' },
           { title: 'Limpieza', value: stats.limpieza, Icon: UserCheck, accent: '#10b981' },
         ].map((stat) => (
           <div key={stat.title} className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
@@ -738,19 +739,22 @@ export function EmployeesView() {
 
       {/* Employees Grid */}
       {filteredEmployees.length === 0 ? (
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm py-14 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center">
-            <Users className="w-7 h-7 text-slate-300" />
-          </div>
-          <div className="text-center">
-            <p className="text-sm font-semibold text-slate-700">Sin empleados</p>
-            <p className="text-xs text-slate-400 mt-1">
-              {search || roleFilter !== 'all'
-                ? 'No se encontraron resultados con esos filtros'
-                : 'Agrega el primer empleado para comenzar'}
-            </p>
-          </div>
-        </div>
+        <EmptyState
+          illustration="default"
+          title={search || roleFilter !== 'all' ? 'Sin resultados' : 'Sin empleados'}
+          description={search || roleFilter !== 'all'
+            ? 'No se encontraron resultados con esos filtros'
+            : 'Agrega el primer empleado para comenzar'}
+          action={{
+            label: 'Nuevo Empleado',
+            onClick: () => {
+              setSelectedEmployee(null)
+              setFormOpen(true)
+            },
+            icon: UserPlus
+          }}
+          className="bg-white rounded-xl border border-slate-100 shadow-sm py-14"
+        />
       ) : (
         <motion.div 
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"

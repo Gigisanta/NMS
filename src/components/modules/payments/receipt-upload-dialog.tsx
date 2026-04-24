@@ -40,6 +40,7 @@ export function ReceiptUploadDialog({
 
   useEffect(() => {
     if (!open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFile(null)
       setPreviewUrl(null)
     }
@@ -114,7 +115,7 @@ export function ReceiptUploadDialog({
   return (
     <Dialog open={open} onOpenChange={(val) => !uploading && !val && onClose()}>
       <DialogContent className="sm:max-w-[450px] rounded-2xl p-0 overflow-hidden border-none shadow-2xl">
-        <div className="bg-[#005691] p-6 text-white relative">
+        <div className="bg-primary p-6 text-white relative">
           <div className="absolute top-0 right-0 w-32 h-32 -mr-12 -mt-12 bg-white/10 rounded-full blur-2xl" />
           <DialogTitle className="text-xl font-semibold relative z-10 flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
@@ -132,7 +133,7 @@ export function ReceiptUploadDialog({
             onDrop={onDrop}
             className={cn(
               "relative border-2 border-dashed rounded-xl p-8 transition-all duration-300 flex flex-col items-center justify-center text-center gap-3",
-              dragActive ? "border-[#00A8E8] bg-sky-50" : "border-slate-200 bg-slate-50",
+              dragActive ? "border-secondary bg-secondary/5" : "border-slate-200 bg-slate-50",
               file ? "border-emerald-200 bg-emerald-50/30" : ""
             )}
           >
@@ -163,7 +164,7 @@ export function ReceiptUploadDialog({
               </div>
             ) : (
               <>
-                <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-[#005691]">
+                <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-primary">
                   <Upload className="w-6 h-6" />
                 </div>
                 <div>
@@ -203,7 +204,7 @@ export function ReceiptUploadDialog({
             <Button 
               onClick={handleUpload}
               disabled={!file || uploading}
-              className="h-11 flex-1 bg-[#005691] hover:bg-[#0078B0] text-white rounded-xl shadow-md transition-all font-semibold"
+              className="h-11 flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl shadow-md transition-all font-semibold"
             >
               {uploading ? (
                 <>

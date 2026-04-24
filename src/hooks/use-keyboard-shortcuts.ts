@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback, useRef, useMemo } from 'react'
 
 type ShortcutKey = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '0' | '/' | '?' | 'Escape' | 'Enter' | 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight' | 'Backspace' | 'Delete'
 
@@ -119,72 +119,76 @@ export function useNMSShortcuts({
   onSettings?: () => void
   onEscape?: () => void
 }) {
-  const shortcuts: ShortcutConfig[] = []
+  const shortcuts = useMemo(() => {
+    const arr: ShortcutConfig[] = []
 
-  if (onNewClient) {
-    shortcuts.push({
-      key: 'n',
-      ctrl: true,
-      description: 'Nuevo cliente',
-      action: onNewClient,
-    })
-  }
+    if (onNewClient) {
+      arr.push({
+        key: 'n',
+        ctrl: true,
+        description: 'Nuevo cliente',
+        action: onNewClient,
+      })
+    }
 
-  if (onSearch) {
-    shortcuts.push({
-      key: '/',
-      description: 'Buscar',
-      action: onSearch,
-    })
-  }
+    if (onSearch) {
+      arr.push({
+        key: '/',
+        description: 'Buscar',
+        action: onSearch,
+      })
+    }
 
-  if (onDashboard) {
-    shortcuts.push({
-      key: '1',
-      description: 'Ir a Dashboard',
-      action: onDashboard,
-    })
-  }
+    if (onDashboard) {
+      arr.push({
+        key: '1',
+        description: 'Ir a Dashboard',
+        action: onDashboard,
+      })
+    }
 
-  if (onClients) {
-    shortcuts.push({
-      key: '2',
-      description: 'Ir a Clientes',
-      action: onClients,
-    })
-  }
+    if (onClients) {
+      arr.push({
+        key: '2',
+        description: 'Ir a Clientes',
+        action: onClients,
+      })
+    }
 
-  if (onAttendance) {
-    shortcuts.push({
-      key: '3',
-      description: 'Ir a Asistencias',
-      action: onAttendance,
-    })
-  }
+    if (onAttendance) {
+      arr.push({
+        key: '3',
+        description: 'Ir a Asistencias',
+        action: onAttendance,
+      })
+    }
 
-  if (onPayments) {
-    shortcuts.push({
-      key: '4',
-      description: 'Ir a Pagos',
-      action: onPayments,
-    })
-  }
+    if (onPayments) {
+      arr.push({
+        key: '4',
+        description: 'Ir a Pagos',
+        action: onPayments,
+      })
+    }
 
-  if (onSettings) {
-    shortcuts.push({
-      key: '5',
-      description: 'Ir a Configuración',
-      action: onSettings,
-    })
-  }
+    if (onSettings) {
+      arr.push({
+        key: '5',
+        description: 'Ir a Configuración',
+        action: onSettings,
+      })
+    }
 
-  if (onEscape) {
-    shortcuts.push({
-      key: 'Escape',
-      description: 'Cerrar',
-      action: onEscape,
-    })
-  }
+    if (onEscape) {
+      arr.push({
+        key: 'Escape',
+        description: 'Cerrar',
+        action: onEscape,
+      })
+    }
+
+    return arr
+  }, [onNewClient, onSearch, onDashboard, onClients, onAttendance, onPayments, onSettings, onEscape])
 
   useKeyboardShortcuts({ shortcuts })
 

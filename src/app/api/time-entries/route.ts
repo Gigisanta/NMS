@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import type { TimeEntry } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 
 // GET
 // GET /api/time-entries - Get time entries
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
       // Calculate stats from month entries
       let monthHours = 0
       let todayHours = 0
-      const todayEntries: any[] = []
+      const todayEntries: TimeEntry[] = []
 
       for (const entry of monthEntries) {
         const isTodayEntry = entry.clockIn >= todayStart
@@ -88,7 +89,7 @@ export async function GET(request: NextRequest) {
     // Standard list mode
 
     // Build where clause
-    const where: any = {}
+    const where: Prisma.TimeEntryWhereInput = {}
 
     // EMPLEADORA can see all entries, EMPLEADO only their own
     if (session.user.role === 'EMPLEADORA' && userId) {
@@ -307,7 +308,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const updateData: any = {}
+    const updateData: Prisma.TimeEntryUpdateInput = {}
     if (clockIn) updateData.clockIn = new Date(clockIn)
     if (clockOut) updateData.clockOut = new Date(clockOut)
     if (notes !== undefined) updateData.notes = notes

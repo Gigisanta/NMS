@@ -29,6 +29,8 @@ import { queryClient } from '@/lib/queryClient'
 import { Plus, Search, Loader2, ChevronLeft, ChevronRight, Send, FileCheck, Users, Settings } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Client } from '@/types'
+import { EmptyState, NoResults } from '@/components/ui/empty-state'
+import { Skeleton } from '@/components/ui/skeleton'
 
 // Extended Client type with subscription and group data used in this view
 interface ClientRowData extends Omit<Client, 'updatedAt'> {
@@ -96,8 +98,7 @@ const ClientTableRow = memo(({
       <TableCell className="py-3">
         <div className="flex items-center gap-3">
           <div
-            className="flex h-9 w-9 items-center justify-center font-semibold text-xs rounded-full text-white shrink-0"
-            style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}
+            className="flex h-9 w-9 items-center justify-center font-semibold text-xs rounded-full text-white shrink-0 bg-gradient-to-br from-primary to-secondary"
           >
             {initials}
           </div>
@@ -232,6 +233,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
   // FAB trigger
   useEffect(() => {
     if (openNewClient) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowForm(true)
       onNewClientHandled?.()
     }
@@ -278,6 +280,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
   }, [debouncedSearch, grupoFilter, page])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchClients()
   }, [fetchClients])
 
@@ -386,7 +389,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
                     'w-full text-left px-3 py-2 text-sm rounded-lg transition-all font-medium',
                     grupoFilter === null ? 'text-white' : 'text-slate-600 hover:bg-slate-50'
                   )}
-                  style={grupoFilter === null ? { background: '#005691' } : {}}
+                  style={grupoFilter === null ? { background: 'var(--primary)' } : {}}
                 >
                   Todos
                 </button>
@@ -399,14 +402,10 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
                     'w-full text-left px-3 py-2 text-sm rounded-lg transition-all flex items-center gap-2 font-medium',
                     grupoFilter === group.id ? 'text-white' : 'text-slate-600 hover:bg-slate-50'
                   )}
-                  style={grupoFilter === group.id
-                    ? { background: `linear-gradient(135deg, ${group.color || '#005691'} 0%, ${adjustColor(group.color || '#005691', 30)} 100%)` }
-                    : {}
-                  }
                 >
                   <span
                     className="w-2 h-2 rounded-full shrink-0"
-                    style={{ backgroundColor: grupoFilter === group.id ? 'rgba(255,255,255,0.7)' : (group.color || '#00A8E8') }}
+                    style={{ backgroundColor: grupoFilter === group.id ? 'rgba(255,255,255,0.7)' : (group.color || 'var(--secondary)') }}
                   />
                   <span className="truncate">{group.name}</span>
                   <span className={cn('ml-auto text-xs shrink-0', grupoFilter === group.id ? 'text-white/70' : 'text-slate-400')}>
@@ -441,8 +440,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
               <Button
                 onClick={() => setShowForm(true)}
                 size="sm"
-                className="shrink-0 text-white"
-                style={{ background: '#005691' }}
+                className="shrink-0 text-white bg-primary hover:bg-primary/90"
               >
                 <Plus className="w-4 h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Nuevo Cliente</span>
@@ -478,34 +476,36 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
                     </TableHeader>
                     <TableBody>
                       {loading && clients.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={7} className="h-32 text-center">
-                            <Loader2 className="w-5 h-5 animate-spin inline mr-2 text-[#00A8E8]" />
-                            <span className="text-slate-500 text-sm">Cargando clientes...</span>
-                          </TableCell>
-                        </TableRow>
+                        <>
+                          {[1, 2, 3, 4, 5].map(i => (
+                            <TableRow key={i}>
+                              <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
+                              <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                              <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                              <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                              <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                              <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                              <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                            </TableRow>
+                          ))}
+                        </>
                       ) : clients.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="py-16 text-center">
-                            <div className="flex flex-col items-center gap-3">
-                              <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: '#00A8E818' }}>
-                                <Users className="w-6 h-6" style={{ color: '#00A8E8' }} />
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-slate-600">
-                                  {search ? `Sin resultados para "${search}"` : 'No hay clientes registrados'}
-                                </p>
-                                {search && (
-                                  <button
-                                    onClick={() => setSearch('')}
-                                    className="text-xs font-medium mt-1 hover:underline"
-                                    style={{ color: '#005691' }}
-                                  >
-                                    Limpiar búsqueda
-                                  </button>
-                                )}
-                              </div>
-                            </div>
+                          <TableCell colSpan={7}>
+                            {search ? (
+                              <NoResults searchTerm={search} onClear={() => setSearch('')} />
+                            ) : (
+                              <EmptyState
+                                illustration="clients"
+                                title="No hay clientes registrados"
+                                description="Carga tu primer cliente para comenzar"
+                                action={{
+                                  label: 'Nuevo Cliente',
+                                  onClick: () => setShowForm(true),
+                                  icon: Plus
+                                }}
+                              />
+                            )}
                           </TableCell>
                         </TableRow>
                       ) : (

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { auth } from '@/auth'
 import { z } from 'zod'
+import type { WhatsAppConfig } from '@prisma/client'
 
 const whatsappConfigSchema = z.object({
   accessToken: z.string().optional(),
@@ -157,7 +158,7 @@ export async function PUT(request: NextRequest) {
         data: {
           ...updateData,
           verifyToken: validated.verifyToken || `nms_verify_${Date.now()}`,
-        } as any,
+        } as Partial<WhatsAppConfig>,
       })
     }
 

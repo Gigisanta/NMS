@@ -176,10 +176,9 @@ const TabButton = memo(function TabButton({
       className={cn(
         'flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all',
         active
-          ? 'text-white shadow-sm'
+          ? 'text-white shadow-sm gradient-oro-azul'
           : 'text-slate-600 hover:bg-slate-100'
       )}
-      style={active ? { background: '#005691' } : {}}
     >
       <Icon className="w-4 h-4" />
       {label}
@@ -222,11 +221,19 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
     return { month: now.getMonth() + 1, year: now.getFullYear() }
   }, [])
 
+  // AbortController ref to cancel stale requests
+  const abortControllerRef = useRef<AbortController | null>(null)
+
   // Fetch client data
   const fetchClient = useCallback(async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    abortControllerRef.current = new AbortController()
+
     setLoading(true)
     try {
-      const response = await fetch(`/api/clients/${clientId}`)
+      const response = await fetch(`/api/clients/${clientId}`, { signal: abortControllerRef.current.signal })
       const result = await response.json()
       if (result.success) {
         setClient(result.data)
@@ -250,6 +257,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         })
       }
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return
       console.error('Error fetching client:', error)
     } finally {
       setLoading(false)
@@ -257,7 +265,13 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
   }, [clientId, currentDate.month, currentDate.year])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchClient()
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
   }, [fetchClient])
 
   // Memoized callbacks
@@ -322,84 +336,75 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
     }
   }, [clientId, formData, client?.subscriptions, currentDate, onSaved])
 
-  // Auto-save for client info fields - debounced 1 second
-  const autoSaveInfoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const autoSaveInfo = useCallback(async () => {
-    if (autoSaveInfoTimer.current) {
-      clearTimeout(autoSaveInfoTimer.current)
+  // Single timer for auto-save with debounce - consolidates info and subscription saves
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const debouncedSave = useCallback(async (fieldCategory: 'info' | 'subscription') => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
     }
-    autoSaveInfoTimer.current = setTimeout(async () => {
-      try {
-        const response = await fetch(`/api/clients/${clientId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nombre: formData.nombre,
-            apellido: formData.apellido,
-            telefono: formData.telefono,
-            dni: formData.dni || null,
-            grupoId: formData.grupoId || null,
-            preferredDays: formData.preferredDays || null,
-            preferredTime: formData.preferredTime || null,
-            notes: formData.notes || null,
-          }),
-        })
-        const result = await response.json()
-        if (result.success) {
-          queryClient.invalidateQueries({ queryKey: ['client', clientId] })
-          queryClient.invalidateQueries({ queryKey: ['clients'] })
-          queryClient.invalidateQueries({ queryKey: ['groups'] })
-          onSaved()
+    saveTimeoutRef.current = setTimeout(async () => {
+      if (fieldCategory === 'info') {
+        try {
+          const response = await fetch(`/api/clients/${clientId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              nombre: formData.nombre,
+              apellido: formData.apellido,
+              telefono: formData.telefono,
+              dni: formData.dni || null,
+              grupoId: formData.grupoId || null,
+              preferredDays: formData.preferredDays || null,
+              preferredTime: formData.preferredTime || null,
+              notes: formData.notes || null,
+            }),
+          })
+          const result = await response.json()
+          if (result.success) {
+            queryClient.invalidateQueries({ queryKey: ['client', clientId] })
+            queryClient.invalidateQueries({ queryKey: ['clients'] })
+            queryClient.invalidateQueries({ queryKey: ['groups'] })
+            onSaved()
+          }
+        } catch {
+          // Silent fail - auto-save is best effort
         }
-      } catch {
-        // Silent fail - auto-save is best effort
+      } else {
+        const subscription = client?.subscriptions?.find(
+          s => s.month === currentDate.month && s.year === currentDate.year
+        )
+        if (!subscription) return
+
+        try {
+          const subResponse = await fetch(`/api/subscriptions/${subscription.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              classesTotal: Number(formData.classesTotal),
+              billingPeriod: formData.billingPeriod,
+              amount: formData.amount == null ? null : Number(formData.amount),
+            }),
+          })
+          const subResult = await subResponse.json()
+          if (subResult.success) {
+            queryClient.invalidateQueries({ queryKey: ['client', clientId] })
+            queryClient.invalidateQueries({ queryKey: ['clients'] })
+            queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+            onSaved()
+          }
+        } catch {
+          // Silent fail - auto-save is best effort
+        }
       }
     }, 1000)
-  }, [clientId, formData, onSaved])
+  }, [clientId, formData, client, currentDate, onSaved])
 
-  // Auto-save for subscription fields - debounced 1 second
-  const autoSaveSubscriptionTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const autoSaveSubscription = useCallback(async () => {
-    if (autoSaveSubscriptionTimer.current) {
-      clearTimeout(autoSaveSubscriptionTimer.current)
-    }
-    autoSaveSubscriptionTimer.current = setTimeout(async () => {
-      const subscription = client?.subscriptions?.find(
-        s => s.month === currentDate.month && s.year === currentDate.year
-      )
-      if (!subscription) return
-
-      try {
-        const subResponse = await fetch(`/api/subscriptions/${subscription.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            classesTotal: Number(formData.classesTotal),
-            billingPeriod: formData.billingPeriod,
-            amount: formData.amount == null ? null : Number(formData.amount),
-          }),
-        })
-        const subResult = await subResponse.json()
-        if (subResult.success) {
-          queryClient.invalidateQueries({ queryKey: ['client', clientId] })
-          queryClient.invalidateQueries({ queryKey: ['clients'] })
-          queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
-          onSaved()
-        }
-      } catch {
-        // Silent fail - auto-save is best effort
-      }
-    }, 1000)
-  }, [client, currentDate, formData, onSaved])
-
-  // Cleanup timers on unmount to prevent state updates after unmount
+  // Cleanup timer on unmount to prevent state updates after unmount
   useEffect(() => {
     return () => {
-      if (autoSaveInfoTimer.current) {
-        clearTimeout(autoSaveInfoTimer.current)
-      }
-      if (autoSaveSubscriptionTimer.current) {
-        clearTimeout(autoSaveSubscriptionTimer.current)
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
       }
     }
   }, [])
@@ -416,16 +421,16 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
     const subFields = ['classesTotal', 'billingPeriod', 'amount']
 
     if (infoFields.includes(field as string)) {
-      autoSaveInfo()
+      debouncedSave('info')
     } else if (subFields.includes(field as string)) {
-      autoSaveSubscription()
+      debouncedSave('subscription')
     }
-  }, [autoSaveInfo, autoSaveSubscription])
+  }, [debouncedSave])
 
   const handleScheduleChange = useCallback((days: string, time: string) => {
     setFormData(prev => ({ ...prev, preferredDays: days, preferredTime: time }))
-    autoSaveInfo()
-  }, [autoSaveInfo])
+    debouncedSave('info')
+  }, [debouncedSave])
 
   const decrementClasses = useCallback(() => {
     setFormData(prev => ({ ...prev, classesTotal: Math.max(1, prev.classesTotal - 1) }))
@@ -479,11 +484,12 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
   }, [fetchClient])
 
   // Get groups not yet assigned to this client
+  const { clientGroups } = client ?? {}
   const availableGroups = useMemo(() => {
-    if (!client?.clientGroups) return groups
-    const assignedGroupIds = client.clientGroups.map(cg => cg.groupId)
+    if (!clientGroups) return groups
+    const assignedGroupIds = clientGroups.map(cg => cg.groupId)
     return groups.filter(g => !assignedGroupIds.includes(g.id))
-  }, [groups, client?.clientGroups])
+  }, [groups, clientGroups])
 
   // Memoized computed values
   const currentSubscription = useMemo(() => 
@@ -635,7 +641,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <User className="w-4 h-4 text-[#00A8E8]" />
+                  <User className="w-4 h-4 text-secondary" />
                   Datos Personales
                 </CardTitle>
               </CardHeader>
@@ -737,7 +743,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#00A8E8]" />
+                  <Clock className="w-4 h-4 text-secondary" />
                   Horario Preferido
                 </CardTitle>
                 <CardDescription>
@@ -757,7 +763,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-[#00A8E8]" />
+                  <FileText className="w-4 h-4 text-secondary" />
                   Notas y Observaciones
                 </CardTitle>
               </CardHeader>
@@ -779,7 +785,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-[#00A8E8]" />
+                  <Calendar className="w-4 h-4 text-secondary" />
                   Clases de {new Date(currentDate.year, currentDate.month - 1).toLocaleDateString('es-AR', { month: 'long' })}
                 </CardTitle>
               </CardHeader>
@@ -808,7 +814,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                       size="sm"
                       onClick={() => updateFormData('billingPeriod', 'FULL')}
                       className={formData.billingPeriod === 'FULL' ? 'text-white' : ''}
-                      style={formData.billingPeriod === 'FULL' ? { background: '#005691' } : {}}
+                      style={formData.billingPeriod === 'FULL' ? { background: 'var(--primary)' } : {}}
                     >
                       Mes completo
                     </Button>
@@ -817,7 +823,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                       size="sm"
                       onClick={() => updateFormData('billingPeriod', 'HALF')}
                       className={formData.billingPeriod === 'HALF' ? 'text-white' : ''}
-                      style={formData.billingPeriod === 'HALF' ? { background: '#005691' } : {}}
+                      style={formData.billingPeriod === 'HALF' ? { background: 'var(--primary)' } : {}}
                     >
                       1/2 mes
                     </Button>
@@ -861,7 +867,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                   <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
-                      style={{ background: '#00A8E8', width: `${progressPercent}%` }}
+                      style={{ background: 'var(--secondary)', width: `${progressPercent}%` }}
                     />
                   </div>
                   <div className="flex justify-between text-xs text-slate-500">
@@ -890,7 +896,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-[#00A8E8]" />
+                  <CreditCard className="w-4 h-4 text-secondary" />
                   Cuota 1 - Primera Inscripción
                 </CardTitle>
                 <CardDescription>
@@ -972,7 +978,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-[#00A8E8]" />
+                  <CreditCard className="w-4 h-4 text-secondary" />
                   Cuota 2 - Segunda Inscripción
                 </CardTitle>
                 <CardDescription>
@@ -1067,7 +1073,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#00A8E8]" />
+                  <Clock className="w-4 h-4 text-secondary" />
                   Últimas Asistencias
                 </CardTitle>
               </CardHeader>
@@ -1090,7 +1096,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             <Card className="border-slate-100 shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-[#00A8E8]" />
+                  <Calendar className="w-4 h-4 text-secondary" />
                   Historial de Suscripciones
                 </CardTitle>
               </CardHeader>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -46,12 +46,20 @@ export function CalendarView() {
     color: '#3b82f6'
   })
 
+  // AbortController ref to cancel stale requests
+  const abortControllerRef = useRef<AbortController | null>(null)
+
   const fetchEvents = useCallback(async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    abortControllerRef.current = new AbortController()
+
     setLoading(true)
     try {
       const start = startOfMonth(currentMonth).toISOString()
       const end = endOfMonth(currentMonth).toISOString()
-      const response = await fetch(`/api/calendar?start=${start}&end=${end}`)
+      const response = await fetch(`/api/calendar?start=${start}&end=${end}`, { signal: abortControllerRef.current.signal })
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`)
       }
@@ -60,6 +68,7 @@ export function CalendarView() {
         setEvents(result.data)
       }
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return
       console.error('Error fetching events:', error)
       toast.error(error instanceof Error ? error.message : 'Error al cargar eventos')
     } finally {
@@ -68,7 +77,13 @@ export function CalendarView() {
   }, [currentMonth])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchEvents()
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
   }, [fetchEvents])
 
   const days = useMemo(() => {
@@ -82,6 +97,40 @@ export function CalendarView() {
     if (!selectedDate) return []
     return events.filter(event => isSameDay(new Date(event.start), selectedDate))
   }, [events, selectedDate])
+
+  // Stable keyboard handler extracted outside map for performance
+  const handleDayKeyDown = useCallback((e: React.KeyboardEvent, day: Date, index: number) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      setSelectedDate(day)
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      if (index < days.length - 1) {
+        setSelectedDate(days[index + 1])
+        setFocusedDayIndex(index + 1)
+      }
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      if (index > 0) {
+        setSelectedDate(days[index - 1])
+        setFocusedDayIndex(index - 1)
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      const nextWeek = index + 7
+      if (nextWeek < days.length) {
+        setSelectedDate(days[nextWeek])
+        setFocusedDayIndex(nextWeek)
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      const prevWeek = index - 7
+      if (prevWeek >= 0) {
+        setSelectedDate(days[prevWeek])
+        setFocusedDayIndex(prevWeek)
+      }
+    }
+  }, [days])
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -175,8 +224,7 @@ export function CalendarView() {
             </div>
             <Button
               size="icon"
-              className="rounded-full h-8 w-8"
-              style={{ background: '#005691' }}
+              className="rounded-full h-8 w-8 bg-primary hover:bg-primary/90"
               onClick={() => setShowEventForm(true)}
               disabled={!selectedDate}
             >
@@ -231,7 +279,7 @@ export function CalendarView() {
         <Card className="border-slate-100 shadow-sm flex flex-col flex-1 overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between border-b pb-4 px-6 pt-6">
             <div className="flex items-center gap-4">
-              <CalendarIcon className="w-5 h-5" style={{ color: '#00A8E8' }} />
+              <CalendarIcon className="w-5 h-5 text-secondary" />
               <h2 className="text-lg font-semibold text-slate-900 capitalize">
                 {format(currentMonth, 'MMMM yyyy', { locale: es })}
               </h2>
@@ -282,55 +330,20 @@ export function CalendarView() {
                 const isToday = isSameDay(day, new Date())
                 const isSelected = selectedDate && isSameDay(day, selectedDate)
 
-                const handleDayKeyDown = (e: React.KeyboardEvent) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    setSelectedDate(day)
-                  } else if (e.key === 'ArrowRight') {
-                    e.preventDefault()
-                    if (i < days.length - 1) {
-                      setSelectedDate(days[i + 1])
-                      setFocusedDayIndex(i + 1)
-                    }
-                  } else if (e.key === 'ArrowLeft') {
-                    e.preventDefault()
-                    if (i > 0) {
-                      setSelectedDate(days[i - 1])
-                      setFocusedDayIndex(i - 1)
-                    }
-                  } else if (e.key === 'ArrowDown') {
-                    e.preventDefault()
-                    const nextWeek = i + 7
-                    if (nextWeek < days.length) {
-                      setSelectedDate(days[nextWeek])
-                      setFocusedDayIndex(nextWeek)
-                    }
-                  } else if (e.key === 'ArrowUp') {
-                    e.preventDefault()
-                    const prevWeek = i - 7
-                    if (prevWeek >= 0) {
-                      setSelectedDate(days[prevWeek])
-                      setFocusedDayIndex(prevWeek)
-                    }
-                  }
-                }
-
                 return (
                   <div
                     key={day.toISOString()}
                     onClick={() => setSelectedDate(day)}
-                    onKeyDown={handleDayKeyDown}
+                    onKeyDown={(e) => handleDayKeyDown(e, day, i)}
                     tabIndex={0}
                     role="button"
                     aria-label={`${format(day, 'd MMMM')}${dayEvents.length > 0 ? `, ${dayEvents.length} eventos` : ''}`}
-                    className={`border-r border-b border-slate-100 p-1 min-h-[100px] transition-colors duration-150 cursor-pointer hover:bg-[rgba(0,168,232,0.04)] focus:outline-none focus:ring-2 focus:ring-[#00A8E8] focus:z-10 ${
-                      isSelected ? 'bg-[rgba(0,168,232,0.08)]' : ''
-                    }`}
+                    className={`border-r border-b border-slate-100 p-1 min-h-[100px] transition-colors duration-150 cursor-pointer hover:bg-secondary/4 focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:z-10 ${isSelected ? 'bg-secondary/8' : ''}`}
                   >
                     <div className="flex justify-between items-center mb-1">
                       <span
                         className="text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full"
-                        style={isToday ? { background: '#005691', color: 'white' } : { color: '#475569' }}
+                        style={isToday ? { background: 'var(--primary)', color: 'white' } : { color: 'var(--foreground-muted, #475569)' }}
                       >
                         {format(day, 'd')}
                       </span>
@@ -414,7 +427,7 @@ export function CalendarView() {
               <Button
                 type="submit"
                 disabled={saving}
-                style={{ background: '#005691' }}
+                className="bg-primary hover:bg-primary/90 text-white"
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Guardar Evento'}
               </Button>

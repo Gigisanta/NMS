@@ -3,7 +3,12 @@
 import { forwardRef } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { LucideIcon, Plus, ArrowLeft } from 'lucide-react'
+import { LucideIcon, Plus, ArrowLeft, ChevronRight } from 'lucide-react'
+
+interface BreadcrumbItem {
+  label: string
+  onClick?: () => void
+}
 
 interface PageHeaderProps {
   title: string
@@ -26,6 +31,7 @@ interface PageHeaderProps {
     onClick: () => void
     label?: string
   }
+  breadcrumbs?: BreadcrumbItem[]
   badges?: React.ReactNode
   className?: string
   children?: React.ReactNode
@@ -35,15 +41,16 @@ interface PageHeaderProps {
  * PageHeader - Consistent page header with title, description, and actions
  */
 export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
-  ({ 
-    title, 
-    description, 
+  ({
+    title,
+    description,
     icon: Icon,
     iconColor = 'text-cyan-600',
     iconBg = 'bg-cyan-50',
     action,
     secondaryAction,
     backAction,
+    breadcrumbs,
     badges,
     className,
     children
@@ -59,6 +66,29 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
             <ArrowLeft className="w-4 h-4" />
             {backAction.label || 'Volver'}
           </button>
+        )}
+
+        {/* Breadcrumb trail if provided */}
+        {breadcrumbs && breadcrumbs.length > 0 && (
+          <nav className="flex items-center gap-1 text-sm text-slate-500" aria-label="Breadcrumb">
+            {breadcrumbs.map((item, index) => (
+              <span key={index} className="flex items-center gap-1">
+                {index > 0 && <ChevronRight className="w-3 h-3 text-slate-400" />}
+                {item.onClick ? (
+                  <button
+                    onClick={item.onClick}
+                    className="hover:text-slate-700 transition-colors"
+                  >
+                    {item.label}
+                  </button>
+                ) : (
+                  <span className={index === breadcrumbs.length - 1 ? 'text-slate-900 font-medium' : ''}>
+                    {item.label}
+                  </span>
+                )}
+              </span>
+            ))}
+          </nav>
         )}
 
         {/* Main header row */}

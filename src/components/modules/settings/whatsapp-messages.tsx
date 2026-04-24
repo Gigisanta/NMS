@@ -124,7 +124,9 @@ export function WhatsAppMessages() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMessages()
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchClients()
   }, [fetchMessages, fetchClients])
 
@@ -278,7 +280,7 @@ export function WhatsAppMessages() {
                             {statusConfig.label}
                           </Badge>
                           {msg.matchedClientId && (
-                            <Badge className="text-xs" style={{ background: '#00A8E818', color: '#005691' }}>
+                            <Badge className="text-xs bg-secondary/10 text-primary">
                               <Link2 className="w-3 h-3 mr-1" />
                               {msg.client
                                 ? formatFullName(msg.client.nombre, msg.client.apellido)

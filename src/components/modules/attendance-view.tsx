@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo, memo } from 'react'
+import { useEffect, useState, useCallback, useMemo, memo, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
+import {
   CheckCircle2,
   XCircle,
   Calendar,
@@ -19,6 +19,7 @@ import {
   Check,
   Undo2
 } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 import { formatFullName, formatTime, getPaymentStatusConfig, formatDate } from '@/lib/utils'
 import { useAppStore } from '@/store'
 import { GroupBadge } from './group-badge'
@@ -93,7 +94,7 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
     >
       <td className="py-2 px-3">
         <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8 ring-1 ring-white shrink-0" style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}>
+          <Avatar className="h-8 w-8 ring-1 ring-white shrink-0 bg-gradient-to-br from-primary to-secondary">
             <AvatarFallback className="text-white text-xs font-medium">
               {client.nombre[0]}{client.apellido[0]}
             </AvatarFallback>
@@ -122,7 +123,7 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
           <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <div
               className={`h-full progress-bar-animated ${isLimitReached ? 'bg-red-400' : ''}`}
-              style={{ width: `${progressPercent}%`, ...(!isLimitReached ? { background: '#00A8E8' } : {}) }}
+              style={!isLimitReached ? { background: '#00A8E8' } : {}}
             />
           </div>
           <span className={`text-xs font-medium ${isLimitReached ? 'text-red-600' : 'text-slate-600'}`}>
@@ -148,7 +149,7 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
             size="sm"
             variant={isLimitReached ? "ghost" : "default"}
             className={`h-9 sm:h-8 gap-1 transition-all ${isLimitReached ? 'text-slate-400 cursor-not-allowed' : 'text-white'}`}
-            style={!isLimitReached ? { background: '#005691' } : {}}
+            style={!isLimitReached ? { background: 'var(--primary)' } : {}}
             onClick={() => onMarkAttendance(client)}
             disabled={isLimitReached || isMarking}
           >
@@ -229,12 +230,20 @@ export function AttendanceView() {
   const groupsLastFetch = useAppStore((state) => state.groupsLastFetch)
   
   // Check if groups need refresh
-  const shouldFetchGroups = useMemo(() => 
+  const shouldFetchGroups = useMemo(() =>
     Date.now() - groupsLastFetch > 5 * 60 * 1000 || storeGroups.length === 0,
     [groupsLastFetch, storeGroups.length]
   )
 
+  // AbortController ref to cancel stale requests
+  const abortControllerRef = useRef<AbortController | null>(null)
+
   const fetchData = useCallback(async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    abortControllerRef.current = new AbortController()
+
     setLoading(true)
     try {
       const clientsParams = new URLSearchParams()
@@ -242,9 +251,9 @@ export function AttendanceView() {
       if (selectedGrupo) clientsParams.set('grupoId', selectedGrupo)
 
       const [clientsRes, attendanceRes, groupsRes] = await Promise.all([
-        fetch(`/api/clients?${clientsParams}`),
-        fetch('/api/attendance?today=true'),
-        shouldFetchGroups ? fetch('/api/groups') : null,
+        fetch(`/api/clients?${clientsParams}`, { signal: abortControllerRef.current.signal }),
+        fetch('/api/attendance?today=true', { signal: abortControllerRef.current.signal }),
+        shouldFetchGroups ? fetch('/api/groups', { signal: abortControllerRef.current.signal }) : null,
       ])
 
       const clientsResult = await clientsRes.json()
@@ -265,6 +274,7 @@ export function AttendanceView() {
         }
       }
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return
       console.error('Error fetching data:', error)
       toast.error('Error de conexión al cargar datos')
     } finally {
@@ -273,7 +283,13 @@ export function AttendanceView() {
   }, [selectedGrupo, shouldFetchGroups, setGroups])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData()
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
   }, [fetchData])
 
   const handleAttendance = useCallback(async (client: Client) => {
@@ -319,17 +335,18 @@ export function AttendanceView() {
         toast.error(result.error || 'Error al registrar asistencia')
       }
     } catch (error) {
-      console.error('Error marking attendance:', error)
-      toast.error(error instanceof Error ? error.message : 'Error de conexión al registrar asistencia')
+      // ROLLBACK DIRECTO sin fetchData para evitar stale closure
       setOptimisticUpdates(prev => {
         const newUpdates = { ...prev }
         delete newUpdates[client.id]
         return newUpdates
       })
+      console.error('Error marking attendance:', error)
+      toast.error(error instanceof Error ? error.message : 'Error de conexión al registrar asistencia')
     } finally {
       setMarkingAttendance(null)
     }
-  }, [optimisticUpdates, fetchData])
+  }, []) // SIN dependencias externas para evitar stale closure
 
   const handleRemoveAttendance = useCallback(async (attendanceId: string) => {
     setRemovingAttendance(attendanceId)
@@ -355,8 +372,7 @@ export function AttendanceView() {
     }
   }, [fetchData])
 
-  // BOLT OPTIMIZATION: Convert O(N*M) lookup to O(N+M) by pre-calculating counts in a Map.
-  // This prevents filtering the entire todayAttendance array for every client row.
+  // Pre-compute attendance counts for O(1) lookup instead of O(N) per row
   const attendanceCountsMap = useMemo(() => {
     const counts = new Map<string, number>()
     todayAttendance.forEach(a => {
@@ -365,24 +381,29 @@ export function AttendanceView() {
     return counts
   }, [todayAttendance])
 
-  const getClientAttendanceToday = useCallback((clientId: string) => {
-    return attendanceCountsMap.get(clientId) || 0
-  }, [attendanceCountsMap])
-
-  const getClientLatestAttendanceId = useCallback((clientId: string) => {
-    const attendance = todayAttendance.find(a => a.clientId === clientId)
-    return attendance?.id ?? null
-  }, [todayAttendance])
-
-  const getClassesUsed = useCallback((client: Client) => {
-    return optimisticUpdates[client.id]?.classesUsed ?? client.currentSubscription?.classesUsed ?? 0
-  }, [optimisticUpdates])
+  // Stable handler for group tab change to prevent re-renders
+  const handleGroupChange = useCallback((id: string | null) => {
+    setSelectedGrupo(id)
+  }, [])
 
   // Memoized filtered clients for performance
   const filteredClients = useMemo(() => {
     if (!selectedGrupo) return clients
     return clients.filter(client => client.grupo?.id === selectedGrupo)
   }, [clients, selectedGrupo])
+
+  // Pre-compute client rows for performance - avoids re-creating functions in map
+  const clientRows = useMemo(() => {
+    return filteredClients.map((client) => ({
+      client,
+      todayCount: attendanceCountsMap.get(client.id) || 0,
+      todayAttendanceId: (() => {
+        const attendance = todayAttendance.find(a => a.clientId === client.id)
+        return attendance?.id ?? null
+      })(),
+      optimisticClassesUsed: optimisticUpdates[client.id]?.classesUsed ?? null,
+    }))
+  }, [filteredClients, attendanceCountsMap, todayAttendance, optimisticUpdates])
 
   // Memoized recent attendance
   const recentAttendance = useMemo(() => 
@@ -431,7 +452,7 @@ export function AttendanceView() {
           </p>
         </div>
         <div className="flex items-center gap-2 text-sm text-slate-600 bg-white px-4 py-2 rounded-lg border border-slate-100 shadow-sm">
-          <Calendar className="w-4 h-4" style={{ color: '#00A8E8' }} />
+          <Calendar className="w-4 h-4 text-secondary" />
           <span className="capitalize">{new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
         </div>
       </div>
@@ -441,32 +462,20 @@ export function AttendanceView() {
         <GroupTabs
           groups={storeGroups}
           selectedId={selectedGrupo}
-          onChange={setSelectedGrupo}
+          onChange={handleGroupChange}
           isAdmin={isAdmin}
         />
       )}
 
       {/* Clients Table */}
       {filteredClients.length === 0 ? (
-        <Card className="border-slate-100 shadow-sm">
-          <CardContent className="py-14">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-violet-50 flex items-center justify-center">
-                <Users className="w-7 h-7 text-violet-400" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-semibold text-slate-700">
-                  {selectedGrupo ? 'Sin alumnos en este grupo' : 'Sin alumnos registrados'}
-                </p>
-                <p className="text-xs text-slate-400 mt-1">
-                  {selectedGrupo
-                    ? 'Probá seleccionando otro grupo o quitando el filtro'
-                    : 'Agregá clientes para empezar a registrar asistencias'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <EmptyState
+          illustration="attendance"
+          title={selectedGrupo ? 'Sin alumnos en este grupo' : 'Sin alumnos registrados'}
+          description={selectedGrupo
+            ? 'Probá seleccionando otro grupo o quitando el filtro'
+            : 'Agregá clientes para empezar a registrar asistencia'}
+        />
       ) : (
         <Card className="border-slate-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
@@ -483,18 +492,18 @@ export function AttendanceView() {
               </thead>
               <tbody>
                 <AnimatePresence mode="popLayout">
-                  {filteredClients.map((client, index) => (
+                  {clientRows.map(({ client, todayCount, todayAttendanceId, optimisticClassesUsed }) => (
                     <AttendanceTableRow
                       key={client.id}
                       client={client}
-                      index={index}
+                      index={0}
                       onMarkAttendance={handleAttendance}
                       onRemoveAttendance={handleRemoveAttendance}
                       isMarking={markingAttendance === client.id}
-                      isRemoving={removingAttendance === getClientLatestAttendanceId(client.id)}
-                      optimisticClassesUsed={optimisticUpdates[client.id]?.classesUsed ?? null}
-                      todayCount={getClientAttendanceToday(client.id)}
-                      todayAttendanceId={getClientLatestAttendanceId(client.id)}
+                      isRemoving={removingAttendance === todayAttendanceId}
+                      optimisticClassesUsed={optimisticClassesUsed}
+                      todayCount={todayCount}
+                      todayAttendanceId={todayAttendanceId}
                     />
                   ))}
                 </AnimatePresence>

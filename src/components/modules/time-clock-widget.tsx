@@ -133,6 +133,7 @@ export function TimeClockWidget() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStatus()
   }, [fetchStatus])
 
@@ -200,7 +201,7 @@ export function TimeClockWidget() {
     return (
       <Card className="border-slate-100 shadow-sm">
         <CardContent className="p-6 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
+          <Loader2 className="w-6 h-6 animate-spin text-secondary" />
         </CardContent>
       </Card>
     )
@@ -210,7 +211,7 @@ export function TimeClockWidget() {
     <Card className="border-slate-100 shadow-sm">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Timer className="w-4 h-4" style={{ color: '#00A8E8' }} />
+          <Timer className="w-4 h-4 text-secondary" />
           Fichaje
         </CardTitle>
       </CardHeader>
@@ -262,7 +263,7 @@ export function TimeClockWidget() {
             onClick={status?.isWorking ? handleClockOut : handleClockIn}
             disabled={processing}
             className="w-full h-12 text-base font-semibold gap-2 text-white"
-            style={{ background: status?.isWorking ? '#ef4444' : '#005691' }}
+            style={{ background: status?.isWorking ? 'var(--destructive)' : 'var(--primary)' }}
           >
             {processing ? (
               <Loader2 className="w-5 h-5 animate-spin" />

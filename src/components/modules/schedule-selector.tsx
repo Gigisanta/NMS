@@ -60,7 +60,7 @@ export function ScheduleSelector({ preferredDays, preferredTime, onChange }: Sch
                     ? 'text-white border-transparent shadow-sm'
                     : 'bg-white text-slate-600 border-slate-200 hover:border-cyan-300 hover:bg-cyan-50'
                 )}
-                style={isSelected ? { background: '#005691' } : {}}
+                style={isSelected ? { background: 'var(--primary)' } : {}}
                 title={day.fullLabel}
               >
                 <span className="relative z-10">{day.label}</span>

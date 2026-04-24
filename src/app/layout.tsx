@@ -39,7 +39,9 @@ const themeScript = `
     if (stored === 'dark' || (!stored && prefersDark)) {
       document.documentElement.classList.add('dark')
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[Theme] Fallback a modo claro:', e instanceof Error ? e.message : String(e))
+  }
 })()
 `
 

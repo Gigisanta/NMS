@@ -4,6 +4,51 @@ import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import type { Client } from '@prisma/client'
+
+// WhatsApp config shape for type-safe access
+interface WhatsAppConfigShape {
+  id?: string
+  createdAt?: Date
+  updatedAt?: Date
+  verifyToken?: string | null
+  appId?: string | null
+  phoneNumberId?: string | null
+  accessToken?: string | null
+  businessAccountId?: string | null
+  webhookUrl?: string | null
+  isActive?: boolean
+  autoMatchClients?: boolean
+  autoDownloadMedia?: boolean
+  autoUpdatePayment?: boolean
+  autoVerify?: boolean
+  autoReplyEnabled?: boolean
+  welcomeMessage?: string | null
+  successMessage?: string | null
+  notFoundMessage?: string | null
+  errorMessage?: string | null
+}
+
+function toConfigShape(config: Record<string, unknown> | null | undefined): WhatsAppConfigShape | undefined {
+  if (!config) return undefined
+  return {
+    verifyToken: config.verifyToken as string | null | undefined,
+    appId: config.appId as string | null | undefined,
+    phoneNumberId: config.phoneNumberId as string | null | undefined,
+    accessToken: config.accessToken as string | null | undefined,
+    businessAccountId: config.businessAccountId as string | null | undefined,
+    isActive: config.isActive as boolean | undefined,
+    autoMatchClients: config.autoMatchClients as boolean | undefined,
+    autoDownloadMedia: config.autoDownloadMedia as boolean | undefined,
+    autoUpdatePayment: config.autoUpdatePayment as boolean | undefined,
+    autoVerify: config.autoVerify as boolean | undefined,
+    autoReplyEnabled: config.autoReplyEnabled as boolean | undefined,
+    welcomeMessage: config.welcomeMessage as string | null | undefined,
+    successMessage: config.successMessage as string | null | undefined,
+    notFoundMessage: config.notFoundMessage as string | null | undefined,
+    errorMessage: config.errorMessage as string | null | undefined,
+  }
+}
 
 const UPLOAD_DIR = path.join(process.cwd(), 'public/uploads/whatsapp')
 
@@ -21,7 +66,13 @@ export async function GET(request: NextRequest) {
 
   // Get configured verify token
   const config = await db.whatsAppConfig.findFirst()
-  const verifyToken = config?.verifyToken || process.env.WHATSAPP_VERIFY_TOKEN || 'nms_verify_token_2024'
+  const verifyToken = config?.verifyToken || process.env.WHATSAPP_VERIFY_TOKEN
+
+  // Reject if no token is configured
+  if (!verifyToken) {
+    console.log('[WhatsApp] Webhook verification failed: Token no configurado')
+    return NextResponse.json({ error: 'Token no configurado' }, { status: 403 })
+  }
 
   console.log('[WhatsApp] Webhook verification attempt:', { mode, token: token?.substring(0, 10) + '...' })
 
@@ -161,13 +212,14 @@ export async function POST(request: NextRequest) {
 
           // If client matched and auto-update payment is enabled
           if (matchResult && config?.autoUpdatePayment) {
+            const configShape = toConfigShape(config)
             const processResult = await processPaymentDocument(
               messageRecord.id,
               matchResult.client.id,
               downloadResult.localPath || downloadResult.url || '',
               filename || `comprobante_${Date.now()}`,
               mimeType,
-              config
+              configShape || {}
             )
 
             if (processResult.success) {
@@ -225,11 +277,12 @@ export async function POST(request: NextRequest) {
     // Handle text messages
     if (messageType === 'text') {
       // Check if it's a registration request
+      const configShape = toConfigShape(config)
       const registrationResult = await handleTextMessage(
         from,
         contactName,
         content,
-        config
+        configShape || {}
       )
 
       if (config?.autoReplyEnabled) {
@@ -291,7 +344,7 @@ async function matchClient(
   phone: string,
   name: string,
   autoMatch: boolean = true
-): Promise<{ client: any; matchedBy: string } | null> {
+): Promise<{ client: Client; matchedBy: string } | null> {
   if (!autoMatch) return null
 
   // Clean phone number for matching
@@ -333,7 +386,10 @@ async function matchClient(
     })
 
   if (waClient?.clientId) {
-    return { client: waClient.clientId, matchedBy: 'mapped' }
+    const client = await db.client.findUnique({ where: { id: waClient.clientId } })
+    if (client) {
+      return { client, matchedBy: 'mapped' }
+    }
   }
 
   return null
@@ -438,7 +494,7 @@ async function processPaymentDocument(
   filePath: string,
   filename: string,
   mimeType: string,
-  config: any
+  config: WhatsAppConfigShape
 ): Promise<{ success: boolean; invoiceId?: string; subscriptionId?: string; error?: string }> {
   try {
     // Create invoice record
@@ -513,7 +569,7 @@ async function handleTextMessage(
   from: string,
   name: string,
   content: string,
-  config: any
+  config: WhatsAppConfigShape
 ): Promise<{ registered?: boolean }> {
   // Check if this looks like a registration request
   const dniMatch = content.match(/\d{7,8}/)

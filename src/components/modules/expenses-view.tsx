@@ -23,7 +23,9 @@ import {
   Eye,
   FileText,
   Image,
+  type LucideIcon,
 } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 import {
   Select,
   SelectContent,
@@ -44,6 +46,7 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { ExpenseForm } from './expenses/expense-form'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog,
   DialogContent,
@@ -79,7 +82,7 @@ export interface Expense {
   }
 }
 
-const CATEGORY_LABELS: Record<ExpenseCategory, { label: string, color: string, icon: any }> = {
+const CATEGORY_LABELS: Record<ExpenseCategory, { label: string, color: string, icon: LucideIcon }> = {
   FIJO: { label: 'Fijo', color: 'bg-blue-100 text-blue-700 border-blue-200', icon: Banknote },
   VARIABLE: { label: 'Variable', color: 'bg-orange-100 text-orange-700 border-orange-200', icon: TrendingDown },
   SUELDO: { label: 'Sueldo', color: 'bg-purple-100 text-purple-700 border-purple-200', icon: Users },
@@ -126,6 +129,7 @@ export function ExpensesView() {
   }, [categoryFilter, monthFilter, yearFilter])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchExpenses()
   }, [fetchExpenses])
 
@@ -196,7 +200,7 @@ export function ExpensesView() {
             setSelectedExpense(undefined)
             setIsFormOpen(true)
           }}
-          className="bg-[#005691] hover:bg-[#0078B0] text-white shadow-md rounded-xl h-11 px-6 gap-2"
+          className="bg-primary hover:bg-primary/90 text-white shadow-md rounded-xl h-11 px-6 gap-2"
         >
           <Plus className="w-5 h-5" />
           Registrar Gasto
@@ -206,10 +210,10 @@ export function ExpensesView() {
       {/* Stats Grid */}
       <div className="grid gap-2 sm:gap-3 grid-cols-2 lg:grid-cols-4 stagger-in">
         {[
-          { title: 'Total Mes', value: stats.total, Icon: Banknote, accent: '#005691', trend: 'Egresos registrados' },
+          { title: 'Total Mes', value: stats.total, Icon: Banknote, accent: 'var(--primary)', trend: 'Egresos registrados' },
           { title: 'Sueldos', value: stats.sueldos, Icon: Users, accent: '#8b5cf6', trend: 'Personal y honorarios' },
           { title: 'Proveedores', value: stats.proveedores, Icon: Truck, accent: '#10b981', trend: 'Insumos y servicios' },
-          { title: 'Fijos', value: stats.fijos, Icon: Filter, accent: '#00A8E8', trend: 'Alquiler e impuestos' },
+          { title: 'Fijos', value: stats.fijos, Icon: Filter, accent: 'var(--secondary)', trend: 'Alquiler e impuestos' },
         ].map((stat) => (
           <div key={stat.title} className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
             <div className="flex items-start justify-between gap-2">
@@ -233,20 +237,33 @@ export function ExpensesView() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
-              <p className="text-slate-500 text-sm">Cargando...</p>
+            <div className="p-4">
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-lg">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 flex-1" />
+                    <Skeleton className="h-8 w-20" />
+                    <Skeleton className="h-8 w-8 rounded-lg" />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : expenses.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4 text-center px-4">
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
-                <AlertCircle className="w-8 h-8" />
-              </div>
-              <div>
-                <p className="text-slate-900 font-medium">No hay gastos registrados</p>
-                <p className="text-slate-500 text-sm">Registra un gasto para ver el historial.</p>
-              </div>
-            </div>
+            <EmptyState
+              illustration="invoices"
+              title="No hay gastos registrados"
+              description="Registra un gasto para ver el historial."
+              action={{
+                label: 'Registrar Gasto',
+                onClick: () => {
+                  setSelectedExpense(undefined)
+                  setIsFormOpen(true)
+                },
+                icon: Plus
+              }}
+              className="py-20"
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -365,7 +382,7 @@ export function ExpensesView() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar por descripción, proveedor o empleado..."
-                className="pl-10 h-11 border-slate-200 focus-visible:ring-[#00A8E8]"
+                className="h-11 border-slate-200 focus-visible:ring-secondary"
               />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -420,20 +437,32 @@ export function ExpensesView() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
-              <p className="text-slate-500 text-sm">Cargando gastos...</p>
+            <div className="p-4">
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="flex items-center gap-3 sm:gap-6 p-3 sm:p-4 bg-slate-50/50 rounded-lg">
+                    <Skeleton className="h-10 w-20" />
+                    <Skeleton className="h-4 flex-1" />
+                    <Skeleton className="hidden sm:block h-8 w-24" />
+                    <Skeleton className="hidden md:block h-4 w-28" />
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-8 w-8" />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : filteredExpenses.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4 text-center px-4">
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
-                <AlertCircle className="w-8 h-8" />
-              </div>
-              <div>
-                <p className="text-slate-900 font-medium">No se encontraron gastos</p>
-                <p className="text-slate-500 text-sm">Intenta cambiar los filtros o registra un nuevo gasto.</p>
-              </div>
-            </div>
+            <EmptyState
+              illustration="search"
+              title="No se encontraron gastos"
+              description="Intenta cambiar los filtros o registra un nuevo gasto."
+              action={{
+                label: 'Limpiar filtros',
+                onClick: () => setSearch(''),
+                icon: Search
+              }}
+              className="py-20"
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -503,7 +532,7 @@ export function ExpensesView() {
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-[#005691] transition-colors">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary transition-colors">
                                 <MoreVertical className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>

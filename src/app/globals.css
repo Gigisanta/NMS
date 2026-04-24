@@ -73,7 +73,8 @@
   --popover-foreground: #1A1A1A;
   
   /* Estados */
-  --secondary: rgba(0, 168, 232, 0.12);
+  --secondary: #00A8E8;           /* Azul Turquesa - color sólido */
+  --secondary-muted: rgba(0, 168, 232, 0.12);  /* Para backgrounds */
   --secondary-foreground: #005691;
   --muted: #F0F8FF;
   --muted-foreground: #4A5568;
@@ -95,6 +96,12 @@
   --chart-3: #34C759;
   --chart-4: #FF9500;
   --chart-5: #5856D6;
+
+  /* Success / Status Colors - used in hardcoded styles across components */
+  --success: #34C759;
+  --success-light: #10b981;
+  --warning: #f59e0b;
+  --warning-light: #FF9500;
   
   /* Sidebar */
   --sidebar: #F0F8FF;
@@ -122,17 +129,8 @@
   
   --primary: #00A8E8;
   --primary-light: #4DC3F4;
-  --secondary: #005691;
-  
-  --surface: #112240;
-  --surface-hover: #1A3150;
-  
-  --card: #112240;
-  --card-foreground: #F0F8FF;
-  --popover: #112240;
-  --popover-foreground: #F0F8FF;
-  
-  --secondary: rgba(0, 168, 232, 0.2);
+  --secondary: #005691;           /* Azul Piscina - color sólido */
+  --secondary-muted: rgba(0, 168, 232, 0.2);   /* Para backgrounds en dark */
   --secondary-foreground: #00A8E8;
   --muted: #112240;
   --muted-foreground: #8BA4BC;

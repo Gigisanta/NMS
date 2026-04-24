@@ -62,6 +62,7 @@ export function NotificationSettings() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSettings()
   }, [fetchSettings])
 
@@ -103,7 +104,7 @@ export function NotificationSettings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
+        <Loader2 className="w-6 h-6 animate-spin text-secondary" />
       </div>
     )
   }

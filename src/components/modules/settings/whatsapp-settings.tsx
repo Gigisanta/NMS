@@ -118,6 +118,7 @@ export function WhatsAppSettings() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchConfig()
   }, [fetchConfig])
 
@@ -212,7 +213,7 @@ export function WhatsAppSettings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
+        <Loader2 className="w-6 h-6 animate-spin text-secondary" />
       </div>
     )
   }
@@ -417,7 +418,7 @@ export function WhatsAppSettings() {
 
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <Download className="w-5 h-5" style={{ color: '#00A8E8' }} />
+                  <Download className="w-5 h-5 text-secondary" />
                   <div>
                     <p className="font-medium">Descargar Archivos</p>
                     <p className="text-sm text-slate-500">Descargar automáticamente fotos y documentos</p>
@@ -535,17 +536,17 @@ export function WhatsAppSettings() {
               <div className="space-y-4">
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold" style={{ background: '#005691' }}>1</span>
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold bg-primary">1</span>
                     Crear Cuenta de WhatsApp Business
                   </h4>
                   <p className="text-sm text-slate-600 mt-2 ml-8">
-                    Ve a <a href="https://business.facebook.com" target="_blank" className="hover:underline font-medium" style={{ color: '#005691' }}>Meta Business Suite</a> y crea una cuenta comercial si no tienes una.
+                    Ve a <a href="https://business.facebook.com" target="_blank" className="hover:underline font-medium text-primary">Meta Business Suite</a> y crea una cuenta comercial si no tienes una.
                   </p>
                 </div>
 
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold" style={{ background: '#005691' }}>2</span>
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold bg-primary">2</span>
                     Configurar WhatsApp Business API
                   </h4>
                   <p className="text-sm text-slate-600 mt-2 ml-8">
@@ -555,7 +556,7 @@ export function WhatsAppSettings() {
 
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold" style={{ background: '#005691' }}>3</span>
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold bg-primary">3</span>
                     Obtener Credenciales
                   </h4>
                   <ul className="text-sm text-slate-600 mt-2 ml-8 space-y-1 list-disc list-inside">
@@ -567,7 +568,7 @@ export function WhatsAppSettings() {
 
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold" style={{ background: '#005691' }}>4</span>
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold bg-primary">4</span>
                     Configurar Webhook
                   </h4>
                   <ul className="text-sm text-slate-600 mt-2 ml-8 space-y-1 list-disc list-inside">
@@ -580,7 +581,7 @@ export function WhatsAppSettings() {
 
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold" style={{ background: '#005691' }}>5</span>
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold bg-primary">5</span>
                     Probar Integración
                   </h4>
                   <p className="text-sm text-slate-600 mt-2 ml-8">

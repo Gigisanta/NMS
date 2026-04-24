@@ -149,7 +149,7 @@ export function ProfileSettings({ onProfileUpdate }: ProfileSettingsProps) {
           {/* Avatar and Basic Info */}
           <div className="flex items-center gap-4">
             <Avatar className="w-16 h-16">
-              <AvatarFallback className="text-lg text-white" style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}>
+              <AvatarFallback className="text-lg text-white bg-gradient-to-br from-primary to-secondary">
                 {getInitials(session?.user?.name)}
               </AvatarFallback>
             </Avatar>

@@ -34,8 +34,8 @@ export const clientSchema = z.object({
   preferredTime: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
   monthlyAmount: z.number().min(0).optional().nullable(),
-  registrationFeePaid1: z.boolean().optional().default(false),
-  registrationFeePaid2: z.boolean().optional().default(false),
+  registrationFeePaid1: z.boolean().default(false),
+  registrationFeePaid2: z.boolean().default(false),
 })
 
 // Client-Group Assignment Schema

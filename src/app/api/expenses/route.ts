@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
+import type { Prisma } from '@prisma/client'
 
 // GET /api/expenses - List all expenses with filters
 export async function GET(request: NextRequest) {
@@ -29,10 +30,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    const where: any = {}
+    const where: Prisma.ExpenseWhereInput = {}
 
     if (category) {
-      where.category = category
+      where.category = category as 'FIJO' | 'VARIABLE' | 'SUELDO' | 'PROVEEDOR' | 'OTROS'
     }
     if (month) {
       where.month = parseInt(month)

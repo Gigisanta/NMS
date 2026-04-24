@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { hashPassword } from '@/lib/auth-utils'
 import { Role } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 
 // GET /api/employees - List all employees
 export async function GET(request: NextRequest) {
@@ -27,8 +28,8 @@ export async function GET(request: NextRequest) {
     const role = searchParams.get('role')
     const active = searchParams.get('active')
 
-    const where: any = {}
-    
+    const where: Prisma.UserWhereInput = {}
+
     if (role) {
       where.employeeRole = role
     }

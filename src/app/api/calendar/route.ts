@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
+import type { Prisma } from '@prisma/client'
 
 // GET /api/calendar - List events in a date range
 export async function GET(request: NextRequest) {
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ success: true, data: event })
     }
 
-    const where: any = {}
+    const where: Prisma.CalendarEventWhereInput = {}
     if (start && end) {
       where.start = {
         gte: new Date(start),

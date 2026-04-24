@@ -257,35 +257,35 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           value={stats?.totalClients ?? 0}
           Icon={Users}
           trend="Total registrados"
-          accent="#005691"
+          accent={'var(--primary)'}
         />
         <StatCard
           title="Activos"
           value={stats?.activeClients ?? 0}
           Icon={UserCheck}
           trend="Este mes"
-          accent="#10b981"
+          accent={'var(--success)'}
         />
         <StatCard
           title="Pendientes"
           value={stats?.pendingPayments ?? 0}
           Icon={Clock}
           trend="Por cobrar"
-          accent="#f59e0b"
+          accent={'var(--warning)'}
         />
         <StatCard
           title="Morosos"
           value={stats?.overduePayments ?? 0}
           Icon={AlertTriangle}
           trend="+10 días"
-          accent="#ef4444"
+          accent={'var(--destructive)'}
         />
         <StatCard
           title="Hoy"
           value={stats?.todayAttendances ?? 0}
           Icon={Calendar}
           trend="Asistencias"
-          accent="#00A8E8"
+          accent={'var(--secondary)'}
         />
       </div>
 
