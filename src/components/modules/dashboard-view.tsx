@@ -299,15 +299,15 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
             <Card className="border-border shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-500" />
+                  <AlertTriangle className="w-4 h-4 text-[var(--warning)]" />
                   Pagos Pendientes
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {pendingClients.length === 0
                   ? <div className="text-center py-8">
-                      <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-2">
-                        <UserCheck className="w-4 h-4 text-emerald-500" />
+                      <div className="w-8 h-8 rounded-full bg-[var(--success)]/10 flex items-center justify-center mx-auto mb-2">
+                        <UserCheck className="w-4 h-4 text-[var(--success)]" />
                       </div>
                       <p className="text-sm text-muted-foreground">Todo al día</p>
                     </div>
@@ -335,7 +335,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           <Card className="border-border shadow-sm card-lift">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-emerald-500" />
+                <DollarSign className="w-4 h-4 text-[var(--success)]" />
                 Ingresos del mes
               </CardTitle>
             </CardHeader>
@@ -351,7 +351,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                 </div>
                 <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-emerald-500 rounded-full progress-bar-animated"
+                    className="h-full bg-[var(--success)] rounded-full progress-bar-animated"
                     style={{
                       width: `${stats?.activeClients
                         ? ((stats.alDiaClients) / stats.activeClients) * 100
@@ -385,14 +385,14 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                           </div>
                           <div className="space-y-0.5 text-right">
                             <p className="text-[10px] text-muted-foreground uppercase">Cobrado</p>
-                            <p className="text-sm font-semibold text-emerald-500">
+                            <p className="text-sm font-semibold text-[var(--success)]">
                               {formatCurrency(group.collected)}
                             </p>
                           </div>
                         </div>
                         <div className="mt-2 h-1 bg-muted-foreground/20 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-emerald-500 rounded-full progress-bar-animated"
+                            className="h-full bg-[var(--success)] rounded-full progress-bar-animated"
                             style={{
                               width: `${group.revenue > 0 ? (group.collected / group.revenue) * 100 : 0}%`
                             }}
@@ -433,15 +433,15 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           <Card className="border-border shadow-sm card-lift">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-500" />
+                <AlertTriangle className="w-4 h-4 text-[var(--warning)]" />
                 Pendientes
               </CardTitle>
             </CardHeader>
             <CardContent>
               {pendingClients.length === 0
                 ? <div className="text-center py-8 px-4">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-2">
-                      <UserCheck className="w-4 h-4 text-emerald-500" />
+                    <div className="w-8 h-8 rounded-full bg-[var(--success)]/10 flex items-center justify-center mx-auto mb-2">
+                      <UserCheck className="w-4 h-4 text-[var(--success)]" />
                     </div>
                     <p className="text-sm text-muted-foreground">Todo al día</p>
                   </div>

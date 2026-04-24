@@ -85,9 +85,9 @@ const INVOICE_TYPES: Record<string, string> = {
 
 // Status config
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-  PENDING: { label: 'Pendiente', color: 'bg-amber-100 text-amber-700 border-amber-200', icon: Clock },
-  VERIFIED: { label: 'Verificado', color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: CheckCircle },
-  REJECTED: { label: 'Rechazado', color: 'bg-red-100 text-red-700 border-red-200', icon: XCircle },
+  PENDING: { label: 'Pendiente', color: 'bg-[var(--warning)]/10 text-[var(--warning)] border-[var(--warning)]/20', icon: Clock },
+  VERIFIED: { label: 'Verificado', color: 'bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20', icon: CheckCircle },
+  REJECTED: { label: 'Rechazado', color: 'bg-[var(--destructive)]/10 text-[var(--destructive)] border-[var(--destructive)]/20', icon: XCircle },
 }
 
 // Memoized invoice item
@@ -115,18 +115,18 @@ const InvoiceItem = memo(function InvoiceItem({
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors group">
+    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors group">
       {/* File icon */}
       <div className={cn(
         'w-10 h-10 rounded-lg flex items-center justify-center shrink-0',
-        isPdf ? 'bg-red-100' : isImage ? 'bg-blue-100' : 'bg-gray-100'
+        isPdf ? 'bg-[var(--destructive)]/10' : isImage ? 'bg-primary/10' : 'bg-muted'
       )}>
         {isPdf ? (
-          <FileText className="w-5 h-5 text-red-600" />
+          <FileText className="w-5 h-5 text-[var(--destructive)]" />
         ) : isImage ? (
-          <ImageIcon className="w-5 h-5 text-blue-600" />
+          <ImageIcon className="w-5 h-5 text-primary" />
         ) : (
-          <FileIcon className="w-5 h-5 text-gray-600" />
+          <FileIcon className="w-5 h-5 text-muted-foreground" />
         )}
       </div>
 
@@ -135,10 +135,10 @@ const InvoiceItem = memo(function InvoiceItem({
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium truncate">{invoice.fileName}</p>
           {invoice.invoiceNumber && (
-            <span className="text-xs text-slate-500">#{invoice.invoiceNumber}</span>
+            <span className="text-xs text-muted-foreground">#{invoice.invoiceNumber}</span>
           )}
         </div>
-        <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
           <span>{INVOICE_TYPES[invoice.type] || invoice.type}</span>
           {invoice.amount && (
             <span className="flex items-center gap-1">
@@ -189,7 +189,7 @@ const InvoiceItem = memo(function InvoiceItem({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-red-600 hover:text-red-700"
+              className="h-8 w-8 text-[var(--destructive)] hover:text-[var(--destructive)]/80"
             >
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -203,7 +203,7 @@ const InvoiceItem = memo(function InvoiceItem({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={onDelete} className="bg-red-600 hover:bg-red-700">
+              <AlertDialogAction onClick={onDelete} className="bg-[var(--destructive)] hover:bg-[var(--destructive)]/90">
                 Eliminar
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -384,9 +384,9 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
     return (
       <span className={cn(
         'text-xs px-1.5 py-0.5 rounded',
-        status === 'VERIFIED' && 'bg-emerald-500/10 text-emerald-600',
-        status === 'PENDING' && 'bg-amber-500/10 text-amber-600',
-        status === 'REJECTED' && 'bg-red-500/10 text-red-600',
+        status === 'VERIFIED' && 'bg-[var(--success)]/10 text-[var(--success)]',
+        status === 'PENDING' && 'bg-[var(--warning)]/10 text-[var(--warning)]',
+        status === 'REJECTED' && 'bg-[var(--destructive)]/10 text-[var(--destructive)]',
       )}>
         {config.label}
       </span>
@@ -399,7 +399,7 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Facturas y Comprobantes</h3>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             {invoices.length} archivo{invoices.length !== 1 ? 's' : ''} cargado{invoices.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -429,12 +429,12 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
                   onChange={handleFileChange}
                 />
                 {formData.file && (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     {formData.file.name} ({(formData.file.size / 1024).toFixed(1)} KB)
                   </p>
                 )}
                 {error && (
-                  <p className="text-sm text-red-500 mt-2 p-2 bg-red-50 rounded">{error}</p>
+                  <p className="text-sm text-[var(--destructive)] mt-2 p-2 bg-[var(--destructive)]/10 rounded">{error}</p>
                 )}
               </div>
 
@@ -583,7 +583,7 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+                            className="h-8 w-8 p-0 text-[var(--success)] hover:text-[var(--success)]/80 hover:bg-[var(--success)]/10"
                             onClick={() => changeStatus(inv.id, inv.status, 'VERIFIED')}
                             disabled={inv.status === 'VERIFIED'}
                           >
@@ -592,7 +592,7 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-500/10"
+                            className="h-8 w-8 p-0 text-[var(--destructive)] hover:text-[var(--destructive)]/80 hover:bg-[var(--destructive)]/10"
                             onClick={() => changeStatus(inv.id, inv.status, 'REJECTED')}
                             disabled={inv.status === 'REJECTED'}
                           >
@@ -617,7 +617,7 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => deleteInvoice(inv.id)} className="bg-red-600 hover:bg-red-700">
+                                <AlertDialogAction onClick={() => deleteInvoice(inv.id)} className="bg-[var(--destructive)] hover:bg-[var(--destructive)]/90">
                                   Eliminar
                                 </AlertDialogAction>
                               </AlertDialogFooter>
@@ -635,9 +635,9 @@ export function InvoiceUpload({ clientId, invoices, onInvoiceChange }: InvoiceUp
       ) : (
         <Card className="border-dashed">
           <CardContent className="py-8 text-center">
-            <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">Sin facturas cargadas</p>
-            <p className="text-xs text-slate-400 mt-1">
+            <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground">Sin facturas cargadas</p>
+            <p className="text-xs text-muted-foreground mt-1">
               Haz clic en "Subir Factura" para agregar
             </p>
           </CardContent>

@@ -126,18 +126,18 @@ export function ProfileSettings({ onProfileUpdate }: ProfileSettingsProps) {
 
   const getRoleColor = (role: string) => {
     return role === 'EMPLEADORA' 
-      ? 'bg-purple-100 text-purple-700' 
-      : 'bg-slate-100 text-slate-700'
+      ? 'bg-primary/10 text-primary'
+      : 'bg-muted text-muted-foreground'
   }
 
   return (
     <div className="space-y-6">
       {/* Profile Card */}
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-cyan-100 rounded-lg">
-              <User className="w-5 h-5 text-cyan-600" />
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <User className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
               <CardTitle className="text-lg">Mi Perfil</CardTitle>
@@ -155,7 +155,7 @@ export function ProfileSettings({ onProfileUpdate }: ProfileSettingsProps) {
             </Avatar>
             <div>
               <h3 className="font-semibold text-lg">{session?.user?.name || 'Usuario'}</h3>
-              <p className="text-sm text-slate-500">{session?.user?.email}</p>
+              <p className="text-sm text-muted-foreground">{session?.user?.email}</p>
               <Badge className={`mt-1 ${getRoleColor(session?.user?.role || 'EMPLEADO')}`}>
                 {getRoleLabel(session?.user?.role || 'EMPLEADO')}
               </Badge>
@@ -181,9 +181,9 @@ export function ProfileSettings({ onProfileUpdate }: ProfileSettingsProps) {
                 <Input
                   value={formData.email}
                   disabled
-                  className="bg-slate-50"
+                  className="bg-muted/50"
                 />
-                <p className="text-xs text-slate-500">El email no puede ser modificado</p>
+                <p className="text-xs text-muted-foreground">El email no puede ser modificado</p>
               </div>
             </div>
             <div className="space-y-2">
@@ -206,11 +206,11 @@ export function ProfileSettings({ onProfileUpdate }: ProfileSettingsProps) {
       </Card>
 
       {/* Password Card */}
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-100 rounded-lg">
-              <Lock className="w-5 h-5 text-amber-600" />
+            <div className="p-2 bg-[var(--warning)]/10 rounded-lg">
+              <Lock className="w-5 h-5 text-[var(--warning)]" />
             </div>
             <div>
               <CardTitle className="text-lg">Cambiar Contraseña</CardTitle>

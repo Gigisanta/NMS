@@ -112,11 +112,11 @@ export function NotificationSettings() {
   return (
     <div className="space-y-6">
       {/* General Notifications */}
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-violet-100 rounded-lg">
-              <Bell className="w-5 h-5 text-violet-600" />
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Bell className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
               <CardTitle className="text-lg">Notificaciones del Sistema</CardTitle>
@@ -133,10 +133,10 @@ export function NotificationSettings() {
         <CardContent className="space-y-4">
           {/* Payment Reminder */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
               <div>
                 <p className="font-medium">Recordatorio de Pago</p>
-                <p className="text-sm text-slate-500">Alertar antes del vencimiento mensual</p>
+                <p className="text-sm text-muted-foreground">Alertar antes del vencimiento mensual</p>
               </div>
               <Switch
                 checked={formData['notifications.paymentReminder'] === 'true'}
@@ -164,10 +164,10 @@ export function NotificationSettings() {
           </div>
 
           {/* Overdue Notification */}
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div>
               <p className="font-medium">Notificación de Mora</p>
-              <p className="text-sm text-slate-500">Alertar cuando un cliente tiene pagos vencidos</p>
+              <p className="text-sm text-muted-foreground">Alertar cuando un cliente tiene pagos vencidos</p>
             </div>
             <Switch
               checked={formData['notifications.overdueNotification'] === 'true'}
@@ -177,10 +177,10 @@ export function NotificationSettings() {
           </div>
 
           {/* New Client Alert */}
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div>
               <p className="font-medium">Alerta de Nuevo Cliente</p>
-              <p className="text-sm text-slate-500">Notificar cuando se registra un nuevo cliente</p>
+              <p className="text-sm text-muted-foreground">Notificar cuando se registra un nuevo cliente</p>
             </div>
             <Switch
               checked={formData['notifications.newClientAlert'] === 'true'}
@@ -190,10 +190,10 @@ export function NotificationSettings() {
           </div>
 
           {/* Class Reminder */}
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div>
               <p className="font-medium">Recordatorio de Clase</p>
-              <p className="text-sm text-slate-500">Recordar a los clientes sus horarios de clase</p>
+              <p className="text-sm text-muted-foreground">Recordar a los clientes sus horarios de clase</p>
             </div>
             <Switch
               checked={formData['notifications.classReminder'] === 'true'}
@@ -205,19 +205,19 @@ export function NotificationSettings() {
       </Card>
 
       {/* Notification Channels */}
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardHeader>
           <CardTitle className="text-lg">Canales de Notificación</CardTitle>
           <CardDescription>Selecciona cómo recibir las notificaciones</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Email */}
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div className="flex items-center gap-3">
-              <Mail className="w-5 h-5 text-slate-600" />
+              <Mail className="w-5 h-5 text-muted-foreground" />
               <div>
                 <p className="font-medium">Email</p>
-                <p className="text-sm text-slate-500">Recibir notificaciones por correo electrónico</p>
+                <p className="text-sm text-muted-foreground">Recibir notificaciones por correo electrónico</p>
               </div>
             </div>
             <Switch
@@ -228,12 +228,12 @@ export function NotificationSettings() {
           </div>
 
           {/* WhatsApp */}
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div className="flex items-center gap-3">
-              <MessageSquare className="w-5 h-5 text-green-600" />
+              <MessageSquare className="w-5 h-5 text-primary" />
               <div>
                 <p className="font-medium">WhatsApp</p>
-                <p className="text-sm text-slate-500">Recibir notificaciones por WhatsApp</p>
+                <p className="text-sm text-muted-foreground">Recibir notificaciones por WhatsApp</p>
               </div>
             </div>
             <Switch

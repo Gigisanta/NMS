@@ -86,17 +86,17 @@ export function ReceiptUploader({
   if (currentReceiptId && status === 'success') {
     return (
       <div className={cn('flex items-center gap-3 p-3 rounded-lg border bg-muted/50', className)}>
-        <div className="p-2 rounded-md bg-emerald-500/10">
-          <StatusIcon className="w-4 h-4 text-emerald-500" />
+        <div className="p-2 rounded-md bg-[var(--success)]/10">
+          <StatusIcon className="w-4 h-4 text-[var(--success)]" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">{currentFileName || 'Comprobante'}</p>
           {currentStatus && (
             <span className={cn(
               'text-xs px-1.5 py-0.5 rounded',
-              currentStatus === 'VERIFIED' && 'bg-emerald-500/10 text-emerald-600',
-              currentStatus === 'PENDING' && 'bg-amber-500/10 text-amber-600',
-              currentStatus === 'REJECTED' && 'bg-red-500/10 text-red-600',
+              currentStatus === 'VERIFIED' && 'bg-[var(--success)]/10 text-[var(--success)]',
+              currentStatus === 'PENDING' && 'bg-[var(--warning)]/10 text-[var(--warning)]',
+              currentStatus === 'REJECTED' && 'bg-destructive/10 text-destructive',
             )}>
               {currentStatus === 'VERIFIED' ? 'Verificado' : currentStatus === 'PENDING' ? 'Pendiente' : 'Rechazado'}
             </span>

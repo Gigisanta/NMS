@@ -12,7 +12,7 @@ const buttonVariants = cva(
         default:
           "text-white shadow-md hover:shadow-lg btn-hover-glow water-shine",
         destructive:
-          "bg-red-600 text-white shadow-md hover:shadow-lg hover:bg-red-700 hover:scale-[1.02]",
+          "bg-destructive text-destructive-foreground shadow-md hover:shadow-lg hover:bg-destructive/90 hover:scale-[1.02]",
         outline:
           "border-2 border-primary/30 bg-transparent text-primary hover:bg-primary/10 hover:border-primary/50 hover:scale-[1.02]",
         secondary:

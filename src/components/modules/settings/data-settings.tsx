@@ -102,9 +102,9 @@ export function DataSettings() {
 
   if (!isEmpleadora) {
     return (
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardContent className="py-8 text-center">
-          <p className="text-slate-500">No tienes permisos para ver esta sección</p>
+          <p className="text-muted-foreground">No tienes permisos para ver esta sección</p>
         </CardContent>
       </Card>
     )
@@ -113,7 +113,7 @@ export function DataSettings() {
   return (
     <div className="space-y-6">
       {/* Data Export */}
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-secondary/10">
@@ -126,10 +126,10 @@ export function DataSettings() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div>
               <p className="font-medium">Exportar Datos</p>
-              <p className="text-sm text-slate-500">Descarga todos los datos en formato JSON</p>
+              <p className="text-sm text-muted-foreground">Descarga todos los datos en formato JSON</p>
             </div>
             <Button onClick={handleExport} disabled={exporting} className="gap-2">
               {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
@@ -137,26 +137,26 @@ export function DataSettings() {
             </Button>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div>
               <p className="font-medium">Importar Datos</p>
-              <p className="text-sm text-slate-500">Restaura datos desde un archivo de respaldo</p>
+              <p className="text-sm text-muted-foreground">Restaura datos desde un archivo de respaldo</p>
             </div>
             <Button variant="outline" disabled className="gap-2">
               <Upload className="w-4 h-4" />
               Importar
             </Button>
-            <p className="text-xs text-slate-400 ml-2">Próximamente</p>
+            <p className="text-xs text-muted-foreground ml-2">Próximamente</p>
           </div>
         </CardContent>
       </Card>
 
       {/* WhatsApp Integration */}
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <ExternalLink className="w-5 h-5 text-green-600" />
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <ExternalLink className="w-5 h-5 text-primary" />
             </div>
             <div>
               <CardTitle className="text-lg">Integración WhatsApp</CardTitle>
@@ -168,24 +168,24 @@ export function DataSettings() {
           <div className="space-y-2">
             <Label className="text-sm font-medium">URL del Webhook</Label>
             <div className="flex gap-2">
-              <code className="flex-1 p-3 bg-slate-100 rounded-lg text-sm text-slate-600 break-all">
+              <code className="flex-1 p-3 bg-muted rounded-lg text-sm text-muted-foreground break-all">
                 {typeof window !== 'undefined' ? `${window.location.origin}/api/webhook/whatsapp` : '/api/webhook/whatsapp'}
               </code>
               <Button variant="outline" size="icon" onClick={copyWebhookUrl}>
-                {copied ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                {copied ? <CheckCircle2 className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
               </Button>
             </div>
           </div>
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div>
               <p className="font-medium">Estado de la Integración</p>
-              <p className="text-sm text-slate-500">Verificar en Meta Business Suite</p>
+              <p className="text-sm text-muted-foreground">Verificar en Meta Business Suite</p>
             </div>
-            <Badge variant="outline" className="text-amber-600 border-amber-200">
+            <Badge variant="outline" className="text-[var(--warning)] border-[var(--warning)]/20">
               Pendiente
             </Badge>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             Configura este URL en tu WhatsApp Business API para recibir comprobantes de pago automáticamente.
             Los clientes podrán enviar fotos de sus comprobantes y el sistema los procesará.
           </p>
@@ -193,27 +193,27 @@ export function DataSettings() {
       </Card>
 
       {/* System Reset */}
-      <Card className="border-red-200 shadow-sm">
+      <Card className="border-destructive/20 shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <Trash2 className="w-5 h-5 text-red-600" />
+            <div className="p-2 bg-destructive/10 rounded-lg">
+              <Trash2 className="w-5 h-5 text-destructive" />
             </div>
             <div>
-              <CardTitle className="text-lg text-red-600">Zona de Peligro</CardTitle>
+              <CardTitle className="text-lg text-destructive">Zona de Peligro</CardTitle>
               <CardDescription>Acciones irreversibles del sistema</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
+          <div className="flex items-center justify-between p-4 bg-destructive/5 rounded-lg border border-destructive/20">
             <div>
-              <p className="font-medium text-red-700">Restablecer Configuración</p>
-              <p className="text-sm text-red-600">Volver a los valores por defecto</p>
+              <p className="font-medium text-destructive">Restablecer Configuración</p>
+              <p className="text-sm text-destructive/80">Volver a los valores por defecto</p>
             </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
+                <Button variant="outline" className="text-destructive border-destructive/20 hover:bg-destructive/5">
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Restablecer
                 </Button>

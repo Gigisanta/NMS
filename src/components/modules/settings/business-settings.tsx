@@ -102,9 +102,9 @@ export function BusinessSettings() {
 
   if (session?.user?.role !== 'EMPLEADORA') {
     return (
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardContent className="py-8 text-center">
-          <p className="text-slate-500">No tienes permisos para ver esta sección</p>
+          <p className="text-muted-foreground">No tienes permisos para ver esta sección</p>
         </CardContent>
       </Card>
     )
@@ -119,11 +119,11 @@ export function BusinessSettings() {
   }
 
   return (
-    <Card className="border-slate-100 shadow-sm">
+    <Card className="border-border shadow-sm">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-violet-100 rounded-lg">
-            <Building2 className="w-5 h-5 text-violet-600" />
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Building2 className="w-5 h-5 text-primary" />
           </div>
           <div>
             <CardTitle className="text-lg">Datos del Negocio</CardTitle>

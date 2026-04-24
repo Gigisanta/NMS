@@ -53,18 +53,18 @@ const handleSubmit = async (e: React.FormEvent) => {
 }
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 bg-white text-slate-900 relative overflow-hidden">
+    <Card className="w-full max-w-md mx-auto border border-border bg-card text-card-foreground relative overflow-hidden shadow-lg">
       {/* Subtle top accent bar for that Google-esque premium flair */}
-      <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#00A8E8] to-[#005691]" />
-      
+      <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-secondary to-primary" />
+
       <CardHeader className="text-center pb-2 pt-8">
-        <div className="mx-auto w-16 h-16 bg-[#F0F8FF] rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-[#005691]/10">
-          <span className="text-[#005691] text-2xl font-bold tracking-tight">NMS</span>
+        <div className="mx-auto w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-border">
+          <span className="text-primary text-2xl font-bold tracking-tight">NMS</span>
         </div>
-        <CardTitle className="text-2xl font-bold text-slate-900 tracking-tight">
+        <CardTitle className="text-2xl font-bold text-foreground tracking-tight">
           Bienvenido
         </CardTitle>
-        <CardDescription className="text-slate-500 text-base mt-2">
+        <CardDescription className="text-muted-foreground text-base mt-2">
           Sistema de Gestión de Natatorio
         </CardDescription>
       </CardHeader>
@@ -76,9 +76,9 @@ const handleSubmit = async (e: React.FormEvent) => {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          
+
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-slate-700 font-semibold">Email</Label>
+            <Label htmlFor="email" className="text-foreground font-semibold">Email</Label>
             <Input
               id="email"
               type="email"
@@ -87,12 +87,12 @@ const handleSubmit = async (e: React.FormEvent) => {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              className="h-12 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#00A8E8] focus-visible:border-[#00A8E8] shadow-sm text-base"
+              className="h-12 bg-background border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-ring focus-visible:border-ring shadow-sm text-base"
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-slate-700 font-semibold">Contraseña</Label>
+            <Label htmlFor="password" className="text-foreground font-semibold">Contraseña</Label>
             <Input
               id="password"
               type="password"
@@ -101,13 +101,13 @@ const handleSubmit = async (e: React.FormEvent) => {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              className="h-12 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#00A8E8] focus-visible:border-[#00A8E8] shadow-sm text-base"
+              className="h-12 bg-background border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-ring focus-visible:border-ring shadow-sm text-base"
             />
           </div>
-          
+
           <Button
             type="submit"
-            className="w-full h-12 gap-2 bg-[#005691] hover:bg-[#0078B0] shadow-md hover:shadow-lg text-white font-medium text-base rounded-full transition-all duration-300 mt-2"
+            className="w-full h-12 gap-2 bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg text-primary-foreground font-medium text-base rounded-full transition-all duration-300 mt-2"
             disabled={loading}
           >
             {loading ? (
@@ -122,12 +122,12 @@ const handleSubmit = async (e: React.FormEvent) => {
               </>
             )}
           </Button>
-          
+
           <div className="text-center text-sm pt-4">
-            <span className="text-slate-500">¿No tienes cuenta? </span>
-            <Link 
-              href="/register" 
-              className="text-[#005691] hover:text-[#00A8E8] font-semibold transition-colors"
+            <span className="text-muted-foreground">¿No tienes cuenta? </span>
+            <Link
+              href="/register"
+              className="text-primary hover:text-primary/80 font-semibold transition-colors"
             >
               Registrarse
             </Link>

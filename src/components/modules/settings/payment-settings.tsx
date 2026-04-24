@@ -204,11 +204,11 @@ export function PaymentSettings() {
   return (
     <div className="space-y-6">
       {/* General Payment Settings */}
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-100 rounded-lg">
-              <DollarSign className="w-5 h-5 text-emerald-600" />
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <DollarSign className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
               <CardTitle className="text-lg">Configuración de Pagos</CardTitle>
@@ -258,7 +258,7 @@ export function PaymentSettings() {
                 min="1"
                 max="28"
               />
-              <p className="text-xs text-slate-500">Día del mes en que vencen los pagos</p>
+              <p className="text-xs text-muted-foreground">Día del mes en que vencen los pagos</p>
             </div>
             <div className="space-y-2">
               <Label>Recargo por Mora (%)</Label>
@@ -274,10 +274,10 @@ export function PaymentSettings() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div>
               <p className="font-medium">Cambio Automático de Estado</p>
-              <p className="text-sm text-slate-500">Cambiar automáticamente a "Pendiente" al registrar asistencia sin pago</p>
+              <p className="text-sm text-muted-foreground">Cambiar automáticamente a "Pendiente" al registrar asistencia sin pago</p>
             </div>
             <Switch
               checked={formData['payment.autoStatus'] === 'true'}

@@ -34,7 +34,7 @@ export const ClientAvatar = forwardRef<HTMLSpanElement, ClientAvatarProps>(
         ref={ref}
         className={cn(
           sizeClasses[size],
-          'bg-gradient-to-br from-cyan-600 to-cyan-500',
+          'bg-gradient-to-br from-primary to-primary/80',
           showRing && 'ring-2 ring-white shadow-sm',
           className
         )}
@@ -65,9 +65,9 @@ export const EmployeeAvatar = forwardRef<HTMLSpanElement, ClientAvatarProps & {
         ref={ref}
         className={cn(
           sizeClasses[size],
-          role === 'EMPLEADORA' 
-            ? 'bg-gradient-to-br from-violet-600 to-violet-500'
-            : 'bg-gradient-to-br from-slate-600 to-slate-500',
+          role === 'EMPLEADORA'
+            ? 'bg-gradient-to-br from-primary to-primary/80'
+            : 'bg-gradient-to-br from-primary to-secondary',
           className
         )}
         {...props}
@@ -110,8 +110,8 @@ export function AvatarGroup({
       {remaining > 0 && (
         <div className={cn(
           sizeClasses[size],
-          'rounded-full bg-slate-100 flex items-center justify-center',
-          'text-slate-600 font-medium text-xs',
+          'rounded-full bg-muted flex items-center justify-center',
+          'text-muted-foreground font-medium text-xs',
           'ring-2 ring-white'
         )}>
           +{remaining}

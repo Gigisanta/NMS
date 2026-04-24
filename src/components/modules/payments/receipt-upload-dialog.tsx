@@ -118,7 +118,7 @@ export function ReceiptUploadDialog({
         <div className="bg-primary p-6 text-white relative">
           <div className="absolute top-0 right-0 w-32 h-32 -mr-12 -mt-12 bg-white/10 rounded-full blur-2xl" />
           <DialogTitle className="text-xl font-semibold relative z-10 flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <CheckCircle2 className="w-5 h-5 text-[var(--success)]" />
             Confirmar Transferencia
           </DialogTitle>
           <p className="text-white/70 text-sm mt-1 relative z-10">
@@ -133,8 +133,8 @@ export function ReceiptUploadDialog({
             onDrop={onDrop}
             className={cn(
               "relative border-2 border-dashed rounded-xl p-8 transition-all duration-300 flex flex-col items-center justify-center text-center gap-3",
-              dragActive ? "border-secondary bg-secondary/5" : "border-slate-200 bg-slate-50",
-              file ? "border-emerald-200 bg-emerald-50/30" : ""
+              dragActive ? "border-secondary bg-secondary/5" : "border-border bg-muted/50",
+              file ? "border-[var(--success)]/30 bg-[var(--success)]/5" : ""
             )}
           >
             {file ? (
@@ -144,18 +144,18 @@ export function ReceiptUploadDialog({
                     <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                   </div>
                 ) : (
-                  <div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center">
-                    <FileText className="w-8 h-8 text-red-600" />
+                  <div className="w-16 h-16 bg-[var(--destructive)]/10 rounded-lg flex items-center justify-center">
+                    <FileText className="w-8 h-8 text-[var(--destructive)]" />
                   </div>
                 )}
                 <div className="flex flex-col items-center">
-                  <p className="text-sm font-medium text-slate-900 truncate max-w-[200px]">{file.name}</p>
-                  <p className="text-xs text-slate-500">{(file.size / 1024).toFixed(1)} KB</p>
+                  <p className="text-sm font-medium text-foreground truncate max-w-[200px]">{file.name}</p>
+                  <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
                 </div>
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50 gap-1"
+                  className="h-8 text-[var(--destructive)] hover:text-[var(--destructive)]/80 hover:bg-[var(--destructive)]/10 gap-1"
                   onClick={() => setFile(null)}
                 >
                   <X className="w-3 h-3" />
@@ -168,10 +168,10 @@ export function ReceiptUploadDialog({
                   <Upload className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-semibold text-foreground">
                     Haz clic para subir o arrastra y suelta
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     JPG, PNG o PDF (Máx. 5MB)
                   </p>
                 </div>
@@ -185,9 +185,9 @@ export function ReceiptUploadDialog({
             )}
           </div>
 
-          <div className="bg-amber-50 border border-amber-100 p-3 rounded-lg flex gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
-            <p className="text-xs text-amber-800 leading-tight">
+          <div className="bg-[var(--warning)]/10 border border-[var(--warning)]/20 p-3 rounded-lg flex gap-3">
+            <AlertCircle className="w-5 h-5 text-[var(--warning)] shrink-0" />
+            <p className="text-xs text-[var(--warning)]/80 leading-tight">
               <strong>Nota:</strong> Al subir el comprobante, el estado del cliente se actualizará automáticamente a "Al Día".
             </p>
           </div>
@@ -197,7 +197,7 @@ export function ReceiptUploadDialog({
               variant="ghost" 
               onClick={onClose}
               disabled={uploading}
-              className="h-11 rounded-xl text-slate-500"
+              className="h-11 rounded-xl text-muted-foreground"
             >
               Cancelar
             </Button>

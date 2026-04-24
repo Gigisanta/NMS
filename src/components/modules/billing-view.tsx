@@ -119,8 +119,8 @@ export function BillingView() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Facturación</h1>
-          <p className="text-slate-500">
+          <h1 className="text-xl font-semibold text-foreground">Facturación</h1>
+          <p className="text-muted-foreground">
             Gestiona la facturación electrónica y cobros automáticos
           </p>
         </div>
@@ -128,7 +128,7 @@ export function BillingView() {
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-            className="h-9 px-3 rounded-md border border-slate-200 bg-white text-sm"
+            className="h-9 px-3 rounded-md border border-border bg-background text-sm"
           >
             {months.map(m => (
               <option key={m} value={m}>
@@ -139,7 +139,7 @@ export function BillingView() {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className="h-9 px-3 rounded-md border border-slate-200 bg-white text-sm"
+            className="h-9 px-3 rounded-md border border-border bg-background text-sm"
           >
             {years.map(y => (
               <option key={y} value={y}>{y}</option>
@@ -149,14 +149,14 @@ export function BillingView() {
       </div>
 
       <div className="grid gap-2 sm:gap-3 grid-cols-2 md:grid-cols-3 stagger-in">
-        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
+        <div className="bg-background p-3 sm:p-4 rounded-xl border border-border shadow-sm card-lift">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">ARCA (AFIP)</p>
-              <p className="text-sm font-semibold text-slate-900 mt-1">Facturación electrónica</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">ARCA (AFIP)</p>
+              <p className="text-sm font-semibold text-foreground mt-1">Facturación electrónica</p>
               <div className="flex items-center gap-1.5 mt-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 status-dot-live" />
-                <span className="text-xs text-slate-400">Conectado</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--success)] status-dot-live" />
+                <span className="text-xs text-muted-foreground">Conectado</span>
               </div>
             </div>
             <div className="p-2.5 rounded-lg shrink-0 mt-0.5 bg-primary/10">
@@ -165,14 +165,14 @@ export function BillingView() {
           </div>
         </div>
 
-        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm">
+        <div className="bg-background p-3 sm:p-4 rounded-xl border border-border shadow-sm">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Mercado Pago</p>
-              <p className="text-sm font-semibold text-slate-900 mt-1">API Gateway</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mercado Pago</p>
+              <p className="text-sm font-semibold text-foreground mt-1">API Gateway</p>
               <div className="flex items-center gap-1.5 mt-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 status-dot-live" />
-                <span className="text-xs text-slate-400">Activo para conciliación</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--success)] status-dot-live" />
+                <span className="text-xs text-muted-foreground">Activo para conciliación</span>
               </div>
             </div>
             <div className="p-2.5 rounded-lg shrink-0 mt-0.5 bg-secondary/10">
@@ -181,14 +181,14 @@ export function BillingView() {
           </div>
         </div>
 
-        <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm">
+        <div className="bg-background p-3 sm:p-4 rounded-xl border border-border shadow-sm">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Pendientes</p>
-              <p className="text-2xl font-semibold text-slate-900 mt-1 tabular-nums">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pendientes</p>
+              <p className="text-2xl font-semibold text-foreground mt-1 tabular-nums">
                 {subscriptions.filter(s => !s.isBilled).length}
               </p>
-              <p className="text-xs text-slate-400 mt-1">Items sin facturar</p>
+              <p className="text-xs text-muted-foreground mt-1">Items sin facturar</p>
             </div>
             <div className="p-2.5 rounded-lg shrink-0 mt-0.5 bg-warning/10">
               <AlertTriangle className="w-4 h-4 text-warning" />
@@ -197,8 +197,8 @@ export function BillingView() {
         </div>
       </div>
 
-      <Card className="border-slate-100 shadow-sm overflow-hidden">
-        <CardHeader className="border-b bg-slate-50/50">
+      <Card className="border-border shadow-sm overflow-hidden">
+        <CardHeader className="border-b bg-muted/50">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-base font-semibold">Items Facturables</CardTitle>
@@ -230,17 +230,17 @@ export function BillingView() {
             </div>
           ) : subscriptions.length === 0 ? (
             <div className="flex flex-col items-center py-14 gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center">
-                <Receipt className="w-7 h-7 text-slate-300" />
+              <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center">
+                <Receipt className="w-7 h-7 text-muted-foreground" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-semibold text-slate-700">Sin items para facturar</p>
-                <p className="text-xs text-slate-400 mt-1">Solo se muestran clientes con pago &quot;Al Día&quot;</p>
+                <p className="text-sm font-semibold text-muted-foreground">Sin items para facturar</p>
+                <p className="text-xs text-muted-foreground mt-1">Solo se muestran clientes con pago &quot;Al Día&quot;</p>
               </div>
             </div>
           ) : (
             <Table>
-              <TableHeader className="bg-slate-50">
+              <TableHeader className="bg-muted/50">
                 <TableRow>
                   <TableHead className="w-12">
                     <Checkbox
@@ -276,12 +276,12 @@ export function BillingView() {
                       <TableCell className="font-medium max-w-[160px]">
                         <span className="truncate block">{formatFullName(sub.client.nombre, sub.client.apellido)}</span>
                         {/* Mobile: show method as subtitle */}
-                        <span className="sm:hidden text-[10px] text-slate-400 uppercase tracking-wider">
+                        <span className="sm:hidden text-[10px] text-muted-foreground uppercase tracking-wider">
                           {sub.paymentMethod || 'Manual'}
                         </span>
                       </TableCell>
-                      <TableCell className="hidden sm:table-cell text-slate-500 text-sm">{sub.client.dni || '---'}</TableCell>
-                      <TableCell className="font-semibold text-slate-700">
+                      <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">{sub.client.dni || '---'}</TableCell>
+                      <TableCell className="font-semibold text-muted-foreground">
                         {formatCurrency(sub.amount || 0)}
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
@@ -291,12 +291,12 @@ export function BillingView() {
                       </TableCell>
                       <TableCell>
                         {sub.isBilled ? (
-                          <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1.5 shadow-none">
+                          <Badge className="bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20 gap-1.5 shadow-none">
                             <CheckCircle2 className="w-3 h-3" />
                             Facturado (ARCA)
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-amber-600 border-amber-200 gap-1.5">
+                          <Badge variant="outline" className="text-[var(--warning)] border-[var(--warning)]/20 gap-1.5">
                             <Clock className="w-3 h-3" />
                             Pendiente
                           </Badge>

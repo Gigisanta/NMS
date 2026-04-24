@@ -165,10 +165,10 @@ export function WhatsAppMessages() {
   // Get status config
   const getStatusConfig = (status: string) => {
     const configs: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-      received: { label: 'Recibido', color: 'bg-blue-100 text-blue-700', icon: Clock },
-      processed: { label: 'Procesado', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-      error: { label: 'Error', color: 'bg-red-100 text-red-700', icon: XCircle },
-      ignored: { label: 'Ignorado', color: 'bg-slate-100 text-slate-600', icon: XCircle },
+      received: { label: 'Recibido', color: 'bg-primary/10 text-primary', icon: Clock },
+      processed: { label: 'Procesado', color: 'bg-primary/10 text-primary', icon: CheckCircle },
+      error: { label: 'Error', color: 'bg-destructive/10 text-destructive', icon: XCircle },
+      ignored: { label: 'Ignorado', color: 'bg-muted text-muted-foreground', icon: XCircle },
     }
     return configs[status] || configs.received
   }
@@ -196,20 +196,20 @@ export function WhatsAppMessages() {
 
   if (!isEmpleadora) {
     return (
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardContent className="py-8 text-center">
-          <p className="text-slate-500">No tienes permisos para ver esta sección</p>
+          <p className="text-muted-foreground">No tienes permisos para ver esta sección</p>
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className="border-slate-100 shadow-sm">
+    <Card className="border-border shadow-sm">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <MessageSquare className="w-5 h-5 text-green-600" />
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <MessageSquare className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1">
             <CardTitle className="text-lg">Mensajes de WhatsApp</CardTitle>
@@ -221,7 +221,7 @@ export function WhatsAppMessages() {
         {/* Filters */}
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -245,7 +245,7 @@ export function WhatsAppMessages() {
         {/* Messages List */}
         {loading ? (
           <div className="flex justify-center py-8">
-            <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : filteredMessages.length > 0 ? (
           <ScrollArea className="max-h-96">
@@ -257,21 +257,21 @@ export function WhatsAppMessages() {
                 return (
                   <div
                     key={msg.id}
-                    className="p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
+                    className="p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
                   >
                     <div className="flex items-start gap-3">
-                      <Avatar className="w-10 h-10 bg-green-100">
-                        <AvatarFallback className="bg-green-100 text-green-700">
+                      <Avatar className="w-10 h-10 bg-primary/10">
+                        <AvatarFallback className="bg-primary/10 text-primary">
                           {msg.fromName?.[0]?.toUpperCase() || <User className="w-5 h-5" />}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{msg.fromName || 'Sin nombre'}</span>
-                          <span className="text-xs text-slate-500">{msg.fromPhone}</span>
+                          <span className="text-xs text-muted-foreground">{msg.fromPhone}</span>
                           {getMessageTypeIcon(msg.messageType)}
                         </div>
-                        <p className="text-sm text-slate-600 truncate mt-1">
+                        <p className="text-sm text-muted-foreground truncate mt-1">
                           {msg.content || 'Sin contenido'}
                         </p>
                         <div className="flex items-center gap-2 mt-2">
@@ -287,12 +287,12 @@ export function WhatsAppMessages() {
                                 : 'Cliente asignado'}
                             </Badge>
                           )}
-                          <span className="text-xs text-slate-400">
+                          <span className="text-xs text-muted-foreground">
                             {formatDate(msg.createdAt)} {formatTime(msg.createdAt)}
                           </span>
                         </div>
                         {msg.errorMessage && (
-                          <p className="text-xs text-red-600 mt-1">{msg.errorMessage}</p>
+                          <p className="text-xs text-destructive mt-1">{msg.errorMessage}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-1">
@@ -325,7 +325,7 @@ export function WhatsAppMessages() {
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4 mt-4">
-                                <div className="p-3 bg-slate-50 rounded-lg">
+                                <div className="p-3 bg-muted/50 rounded-lg">
                                   <p className="text-sm"><strong>De:</strong> {selectedMessage?.fromName || selectedMessage?.fromPhone}</p>
                                   <p className="text-sm"><strong>Teléfono:</strong> {selectedMessage?.fromPhone}</p>
                                 </div>
@@ -365,9 +365,9 @@ export function WhatsAppMessages() {
           </ScrollArea>
         ) : (
           <div className="text-center py-8">
-            <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">No hay mensajes para mostrar</p>
-            <p className="text-xs text-slate-400 mt-1">
+            <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground">No hay mensajes para mostrar</p>
+            <p className="text-xs text-muted-foreground mt-1">
               Los mensajes recibidos por WhatsApp aparecerán aquí
             </p>
           </div>

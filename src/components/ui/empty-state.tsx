@@ -35,43 +35,43 @@ interface EmptyStateProps {
 const illustrationConfig: Record<string, { icon: LucideIcon; iconColor: string; bgColor: string }> = {
   clients: {
     icon: Users,
-    iconColor: 'text-cyan-600',
-    bgColor: 'bg-cyan-50',
+    iconColor: 'text-primary',
+    bgColor: 'bg-primary/10',
   },
   payments: {
     icon: CreditCard,
-    iconColor: 'text-emerald-600',
-    bgColor: 'bg-emerald-50',
+    iconColor: 'text-[var(--success)]',
+    bgColor: 'bg-[var(--success)]/10',
   },
   attendance: {
     icon: Calendar,
-    iconColor: 'text-violet-600',
-    bgColor: 'bg-violet-50',
+    iconColor: 'text-[var(--chart-5)]',
+    bgColor: 'bg-[var(--chart-5)]/10',
   },
   invoices: {
     icon: FileText,
-    iconColor: 'text-amber-600',
-    bgColor: 'bg-amber-50',
+    iconColor: 'text-[var(--warning)]',
+    bgColor: 'bg-[var(--warning)]/10',
   },
   settings: {
     icon: Settings,
-    iconColor: 'text-slate-600',
-    bgColor: 'bg-slate-100',
+    iconColor: 'text-muted-foreground',
+    bgColor: 'bg-muted',
   },
   search: {
     icon: Search,
-    iconColor: 'text-blue-600',
-    bgColor: 'bg-blue-50',
+    iconColor: 'text-primary',
+    bgColor: 'bg-primary/10',
   },
   inbox: {
     icon: Inbox,
-    iconColor: 'text-orange-600',
-    bgColor: 'bg-orange-50',
+    iconColor: 'text-[var(--warning)]',
+    bgColor: 'bg-[var(--warning)]/10',
   },
   default: {
     icon: FolderOpen,
-    iconColor: 'text-slate-500',
-    bgColor: 'bg-slate-50',
+    iconColor: 'text-muted-foreground',
+    bgColor: 'bg-muted/50',
   },
 }
 
@@ -109,13 +109,13 @@ export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
         </div>
 
         {/* Title */}
-        <h3 className="text-lg font-semibold text-slate-900 mb-1">
+        <h3 className="text-lg font-semibold text-foreground mb-1">
           {title}
         </h3>
 
         {/* Description */}
         {description && (
-          <p className="text-sm text-slate-500 max-w-sm mb-6">
+          <p className="text-sm text-muted-foreground max-w-sm mb-6">
             {description}
           </p>
         )}
@@ -127,11 +127,11 @@ export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
               onClick={action.onClick}
               className={cn(
                 'gap-2',
-                illustration === 'clients' && 'bg-cyan-600 hover:bg-cyan-700',
-                illustration === 'payments' && 'bg-emerald-600 hover:bg-emerald-700',
-                illustration === 'attendance' && 'bg-violet-600 hover:bg-violet-700',
-                illustration === 'invoices' && 'bg-amber-600 hover:bg-amber-700',
-                !['clients', 'payments', 'attendance', 'invoices'].includes(illustration) && 'bg-slate-900 hover:bg-slate-800'
+                illustration === 'clients' && 'bg-primary hover:bg-primary/90',
+                illustration === 'payments' && 'bg-[var(--success)] hover:bg-[var(--success)]/90',
+                illustration === 'attendance' && 'bg-[var(--chart-5)] hover:bg-[var(--chart-5)]/90',
+                illustration === 'invoices' && 'bg-[var(--warning)] hover:bg-[var(--warning)]/90',
+                !['clients', 'payments', 'attendance', 'invoices'].includes(illustration) && 'bg-primary hover:bg-primary/90'
               )}
             >
               {action.icon && <action.icon className="w-4 h-4" />}
@@ -142,7 +142,7 @@ export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
             <Button
               variant="outline"
               onClick={secondaryAction.onClick}
-              className="text-slate-600"
+              className="text-muted-foreground"
             >
               {secondaryAction.label}
             </Button>
@@ -166,7 +166,7 @@ export function EmptyStateCompact({
 }) {
   return (
     <div className={cn(
-      'flex items-center justify-center py-8 text-slate-400',
+      'flex items-center justify-center py-8 text-muted-foreground',
       className
     )}>
       <p className="text-sm">{message}</p>
@@ -207,9 +207,9 @@ export function NoResults({
  */
 export function LoadingState({ message = 'Cargando...' }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12">
-      <div className="w-8 h-8 border-2 border-cyan-600 border-t-transparent rounded-full animate-spin mb-4" />
-      <p className="text-sm text-slate-500">{message}</p>
+    <div className="flex flex-col items-center justify-center py-12" role="status" aria-label={message}>
+      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+      <p className="text-sm text-muted-foreground">{message}</p>
     </div>
   )
 }

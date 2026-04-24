@@ -43,7 +43,7 @@ export function CalendarView() {
     title: '',
     description: '',
     allDay: true,
-    color: '#3b82f6'
+    color: 'var(--secondary, #3b82f6)'
   })
 
   // AbortController ref to cancel stale requests
@@ -155,7 +155,7 @@ export function CalendarView() {
       if (result.success) {
         toast.success('Evento creado correctamente')
         setShowEventForm(false)
-        setFormData({ title: '', description: '', allDay: true, color: '#3b82f6' })
+        setFormData({ title: '', description: '', allDay: true, color: 'var(--secondary, #3b82f6)' })
         fetchEvents()
       } else {
         toast.error(result.error || 'Error al crear evento')
@@ -189,9 +189,9 @@ export function CalendarView() {
     <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
       {/* Sidebar: Calendar & Date picker */}
       <div className="w-full lg:w-80 space-y-4 sm:space-y-6 shrink-0">
-        <Card className="border-slate-100 shadow-sm bg-white">
+        <Card className="border-border shadow-sm bg-background">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-500 uppercase tracking-wider">
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
               Calendario Global
             </CardTitle>
           </CardHeader>
@@ -207,18 +207,18 @@ export function CalendarView() {
                 hasEvent: (date) => events.some(e => isSameDay(new Date(e.start), date))
               }}
               modifiersClassNames={{
-                hasEvent: "after:content-[''] after:w-1 after:h-1 after:bg-blue-500 after:rounded-full after:absolute after:bottom-1"
+                hasEvent: "after:content-[''] after:w-1 after:h-1 after:bg-primary after:rounded-full after:absolute after:bottom-1"
               }}
             />
           </CardContent>
         </Card>
 
         {/* Selected Date Events */}
-        <Card className="border-slate-100 shadow-sm flex-1 overflow-hidden flex flex-col min-h-0">
+        <Card className="border-border shadow-sm flex-1 overflow-hidden flex flex-col min-h-0">
           <CardHeader className="pb-3 border-b flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-lg">Eventos</CardTitle>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 {selectedDate ? format(selectedDate, "d 'de' MMMM", { locale: es }) : 'Selecciona un día'}
               </p>
             </div>
@@ -236,10 +236,10 @@ export function CalendarView() {
               <AnimatePresence mode="popLayout">
                 {eventsForSelectedDate.length === 0 ? (
                   <div className="flex flex-col items-center py-10 gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center">
-                      <StickyNote className="w-5 h-5 text-slate-300" />
+                    <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
+                      <StickyNote className="w-5 h-5 text-muted-foreground/50" />
                     </div>
-                    <p className="text-xs text-slate-400">Sin eventos para este día</p>
+                    <p className="text-xs text-muted-foreground">Sin eventos para este día</p>
                   </div>
                 ) : (
                   eventsForSelectedDate.map((event) => (
@@ -248,21 +248,21 @@ export function CalendarView() {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className="group p-3 rounded-lg border-l-4 bg-slate-50 relative"
-                      style={{ borderLeftColor: event.color || '#3b82f6' }}
+                      className="group p-3 rounded-lg border-l-4 bg-muted relative"
+                      style={{ borderLeftColor: event.color || 'var(--secondary)' }}
                     >
                       <div className="flex justify-between items-start mb-1">
-                        <h4 className="text-sm font-semibold text-slate-800 pr-6">
+                        <h4 className="text-sm font-semibold text-foreground pr-6">
                           {event.title}
                         </h4>
                         <button
                           onClick={() => setDeletingEventId(event.id)}
-                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity absolute right-2 top-2 p-1 text-slate-400 hover:text-red-500"
+                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity absolute right-2 top-2 p-1 text-muted-foreground hover:text-destructive"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                      <p className="text-xs text-slate-500 line-clamp-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
                         {event.description || 'Sin notas.'}
                       </p>
                     </motion.div>
@@ -276,15 +276,15 @@ export function CalendarView() {
 
       {/* Main Content: Full Month View */}
       <div className="flex-1 flex flex-col min-w-0">
-        <Card className="border-slate-100 shadow-sm flex flex-col flex-1 overflow-hidden">
+        <Card className="border-border shadow-sm flex flex-col flex-1 overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between border-b pb-4 px-6 pt-6">
             <div className="flex items-center gap-4">
               <CalendarIcon className="w-5 h-5 text-secondary" />
-              <h2 className="text-lg font-semibold text-slate-900 capitalize">
+              <h2 className="text-lg font-semibold text-foreground capitalize">
                 {format(currentMonth, 'MMMM yyyy', { locale: es })}
               </h2>
             </div>
-            <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+            <div className="flex gap-1 bg-muted p-1 rounded-lg">
               <Button
                 variant="ghost"
                 size="sm"
@@ -312,9 +312,9 @@ export function CalendarView() {
             </div>
           </CardHeader>
           <CardContent className="p-0 flex-1 flex flex-col overflow-auto">
-            <div className="grid grid-cols-7 border-b text-center py-2 bg-slate-50/50">
+            <div className="grid grid-cols-7 border-b text-center py-2 bg-muted/50/50">
               {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
-                <span key={day} className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                <span key={day} className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">
                   {day}
                 </span>
               ))}
@@ -322,7 +322,7 @@ export function CalendarView() {
             <div className="flex-1 grid grid-cols-7 grid-rows-6 auto-rows-fr min-h-[400px] sm:min-h-[600px]">
               {/* Fill initial empty days */}
               {Array.from({ length: startOfMonth(currentMonth).getDay() }).map((_, i) => (
-                <div key={`empty-${i}`} className="border-r border-b border-slate-100 bg-slate-50/20" />
+                <div key={`empty-${i}`} className="border-r border-b border-border bg-muted/50/20" />
               ))}
 
               {days.map((day, i) => {
@@ -338,12 +338,12 @@ export function CalendarView() {
                     tabIndex={0}
                     role="button"
                     aria-label={`${format(day, 'd MMMM')}${dayEvents.length > 0 ? `, ${dayEvents.length} eventos` : ''}`}
-                    className={`border-r border-b border-slate-100 p-1 min-h-[100px] transition-colors duration-150 cursor-pointer hover:bg-secondary/4 focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:z-10 ${isSelected ? 'bg-secondary/8' : ''}`}
+                    className={`border-r border-b border-border p-1 min-h-[100px] transition-colors duration-150 cursor-pointer hover:bg-secondary/4 focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:z-10 ${isSelected ? 'bg-secondary/8' : ''}`}
                   >
                     <div className="flex justify-between items-center mb-1">
                       <span
                         className="text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full"
-                        style={isToday ? { background: 'var(--primary)', color: 'white' } : { color: 'var(--foreground-muted, #475569)' }}
+                        style={isToday ? { background: 'var(--primary)', color: 'var(--primary-foreground)' } : { color: 'var(--foreground-muted)' }}
                       >
                         {format(day, 'd')}
                       </span>
@@ -353,13 +353,13 @@ export function CalendarView() {
                         <div
                           key={event.id}
                           className="text-[10px] px-1.5 py-0.5 rounded truncate text-white font-medium shadow-sm"
-                          style={{ backgroundColor: event.color || '#3b82f6' }}
+                          style={{ backgroundColor: event.color || 'var(--secondary)' }}
                         >
                           {event.title}
                         </div>
                       ))}
                       {dayEvents.length > 3 && (
-                        <div className="text-[9px] text-slate-400 px-1 font-medium">
+                        <div className="text-[9px] text-muted-foreground px-1 font-medium">
                           + {dayEvents.length - 3} más
                         </div>
                       )}
@@ -397,7 +397,7 @@ export function CalendarView() {
                 <Label htmlFor="description">Notas / Detalles</Label>
                 <textarea
                   id="description"
-                  className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex min-h-[80px] w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Escribe más detalles aquí..."
@@ -411,7 +411,7 @@ export function CalendarView() {
                       key={color}
                       type="button"
                       className={`w-6 h-6 rounded-full border-2 transition-transform ${
-                        formData.color === color ? 'scale-125 border-slate-900' : 'border-transparent'
+                        formData.color === color ? 'scale-125 border-foreground' : 'border-transparent'
                       }`}
                       style={{ backgroundColor: color }}
                       onClick={() => setFormData({ ...formData, color })}
@@ -447,7 +447,7 @@ export function CalendarView() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
               onClick={() => deletingEventId && handleDeleteEvent(deletingEventId)}
             >
               Eliminar

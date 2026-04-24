@@ -44,7 +44,7 @@ export function ScheduleSelector({ preferredDays, preferredTime, onChange }: Sch
     <div className="space-y-4">
       {/* Days selector */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-slate-700">Días de asistencia</label>
+        <label className="text-sm font-medium text-muted-foreground">Días de asistencia</label>
         <div className="flex gap-2">
           {DAYS.map((day) => {
             const isSelected = selectedDays.includes(day.id)
@@ -58,21 +58,21 @@ export function ScheduleSelector({ preferredDays, preferredTime, onChange }: Sch
                   'border-2 hover:scale-105',
                   isSelected
                     ? 'text-white border-transparent shadow-sm'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-cyan-300 hover:bg-cyan-50'
+                    : 'bg-background text-muted-foreground border-border hover:border-primary/50 hover:bg-primary/5'
                 )}
                 style={isSelected ? { background: 'var(--primary)' } : {}}
                 title={day.fullLabel}
               >
                 <span className="relative z-10">{day.label}</span>
                 {isSelected && (
-                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white opacity-75" />
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-background opacity-75" />
                 )}
               </button>
             )
           })}
         </div>
         {selectedDays.length > 0 && (
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Seleccionados: {selectedDays.join(', ')}
           </p>
         )}
@@ -80,7 +80,7 @@ export function ScheduleSelector({ preferredDays, preferredTime, onChange }: Sch
 
       {/* Time selector */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-slate-700">Horario preferido</label>
+        <label className="text-sm font-medium text-muted-foreground">Horario preferido</label>
         <div className="grid grid-cols-4 gap-2">
           {TIMES.map((time) => {
             const isSelected = selectedTime === time
@@ -93,8 +93,8 @@ export function ScheduleSelector({ preferredDays, preferredTime, onChange }: Sch
                   'h-10 rounded-lg text-sm font-medium transition-all duration-200',
                   'border-2',
                   isSelected
-                    ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white border-transparent shadow-md'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-amber-300 hover:bg-amber-50'
+                    ? 'bg-[var(--warning)] text-white border-transparent shadow-md'
+                    : 'bg-background text-muted-foreground border-border hover:border-[var(--warning)]/50 hover:bg-[var(--warning)]/5'
                 )}
               >
                 {time}
@@ -106,7 +106,7 @@ export function ScheduleSelector({ preferredDays, preferredTime, onChange }: Sch
 
       {/* Quick presets */}
       <div className="pt-2">
-        <label className="text-xs font-medium text-slate-500 mb-2 block">Configuración rápida</label>
+        <label className="text-xs font-medium text-muted-foreground mb-2 block">Configuración rápida</label>
         <div className="flex gap-2 flex-wrap">
           {[
             { label: 'Lun y Mié 18:00', days: 'Lunes,Miércoles', time: '18:00' },
@@ -120,9 +120,9 @@ export function ScheduleSelector({ preferredDays, preferredTime, onChange }: Sch
               onClick={() => onChange(preset.days, preset.time)}
               className={cn(
                 'px-3 py-1.5 text-xs rounded-full transition-all duration-200',
-                'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                'bg-muted text-muted-foreground hover:bg-muted',
                 selectedDays.join(',') === preset.days && selectedTime === preset.time
-                  && 'bg-slate-800 text-white'
+                  && 'bg-primary text-primary-foreground'
               )}
             >
               {preset.label}
@@ -133,8 +133,8 @@ export function ScheduleSelector({ preferredDays, preferredTime, onChange }: Sch
 
       {/* Summary */}
       {(selectedDays.length > 0 || selectedTime) && (
-        <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-          <p className="text-sm text-slate-700 font-medium">
+        <div className="p-3 bg-muted/50 rounded-lg border border-border">
+          <p className="text-sm text-muted-foreground font-medium">
             {selectedDays.length > 0 
               ? `${selectedDays.join(', ')} a las ${selectedTime || '(seleccionar horario)'}`
               : 'Selecciona los días de asistencia'

@@ -25,9 +25,9 @@ function LoginContent() {
       <div className="w-full max-w-md space-y-6 relative z-10 animate-fade-slide-up">
         {/* Success message after registration */}
         {registered === 'true' && (
-          <Alert className="bg-emerald-50 border-emerald-200">
-            <CheckCircle className="h-4 w-4 text-emerald-600" />
-            <AlertDescription className="text-emerald-700">
+          <Alert className="bg-[var(--success)]/10 border-[var(--success)]/20">
+            <CheckCircle className="h-4 w-4 text-[var(--success)]" />
+            <AlertDescription className="text-[var(--success)]">
               Cuenta creada exitosamente. Ahora puedes iniciar sesión.
             </AlertDescription>
           </Alert>
@@ -35,9 +35,9 @@ function LoginContent() {
         
         {/* Error message from auth */}
         {error && (
-          <Alert className="bg-red-50 border-red-200">
-            <Info className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-700">
+          <Alert className="bg-destructive/10 border-destructive/20">
+            <Info className="h-4 w-4 text-destructive" />
+            <AlertDescription className="text-destructive">
               {error === 'SessionRequired' 
                 ? 'Debes iniciar sesión para acceder a esa página.'
                 : 'Ha ocurrido un error. Por favor, intenta nuevamente.'}
@@ -45,7 +45,7 @@ function LoginContent() {
           </Alert>
         )}
         
-        <div className="shadow-2xl rounded-3xl overflow-hidden backdrop-blur-md ring-1 ring-slate-900/5">
+        <div className="shadow-2xl rounded-3xl overflow-hidden backdrop-blur-md ring-1 ring-border/50">
           <LoginForm callbackUrl={callbackUrl} />
         </div>
       </div>
@@ -55,17 +55,17 @@ function LoginContent() {
 
 function LoginFallback() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-cyan-50/30 to-sky-50/50">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-cyan-50/30 to-sky-50/50">
       <div className="w-full max-w-md">
         <div className="animate-pulse">
-          <div className="bg-white rounded-xl shadow-xl p-8">
-            <div className="w-16 h-16 bg-slate-200 rounded-2xl mx-auto mb-4" />
-            <div className="h-6 bg-slate-200 rounded mb-2 w-32 mx-auto" />
-            <div className="h-4 bg-slate-100 rounded mb-6 w-48 mx-auto" />
+          <div className="bg-background rounded-xl shadow-xl p-8">
+            <div className="w-16 h-16 bg-muted rounded-2xl mx-auto mb-4" />
+            <div className="h-6 bg-muted rounded mb-2 w-32 mx-auto" />
+            <div className="h-4 bg-muted/50 rounded mb-6 w-48 mx-auto" />
             <div className="space-y-4">
-              <div className="h-11 bg-slate-100 rounded" />
-              <div className="h-11 bg-slate-100 rounded" />
-              <div className="h-11 bg-slate-200 rounded" />
+              <div className="h-11 bg-muted/50 rounded" />
+              <div className="h-11 bg-muted/50 rounded" />
+              <div className="h-11 bg-muted rounded" />
             </div>
           </div>
         </div>

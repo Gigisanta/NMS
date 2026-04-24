@@ -108,10 +108,10 @@ function Home() {
   // Loading state while checking authentication
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-cyan-50/30 to-sky-50/50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-cyan-50/30 to-sky-50/50">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 text-cyan-600 animate-spin" />
-          <p className="text-slate-600 text-sm">Verificando sesión...</p>
+          <Loader2 className="w-10 h-10 text-primary animate-spin" />
+          <p className="text-muted-foreground text-sm">Verificando sesión...</p>
         </div>
       </div>
     )

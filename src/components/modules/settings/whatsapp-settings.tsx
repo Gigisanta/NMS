@@ -202,9 +202,9 @@ export function WhatsAppSettings() {
 
   if (!isEmpleadora) {
     return (
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardContent className="py-8 text-center">
-          <p className="text-slate-500">No tienes permisos para ver esta sección</p>
+          <p className="text-muted-foreground">No tienes permisos para ver esta sección</p>
         </CardContent>
       </Card>
     )
@@ -221,28 +221,28 @@ export function WhatsAppSettings() {
   return (
     <div className="space-y-6">
       {/* Status Card */}
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <MessageSquare className="w-5 h-5 text-green-600" />
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <MessageSquare className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <CardTitle className="text-lg">Integración WhatsApp</CardTitle>
                 <CardDescription>Recibe comprobantes automáticamente por WhatsApp</CardDescription>
               </div>
             </div>
-            <Badge className={config?.isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}>
+            <Badge className={config?.isActive ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}>
               {config?.isActive ? 'Activo' : 'Inactivo'}
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div>
               <p className="font-medium">Estado de la Integración</p>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted-foreground">
                 {config?.isActive 
                   ? 'Los mensajes se procesan automáticamente'
                   : 'La integración está desactivada'}
@@ -282,7 +282,7 @@ export function WhatsAppSettings() {
 
         {/* Connection Tab */}
         <TabsContent value="connection" className="space-y-4 mt-4">
-          <Card className="border-slate-100 shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Credenciales de WhatsApp Business API</CardTitle>
               <CardDescription>
@@ -298,7 +298,7 @@ export function WhatsAppSettings() {
                   onChange={(e) => setFormData(prev => ({ ...prev, accessToken: e.target.value }))}
                   placeholder="EAAxxxxxxxx..."
                 />
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Obtén tu token en Meta Business Suite {'>'} WhatsApp {'>'} Configuración de la API
                 </p>
               </div>
@@ -328,7 +328,7 @@ export function WhatsAppSettings() {
                   Probar Conexión
                 </Button>
                 {testResult && (
-                  <Badge className={testResult.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
+                  <Badge className={testResult.success ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}>
                     {testResult.success ? <CheckCircle className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
                     {testResult.success ? 'Conectado' : 'Error'}
                   </Badge>
@@ -338,7 +338,7 @@ export function WhatsAppSettings() {
           </Card>
 
           {/* Webhook Configuration */}
-          <Card className="border-slate-100 shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Configuración del Webhook</CardTitle>
               <CardDescription>
@@ -349,7 +349,7 @@ export function WhatsAppSettings() {
               <div className="space-y-2">
                 <Label>URL del Webhook</Label>
                 <div className="flex gap-2">
-                  <Input value={webhookUrl} readOnly className="bg-slate-50" />
+                  <Input value={webhookUrl} readOnly className="bg-muted/50" />
                   <Button
                     variant="outline"
                     size="icon"
@@ -373,14 +373,14 @@ export function WhatsAppSettings() {
                     Generar
                   </Button>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Usa este token cuando configures el webhook en Meta Business Suite
                 </p>
               </div>
 
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-sm font-medium text-amber-800">📝 Pasos para configurar:</p>
-                <ol className="text-sm text-amber-700 mt-2 space-y-1 list-decimal list-inside">
+              <div className="p-4 bg-[var(--warning)]/5 border border-[var(--warning)]/20 rounded-lg">
+                <p className="text-sm font-medium text-[var(--warning)]">Pasos para configurar:</p>
+                <ol className="text-sm text-[var(--warning)]/80 mt-2 space-y-1 list-decimal list-inside">
                   <li>Ve a Meta Business Suite</li>
                   <li>Navega a WhatsApp {'>'} Configuración de la API</li>
                   <li>Configura el webhook con la URL de arriba</li>
@@ -394,7 +394,7 @@ export function WhatsAppSettings() {
 
         {/* Automation Tab */}
         <TabsContent value="automation" className="space-y-4 mt-4">
-          <Card className="border-slate-100 shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Automatizaciones</CardTitle>
               <CardDescription>
@@ -402,12 +402,12 @@ export function WhatsAppSettings() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <Bell className="w-5 h-5 text-violet-600" />
+                  <Bell className="w-5 h-5 text-primary" />
                   <div>
                     <p className="font-medium">Respuestas Automáticas</p>
-                    <p className="text-sm text-slate-500">Enviar confirmación al recibir mensajes</p>
+                    <p className="text-sm text-muted-foreground">Enviar confirmación al recibir mensajes</p>
                   </div>
                 </div>
                 <Switch
@@ -416,12 +416,12 @@ export function WhatsAppSettings() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Download className="w-5 h-5 text-secondary" />
                   <div>
                     <p className="font-medium">Descargar Archivos</p>
-                    <p className="text-sm text-slate-500">Descargar automáticamente fotos y documentos</p>
+                    <p className="text-sm text-muted-foreground">Descargar automáticamente fotos y documentos</p>
                   </div>
                 </div>
                 <Switch
@@ -430,12 +430,12 @@ export function WhatsAppSettings() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <Users className="w-5 h-5 text-emerald-600" />
+                  <Users className="w-5 h-5 text-primary" />
                   <div>
                     <p className="font-medium">Matchear Clientes</p>
-                    <p className="text-sm text-slate-500">Identificar clientes por número de teléfono</p>
+                    <p className="text-sm text-muted-foreground">Identificar clientes por número de teléfono</p>
                   </div>
                 </div>
                 <Switch
@@ -444,12 +444,12 @@ export function WhatsAppSettings() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <DollarSign className="w-5 h-5 text-amber-600" />
+                  <DollarSign className="w-5 h-5 text-[var(--warning)]" />
                   <div>
                     <p className="font-medium">Actualizar Pagos</p>
-                    <p className="text-sm text-slate-500">Marcar como pagado al recibir comprobante</p>
+                    <p className="text-sm text-muted-foreground">Marcar como pagado al recibir comprobante</p>
                   </div>
                 </div>
                 <Switch
@@ -463,7 +463,7 @@ export function WhatsAppSettings() {
 
         {/* Messages Tab */}
         <TabsContent value="messages" className="space-y-4 mt-4">
-          <Card className="border-slate-100 shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Personalizar Mensajes</CardTitle>
               <CardDescription>
@@ -479,7 +479,7 @@ export function WhatsAppSettings() {
                   placeholder="Mensaje que se envía cuando un cliente escribe..."
                   className="min-h-[100px]"
                 />
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Variables: {`{businessName}`}
                 </p>
               </div>
@@ -492,7 +492,7 @@ export function WhatsAppSettings() {
                   placeholder="Mensaje cuando el pago se procesa correctamente..."
                   className="min-h-[100px]"
                 />
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Variables: {`{clientName}`}, {`{date}`}
                 </p>
               </div>
@@ -505,7 +505,7 @@ export function WhatsAppSettings() {
                   placeholder="Mensaje cuando no se encuentra el cliente..."
                   className="min-h-[100px]"
                 />
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Variables: {`{contactName}`}
                 </p>
               </div>
@@ -525,7 +525,7 @@ export function WhatsAppSettings() {
 
         {/* Help Tab */}
         <TabsContent value="help" className="space-y-4 mt-4">
-          <Card className="border-slate-100 shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-base">Guía de Configuración</CardTitle>
               <CardDescription>
@@ -539,7 +539,7 @@ export function WhatsAppSettings() {
                     <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold bg-primary">1</span>
                     Crear Cuenta de WhatsApp Business
                   </h4>
-                  <p className="text-sm text-slate-600 mt-2 ml-8">
+                  <p className="text-sm text-muted-foreground mt-2 ml-8">
                     Ve a <a href="https://business.facebook.com" target="_blank" className="hover:underline font-medium text-primary">Meta Business Suite</a> y crea una cuenta comercial si no tienes una.
                   </p>
                 </div>
@@ -549,7 +549,7 @@ export function WhatsAppSettings() {
                     <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold bg-primary">2</span>
                     Configurar WhatsApp Business API
                   </h4>
-                  <p className="text-sm text-slate-600 mt-2 ml-8">
+                  <p className="text-sm text-muted-foreground mt-2 ml-8">
                     En Meta Business Suite, ve a WhatsApp {'>'} Configuración de la API y configura tu número de teléfono.
                   </p>
                 </div>
@@ -559,7 +559,7 @@ export function WhatsAppSettings() {
                     <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold bg-primary">3</span>
                     Obtener Credenciales
                   </h4>
-                  <ul className="text-sm text-slate-600 mt-2 ml-8 space-y-1 list-disc list-inside">
+                  <ul className="text-sm text-muted-foreground mt-2 ml-8 space-y-1 list-disc list-inside">
                     <li>Access Token: Token de acceso permanente</li>
                     <li>Phone Number ID: ID de tu número de WhatsApp Business</li>
                     <li>Business Account ID: ID de tu cuenta comercial</li>
@@ -571,11 +571,11 @@ export function WhatsAppSettings() {
                     <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold bg-primary">4</span>
                     Configurar Webhook
                   </h4>
-                  <ul className="text-sm text-slate-600 mt-2 ml-8 space-y-1 list-disc list-inside">
+                  <ul className="text-sm text-muted-foreground mt-2 ml-8 space-y-1 list-disc list-inside">
                     <li>Copia la URL del webhook</li>
                     <li>Genera o define un token de verificación</li>
                     <li>En Meta Business Suite, configura el webhook</li>
-                    <li>Suscríbete a los eventos: <code className="bg-slate-100 px-1 rounded">messages</code></li>
+                    <li>Suscríbete a los eventos: <code className="bg-muted px-1 rounded">messages</code></li>
                   </ul>
                 </div>
 
@@ -584,15 +584,15 @@ export function WhatsAppSettings() {
                     <span className="w-6 h-6 rounded-full flex items-center justify-center text-sm text-white font-semibold bg-primary">5</span>
                     Probar Integración
                   </h4>
-                  <p className="text-sm text-slate-600 mt-2 ml-8">
+                  <p className="text-sm text-muted-foreground mt-2 ml-8">
                     Envía un mensaje a tu número de WhatsApp Business y verifica que aparezca en el sistema.
                   </p>
                 </div>
               </div>
 
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                <h4 className="font-medium text-slate-800">💡 Tips</h4>
-                <ul className="text-sm text-slate-600 mt-2 space-y-1 list-disc list-inside">
+              <div className="p-4 bg-muted/50 border border-border rounded-lg">
+                <h4 className="font-medium text-foreground">💡 Tips</h4>
+                <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
                   <li>Los clientes se matchean automáticamente por número de teléfono</li>
                   <li>Asegúrate de que los números en el sistema coincidan con WhatsApp</li>
                   <li>Los comprobantes se guardan en la carpeta uploads</li>

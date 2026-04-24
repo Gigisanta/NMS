@@ -97,12 +97,12 @@
   --chart-4: #FF9500;
   --chart-5: #5856D6;
 
-  /* Success / Status Colors - used in hardcoded styles across components */
+  /* Success / Status Colors */
   --success: #34C759;
   --success-light: #10b981;
   --warning: #f59e0b;
   --warning-light: #FF9500;
-  
+
   /* Sidebar */
   --sidebar: #F0F8FF;
   --sidebar-foreground: #1A1A1A;
@@ -112,7 +112,7 @@
   --sidebar-accent-foreground: #005691;
   --sidebar-border: rgba(0, 86, 145, 0.1);
   --sidebar-ring: #00A8E8;
-  
+
   /* Sombras Oro Azul */
   --shadow-xs: 0 1px 2px rgba(0, 86, 145, 0.05);
   --shadow-sm: 0 2px 4px rgba(0, 86, 145, 0.06), 0 3px 6px rgba(0, 86, 145, 0.04);
@@ -154,6 +154,24 @@
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.6), 0 20px 48px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 30px rgba(0, 168, 232, 0.15);
+
+  --success: #10b981;
+  --success-light: #34C759;
+  --warning: #FF9500;
+  --warning-light: #f59e0b;
+
+  --sidebar-ring: #4DC3F4;
+
+  --destructive: #EF4444;
+
+  --chart-1: #00A8E8;
+  --chart-2: #4DC3F4;
+  --chart-3: #10b981;
+  --chart-4: #FF9500;
+  --chart-5: #8b5cf6;
 }
 
 /* ============================================
@@ -230,10 +248,18 @@
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 168, 232, 0.35), 0 4px 12px rgba(0, 86, 145, 0.2);
   }
-  
+
   .btn-hover-glow:active {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 168, 232, 0.25);
+  }
+
+  .dark .btn-hover-glow:hover {
+    box-shadow: 0 8px 25px rgba(0, 168, 232, 0.25), 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark .btn-hover-glow:active {
+    box-shadow: 0 4px 12px rgba(0, 168, 232, 0.2);
   }
   
   /* Brillo de agua */
@@ -270,16 +296,16 @@
   
   /* Gradiente primario Oro Azul */
   .gradient-oro-azul {
-    background: linear-gradient(135deg, #005691 0%, #00A8E8 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   }
-  
+
   .gradient-oro-azul-vertical {
-    background: linear-gradient(180deg, #005691 0%, #0078B0 100%);
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-light) 100%);
   }
-  
+
   /* Texto con gradiente */
   .text-gradient {
-    background: linear-gradient(135deg, #005691 0%, #00A8E8 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -347,10 +373,10 @@
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(0, 168, 232, 0.3);
+    box-shadow: 0 0 20px var(--secondary);
   }
   50% {
-    box-shadow: 0 0 40px rgba(0, 168, 232, 0.5);
+    box-shadow: 0 0 40px var(--secondary);
   }
 }
 
@@ -394,9 +420,9 @@
 .skeleton-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(240, 248, 255, 0.7) 25%,
-    rgba(205, 228, 245, 0.95) 50%,
-    rgba(240, 248, 255, 0.7) 75%
+    var(--muted) 25%,
+    var(--muted-foreground) 50%,
+    var(--muted) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.6s ease-in-out infinite;
@@ -415,7 +441,7 @@
   top: 0;
   left: 0;
   height: 2px;
-  background: linear-gradient(90deg, #005691 0%, #00A8E8 55%, #4DC3F4 100%);
+  background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 55%, var(--secondary-light) 100%);
   animation: viewLoadBar 0.52s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   z-index: 9999;
   pointer-events: none;
@@ -431,16 +457,18 @@
 /* Scrollbar global: fino y con paleta Oro Azul */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 86, 145, 0.14) transparent;
+  scrollbar-color: var(--muted-foreground) transparent;
 }
 *::-webkit-scrollbar        { width: 5px; height: 5px; }
 *::-webkit-scrollbar-track  { background: transparent; }
 *::-webkit-scrollbar-thumb  {
-  background: rgba(0, 86, 145, 0.14);
+  background: var(--muted-foreground);
   border-radius: 999px;
+  opacity: 0.3;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 86, 145, 0.3);
+  background: var(--muted-foreground);
+  opacity: 0.5;
 }
 
 @layer utilities {
@@ -487,10 +515,14 @@
     position: relative;
   }
   .table-row-hover:hover {
-    background: rgba(0, 168, 232, 0.045);
+    background: var(--accent);
   }
   .table-row-hover:hover td:first-child {
-    box-shadow: inset 2px 0 0 rgba(0, 168, 232, 0.5);
+    box-shadow: inset 2px 0 0 var(--secondary);
+  }
+
+  .dark .table-row-hover:hover {
+    background: rgba(0, 168, 232, 0.1);
   }
 }
 
@@ -517,29 +549,29 @@ select {
 }
 select:focus {
   outline: none;
-  border-color: rgba(0, 168, 232, 0.6) !important;
-  box-shadow: 0 0 0 3px rgba(0, 168, 232, 0.12) !important;
+  border-color: var(--secondary) !important;
+  box-shadow: 0 0 0 3px var(--secondary)/20 !important;
 }
 select:hover {
-  border-color: rgba(0, 168, 232, 0.4) !important;
+  border-color: var(--secondary)/50 !important;
 }
 
 /* Input focus glow con paleta Oro Azul */
 [data-slot="input"]:focus-visible {
-  border-color: rgba(0, 168, 232, 0.65) !important;
-  box-shadow: 0 0 0 3px rgba(0, 168, 232, 0.14), 0 1px 6px rgba(0, 86, 145, 0.08) !important;
+  border-color: var(--secondary) !important;
+  box-shadow: 0 0 0 3px var(--secondary)/20 !important;
   outline: none !important;
 }
 
 /* Hover de items de navegación en sidebar */
 .sidebar-nav-inactive:hover {
-  background: rgba(0, 168, 232, 0.09) !important;
-  border-color: rgba(0, 168, 232, 0.15) !important;
+  background: var(--sidebar-accent) !important;
+  border-color: var(--sidebar-border) !important;
 }
 
 /* Acento izquierdo en todas las filas de tabla al hacer hover */
 [data-slot="table-row"]:hover [data-slot="table-cell"]:first-child {
-  box-shadow: inset 2px 0 0 rgba(0, 168, 232, 0.45);
+  box-shadow: inset 2px 0 0 var(--secondary);
   transition: box-shadow 130ms ease;
 }
 [data-slot="table-cell"] {

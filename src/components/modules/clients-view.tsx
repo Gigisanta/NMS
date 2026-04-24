@@ -103,7 +103,7 @@ const ClientTableRow = memo(({
             {initials}
           </div>
           <div className="min-w-0">
-            <p className="font-medium text-slate-900 truncate">{formatFullName(client.nombre, client.apellido)}</p>
+            <p className="font-medium text-foreground truncate">{formatFullName(client.nombre, client.apellido)}</p>
             {/* Mobile: status badge inline */}
             <div className="sm:hidden mt-0.5">
               <Badge variant="outline" className={cn('text-[10px] font-normal', statusConfig.color)}>
@@ -113,7 +113,7 @@ const ClientTableRow = memo(({
           </div>
         </div>
       </TableCell>
-      <TableCell className="hidden sm:table-cell text-sm text-slate-500">
+      <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
         {client.dni || '—'}
       </TableCell>
       <TableCell onClick={(e) => e.stopPropagation()}>
@@ -135,8 +135,8 @@ const ClientTableRow = memo(({
               className={cn(
                 'text-[10px] w-fit font-normal gap-1',
                 paid
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-amber-50 text-amber-600 border-amber-200'
+                  ? 'bg-[var(--success)]/20 text-[var(--success)] border-[var(--success)]/30'
+                  : 'bg-[var(--warning)]/20 text-[var(--warning)] border-[var(--warning)]/30'
               )}
             >
               {paid && <FileCheck className="w-2.5 h-2.5" />}
@@ -150,7 +150,7 @@ const ClientTableRow = memo(({
           {statusConfig.label}
         </Badge>
       </TableCell>
-      <TableCell className="hidden lg:table-cell text-xs text-slate-400">
+      <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
         {client.updatedAt
           ? new Date(client.updatedAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' })
           : '—'
@@ -162,7 +162,7 @@ const ClientTableRow = memo(({
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 text-amber-500 hover:text-amber-700 hover:bg-amber-50"
+              className="h-9 w-9 text-[var(--warning)] hover:text-[var(--warning)] hover:bg-[var(--warning)]/10"
               title="Recordar pago por WhatsApp"
               onClick={() => {
                 window.open(
@@ -177,7 +177,7 @@ const ClientTableRow = memo(({
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 text-red-400 hover:text-red-600 hover:bg-red-50"
+            className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
             title="Eliminar cliente"
             onClick={() => onDelete(client.id)}
             disabled={isDeleting}
@@ -349,7 +349,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
             groups={groups}
             onGroupsChange={() => queryClient.invalidateQueries({ queryKey: ['groups'] })}
             trigger={
-              <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-slate-600 hover:text-slate-800 hover:bg-slate-50">
+              <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50">
                 <Settings className="w-4 h-4" />
                 Gestionar Grupos
               </Button>
@@ -367,10 +367,10 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
       <div className="flex gap-4 items-start">
         {/* Desktop sidebar */}
         <aside className="hidden md:flex flex-col gap-2 w-52 lg:w-56 shrink-0 sticky top-4">
-          <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
+          <div className="bg-background rounded-xl border border-border shadow-sm p-3">
             <div className="flex items-center gap-2 mb-3">
-              <Users className="w-4 h-4 text-slate-400" />
-              <span className="font-semibold text-sm text-slate-700">Grupos</span>
+              <Users className="w-4 h-4 text-muted-foreground" />
+              <span className="font-semibold text-sm text-muted-foreground">Grupos</span>
               <Select value={groupSortBy} onValueChange={(v) => setGroupSortBy(v as 'name' | 'color')}>
                 <SelectTrigger className="ml-auto h-7 w-[90px] text-xs">
                   <SelectValue />
@@ -387,7 +387,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
                   onClick={() => { setGrupoFilter(null); setPage(1) }}
                   className={cn(
                     'w-full text-left px-3 py-2 text-sm rounded-lg transition-all font-medium',
-                    grupoFilter === null ? 'text-white' : 'text-slate-600 hover:bg-slate-50'
+                    grupoFilter === null ? 'text-white' : 'text-muted-foreground hover:bg-muted/50'
                   )}
                   style={grupoFilter === null ? { background: 'var(--primary)' } : {}}
                 >
@@ -400,7 +400,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
                   onClick={() => { setGrupoFilter(group.id); setPage(1) }}
                   className={cn(
                     'w-full text-left px-3 py-2 text-sm rounded-lg transition-all flex items-center gap-2 font-medium',
-                    grupoFilter === group.id ? 'text-white' : 'text-slate-600 hover:bg-slate-50'
+                    grupoFilter === group.id ? 'text-white' : 'text-muted-foreground hover:bg-muted/50'
                   )}
                 >
                   <span
@@ -408,7 +408,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
                     style={{ backgroundColor: grupoFilter === group.id ? 'rgba(255,255,255,0.7)' : (group.color || 'var(--secondary)') }}
                   />
                   <span className="truncate">{group.name}</span>
-                  <span className={cn('ml-auto text-xs shrink-0', grupoFilter === group.id ? 'text-white/70' : 'text-slate-400')}>
+                  <span className={cn('ml-auto text-xs shrink-0', grupoFilter === group.id ? 'text-white/70' : 'text-muted-foreground')}>
                     {group.clientCount || 0}
                   </span>
                 </button>
@@ -419,7 +419,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
                 groups={groups}
                 onGroupsChange={() => queryClient.invalidateQueries({ queryKey: ['groups'] })}
                 trigger={
-                  <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-slate-600 hover:text-slate-800 hover:bg-slate-50">
+                  <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50">
                     <Settings className="w-4 h-4" />
                     Gestionar Grupos
                   </Button>
@@ -429,7 +429,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
 
         {/* Main table card */}
         <div className="flex-1 min-w-0">
-          <Card className="border-slate-100 shadow-sm">
+          <Card className="border-border shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between gap-4 pb-3">
               <div>
                 <CardTitle className="text-lg font-semibold">Clientes</CardTitle>
@@ -450,7 +450,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
             <CardContent className="pt-0 space-y-3">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por nombre, teléfono o DNI..."
                   value={search}
@@ -460,10 +460,10 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
               </div>
 
               {/* Table */}
-              <div className="rounded-lg border border-slate-100 overflow-hidden">
+              <div className="rounded-lg border border-border overflow-hidden">
                 <div className="overflow-x-auto">
                   <Table>
-                    <TableHeader className="bg-slate-50">
+                    <TableHeader className="bg-muted/50">
                       <TableRow>
                         <TableHead>Cliente</TableHead>
                         <TableHead className="hidden sm:table-cell">DNI</TableHead>
@@ -530,7 +530,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-sm text-slate-500">Página {page} de {totalPages}</span>
+                  <span className="text-sm text-muted-foreground">Página {page} de {totalPages}</span>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -597,7 +597,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive hover:bg-destructive/90 text-white"
               onClick={() => {
                 if (confirmDeleteId) {
                   handleDelete(confirmDeleteId)

@@ -212,20 +212,20 @@ export const paymentStatusConfig = {
   /** Cliente al día con sus pagos */
   AL_DIA: {
     label: 'Al Día',
-    color: 'bg-green-100 text-green-800 border-green-200',
-    dotColor: 'bg-green-500',
+    color: 'bg-[var(--success)]/20 text-[var(--success)] border-[var(--success)]/30',
+    dotColor: 'bg-[var(--success)]',
   },
   /** Pago pendiente */
   PENDIENTE: {
     label: 'Pendiente',
-    color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    dotColor: 'bg-yellow-500',
+    color: 'bg-[var(--warning)]/20 text-[var(--warning)] border-[var(--warning)]/30',
+    dotColor: 'bg-[var(--warning)]',
   },
   /** Pago atrasado */
   DEUDOR: {
     label: 'Deudor',
-    color: 'bg-red-100 text-red-800 border-red-200',
-    dotColor: 'bg-red-500',
+    color: 'bg-destructive/20 text-destructive border-destructive/30',
+    dotColor: 'bg-destructive',
   },
 } as const
 

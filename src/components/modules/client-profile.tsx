@@ -115,14 +115,14 @@ interface ClientProfileProps {
 // Memoized attendance item
 const AttendanceItem = memo(function AttendanceItem({ attendance }: { attendance: Attendance }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
       <div className="flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-emerald-500" />
+        <div className="w-2 h-2 rounded-full bg-[var(--success)]" />
         <span className="text-sm font-medium">
           {formatDate(attendance.date)}
         </span>
       </div>
-      <span className="text-xs text-slate-500">
+      <span className="text-xs text-muted-foreground">
         {formatTime(attendance.date)}
       </span>
     </div>
@@ -142,10 +142,10 @@ const SubscriptionItem = memo(function SubscriptionItem({ sub }: { sub: Subscrip
   )
 
   return (
-    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
       <div>
         <p className="text-sm font-medium capitalize">{monthLabel}{billingLabel}</p>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-muted-foreground">
           {sub.classesUsed}/{sub.classesTotal} clases
         </p>
       </div>
@@ -177,7 +177,7 @@ const TabButton = memo(function TabButton({
         'flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all',
         active
           ? 'text-white shadow-sm gradient-oro-azul'
-          : 'text-slate-600 hover:bg-slate-100'
+          : 'text-muted-foreground hover:bg-muted'
       )}
     >
       <Icon className="w-4 h-4" />
@@ -554,26 +554,26 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         {/* Header skeleton */}
         <div className="p-4 border-b shrink-0 space-y-3">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-slate-100 animate-pulse shrink-0" />
+            <div className="h-9 w-9 rounded-lg bg-muted animate-pulse shrink-0" />
             <div className="space-y-1.5 flex-1">
-              <div className="h-5 w-40 bg-slate-100 rounded animate-pulse" />
-              <div className="h-4 w-24 bg-slate-100 rounded animate-pulse" />
+              <div className="h-5 w-40 bg-muted rounded animate-pulse" />
+              <div className="h-4 w-24 bg-muted rounded animate-pulse" />
             </div>
-            <div className="h-8 w-20 bg-slate-100 rounded animate-pulse shrink-0" />
+            <div className="h-8 w-20 bg-muted rounded animate-pulse shrink-0" />
           </div>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="h-9 w-24 bg-slate-100 rounded-lg animate-pulse" />
+              <div key={i} className="h-9 w-24 bg-muted rounded-lg animate-pulse" />
             ))}
           </div>
         </div>
         {/* Content skeleton */}
         <div className="flex-1 p-4 space-y-4">
-          <div className="rounded-xl border border-slate-100 p-4 space-y-3">
-            <div className="h-4 w-32 bg-slate-100 rounded animate-pulse" />
+          <div className="rounded-xl border border-border p-4 space-y-3">
+            <div className="h-4 w-32 bg-muted rounded animate-pulse" />
             <div className="grid grid-cols-2 gap-3">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
+                <div key={i} className="h-10 bg-muted rounded animate-pulse" />
               ))}
             </div>
           </div>
@@ -585,7 +585,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
   if (!client) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
-        <p className="text-slate-500">Cliente no encontrado</p>
+        <p className="text-muted-foreground">Cliente no encontrado</p>
       </div>
     )
   }
@@ -593,14 +593,14 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header - fixed height, not sticky within the flex context */}
-      <div className="p-3 sm:p-4 border-b bg-white shrink-0">
+      <div className="p-3 sm:p-4 border-b bg-background shrink-0">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0 h-9 w-9">
               <X className="w-5 h-5" />
             </Button>
             <div className="min-w-0">
-              <h2 className="text-base sm:text-xl font-semibold text-slate-900 truncate">{clientFullName}</h2>
+              <h2 className="text-base sm:text-xl font-semibold text-foreground truncate">{clientFullName}</h2>
               <div className="flex items-center gap-2 mt-0.5">
                 <GroupBadge group={client.grupo} size="sm" />
                 <Badge className={cn(statusConfig.color, 'border text-xs')}>
@@ -630,7 +630,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
       <ScrollArea className="flex-1 min-h-0">
         <div className="p-4">
         {error && (
-          <div className="mb-4 p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-100">
+          <div className="mb-4 p-3 text-sm text-destructive bg-destructive/10 rounded-lg border border-destructive/20">
             {error}
           </div>
         )}
@@ -638,7 +638,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         {activeTab === 'info' && (
           <div className="space-y-6">
             {/* Datos personales */}
-            <Card className="border-slate-100 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <User className="w-4 h-4 text-secondary" />
@@ -733,14 +733,14 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-400">Sin grupos adicionales</p>
+                    <p className="text-sm text-muted-foreground">Sin grupos adicionales</p>
                   )}
                 </div>
               </CardContent>
             </Card>
 
             {/* Horario preferido */}
-            <Card className="border-slate-100 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Clock className="w-4 h-4 text-secondary" />
@@ -760,7 +760,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             </Card>
 
             {/* Notas */}
-            <Card className="border-slate-100 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <FileText className="w-4 h-4 text-secondary" />
@@ -782,7 +782,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         {activeTab === 'subscription' && (
           <div className="space-y-6">
             {/* Clases del mes actual */}
-            <Card className="border-slate-100 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-secondary" />
@@ -792,9 +792,9 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
               <CardContent className="space-y-4">
                 {/* Monto mensual */}
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm text-slate-600 shrink-0">Monto mensual</span>
+                  <span className="text-sm text-muted-foreground shrink-0">Monto mensual</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-500">$</span>
+                    <span className="text-sm text-muted-foreground">$</span>
                     <Input
                       type="number"
                       className="w-28 sm:w-32 text-right"
@@ -807,7 +807,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
 
                 {/* Billing Period */}
                 <div className="space-y-2">
-                  <span className="text-sm text-slate-600">Periodo de facturación</span>
+                  <span className="text-sm text-muted-foreground">Periodo de facturación</span>
                   <div className="grid grid-cols-2 gap-2">
                     <Button
                       variant={formData.billingPeriod === 'FULL' ? 'default' : 'outline'}
@@ -831,7 +831,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Clases contratadas</span>
+                  <span className="text-sm text-muted-foreground">Clases contratadas</span>
                   <div className="flex items-center gap-3">
                     <Button
                       variant="outline"
@@ -856,21 +856,21 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Clases usadas</span>
-                  <span className="text-2xl font-semibold text-slate-400">
+                  <span className="text-sm text-muted-foreground">Clases usadas</span>
+                  <span className="text-2xl font-semibold text-muted-foreground">
                     {currentSubscription?.classesUsed || 0}
                   </span>
                 </div>
 
                 {/* Progress bar */}
                 <div className="space-y-2">
-                  <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-3 bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{ background: 'var(--secondary)', width: `${progressPercent}%` }}
                     />
                   </div>
-                  <div className="flex justify-between text-xs text-slate-500">
+                  <div className="flex justify-between text-xs text-muted-foreground">
                     <span>{currentSubscription?.classesUsed || 0} usadas</span>
                     <span>{classesAvailable} disponibles</span>
                   </div>
@@ -879,7 +879,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                 {/* Estado de pago */}
                 <div className="pt-4 border-t">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Estado de pago</span>
+                    <span className="text-sm text-muted-foreground">Estado de pago</span>
                     <Badge className={cn(statusConfig.color, 'border')}>
                       {statusConfig.label}
                     </Badge>
@@ -893,7 +893,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         {activeTab === 'inscription' && (
           <div className="space-y-6">
             {/* Cuota 1 - Primera cuota de inscripción */}
-            <Card className="border-slate-100 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <CreditCard className="w-4 h-4 text-secondary" />
@@ -905,16 +905,16 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Toggle for payment status */}
-                <div className="flex items-center justify-between p-4 rounded-xl border" style={{ background: formData.registrationFeePaid1 ? 'rgba(52, 199, 89, 0.1)' : 'rgba(255, 149, 0, 0.1)' }}>
+                <div className="flex items-center justify-between p-4 rounded-xl border" style={{ background: formData.registrationFeePaid1 ? 'var(--success)' : 'var(--warning)', opacity: 0.1 }}>
                   <div className="flex items-center gap-3">
                     {formData.registrationFeePaid1 ? (
-                      <FileCheck className="w-5 h-5 text-emerald-600" />
+                      <FileCheck className="w-5 h-5 text-[var(--success)]" />
                     ) : (
-                      <Clock className="w-5 h-5 text-amber-600" />
+                      <Clock className="w-5 h-5 text-[var(--warning)]" />
                     )}
                     <div>
                       <p className="text-sm font-medium">Estado de pago</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-muted-foreground">
                         {formData.registrationFeePaid1 ? 'Pagado' : 'Pendiente'}
                       </p>
                     </div>
@@ -961,12 +961,12 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                     className={cn(
                       'relative inline-flex h-8 w-14 items-center rounded-full transition-all',
                       savingFee1 ? 'opacity-60 cursor-not-allowed' : '',
-                      formData.registrationFeePaid1 ? 'bg-emerald-500' : 'bg-amber-400'
+                      formData.registrationFeePaid1 ? 'bg-[var(--success)]' : 'bg-[var(--warning)]'
                     )}
                   >
                     {savingFee1
                       ? <Loader2 className="w-4 h-4 animate-spin text-white mx-auto" />
-                      : <span className={cn('inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all', formData.registrationFeePaid1 ? 'translate-x-7' : 'translate-x-1')} />
+                      : <span className={cn('inline-block h-6 w-6 transform rounded-full bg-background shadow-sm transition-all', formData.registrationFeePaid1 ? 'translate-x-7' : 'translate-x-1')} />
                     }
                   </button>
                 </div>
@@ -975,7 +975,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             </Card>
 
             {/* Cuota 2 - Segunda cuota de inscripción */}
-            <Card className="border-slate-100 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <CreditCard className="w-4 h-4 text-secondary" />
@@ -987,16 +987,16 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Toggle for payment status */}
-                <div className="flex items-center justify-between p-4 rounded-xl border" style={{ background: formData.registrationFeePaid2 ? 'rgba(52, 199, 89, 0.1)' : 'rgba(255, 149, 0, 0.1)' }}>
+                <div className="flex items-center justify-between p-4 rounded-xl border" style={{ background: formData.registrationFeePaid2 ? 'var(--success)' : 'var(--warning)', opacity: 0.1 }}>
                   <div className="flex items-center gap-3">
                     {formData.registrationFeePaid2 ? (
-                      <FileCheck className="w-5 h-5 text-emerald-600" />
+                      <FileCheck className="w-5 h-5 text-[var(--success)]" />
                     ) : (
-                      <Clock className="w-5 h-5 text-amber-600" />
+                      <Clock className="w-5 h-5 text-[var(--warning)]" />
                     )}
                     <div>
                       <p className="text-sm font-medium">Estado de pago</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-muted-foreground">
                         {formData.registrationFeePaid2 ? 'Pagado' : 'Pendiente'}
                       </p>
                     </div>
@@ -1042,12 +1042,12 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                     className={cn(
                       'relative inline-flex h-8 w-14 items-center rounded-full transition-all',
                       savingFee2 ? 'opacity-60 cursor-not-allowed' : '',
-                      formData.registrationFeePaid2 ? 'bg-emerald-500' : 'bg-amber-400'
+                      formData.registrationFeePaid2 ? 'bg-[var(--success)]' : 'bg-[var(--warning)]'
                     )}
                   >
                     {savingFee2
                       ? <Loader2 className="w-4 h-4 animate-spin text-white mx-auto" />
-                      : <span className={cn('inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all', formData.registrationFeePaid2 ? 'translate-x-7' : 'translate-x-1')} />
+                      : <span className={cn('inline-block h-6 w-6 transform rounded-full bg-background shadow-sm transition-all', formData.registrationFeePaid2 ? 'translate-x-7' : 'translate-x-1')} />
                     }
                   </button>
                 </div>
@@ -1070,7 +1070,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         {activeTab === 'history' && (
           <div className="space-y-6">
             {/* Historial de asistencias */}
-            <Card className="border-slate-100 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Clock className="w-4 h-4 text-secondary" />
@@ -1085,7 +1085,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500 text-center py-4">
+                  <p className="text-sm text-muted-foreground text-center py-4">
                     Sin asistencias registradas
                   </p>
                 )}
@@ -1093,7 +1093,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
             </Card>
 
             {/* Historial de suscripciones */}
-            <Card className="border-slate-100 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-secondary" />
@@ -1108,7 +1108,7 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500 text-center py-4">
+                  <p className="text-sm text-muted-foreground text-center py-4">
                     Sin suscripciones registradas
                   </p>
                 )}

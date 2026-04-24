@@ -19,8 +19,8 @@ export const GradientButton = forwardRef<HTMLButtonElement, ButtonProps & {
         ref={ref}
         className={cn(
           // Minimalist gradient - single accent color
-          'bg-gradient-to-r from-cyan-600 to-cyan-500',
-          'hover:from-cyan-700 hover:to-cyan-600',
+          'bg-gradient-to-r from-primary to-primary/80',
+          'hover:from-primary/90 hover:to-primary/70',
           'text-white shadow-sm',
           'transition-all duration-200',
           'disabled:opacity-50 disabled:cursor-not-allowed',
@@ -51,9 +51,9 @@ export const SecondaryButton = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         variant="outline"
         className={cn(
-          'border-slate-200 bg-white',
-          'hover:bg-slate-50 hover:border-slate-300',
-          'text-slate-700',
+          'border-input bg-background',
+          'hover:bg-muted/50 hover:border-border',
+          'text-foreground',
           'transition-all duration-200',
           className
         )}
@@ -76,8 +76,8 @@ export const GhostButton = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         variant="ghost"
         className={cn(
-          'text-slate-600',
-          'hover:bg-slate-100 hover:text-slate-900',
+          'text-muted-foreground',
+          'hover:bg-muted hover:text-foreground',
           'transition-all duration-200',
           className
         )}

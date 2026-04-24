@@ -45,8 +45,8 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
     title,
     description,
     icon: Icon,
-    iconColor = 'text-cyan-600',
-    iconBg = 'bg-cyan-50',
+    iconColor = 'text-primary',
+    iconBg = 'bg-primary/10',
     action,
     secondaryAction,
     backAction,
@@ -61,7 +61,7 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
         {backAction && (
           <button
             onClick={backAction.onClick}
-            className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             {backAction.label || 'Volver'}
@@ -70,19 +70,19 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
 
         {/* Breadcrumb trail if provided */}
         {breadcrumbs && breadcrumbs.length > 0 && (
-          <nav className="flex items-center gap-1 text-sm text-slate-500" aria-label="Breadcrumb">
+          <nav className="flex items-center gap-1 text-sm text-muted-foreground" aria-label="Breadcrumb">
             {breadcrumbs.map((item, index) => (
               <span key={index} className="flex items-center gap-1">
-                {index > 0 && <ChevronRight className="w-3 h-3 text-slate-400" />}
+                {index > 0 && <ChevronRight className="w-3 h-3 text-muted-foreground" />}
                 {item.onClick ? (
                   <button
                     onClick={item.onClick}
-                    className="hover:text-slate-700 transition-colors"
+                    className="hover:text-foreground transition-colors"
                   >
                     {item.label}
                   </button>
                 ) : (
-                  <span className={index === breadcrumbs.length - 1 ? 'text-slate-900 font-medium' : ''}>
+                  <span className={index === breadcrumbs.length - 1 ? 'text-foreground font-medium' : ''}>
                     {item.label}
                   </span>
                 )}
@@ -104,11 +104,11 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
             )}
             <div className="min-w-0">
               <div className="flex items-center gap-3">
-                <h1 className="text-xl font-semibold text-slate-900 truncate">{title}</h1>
+                <h1 className="text-xl font-semibold text-foreground truncate">{title}</h1>
                 {badges}
               </div>
               {description && (
-                <p className="text-sm text-slate-500 mt-0.5 truncate">{description}</p>
+                <p className="text-sm text-muted-foreground mt-0.5 truncate">{description}</p>
               )}
             </div>
           </div>
@@ -119,7 +119,7 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
               <Button
                 variant="outline"
                 onClick={secondaryAction.onClick}
-                className="gap-2 text-slate-600"
+                className="gap-2 text-muted-foreground"
               >
                 {secondaryAction.icon && <secondaryAction.icon className="w-4 h-4" />}
                 {secondaryAction.label}
@@ -130,9 +130,9 @@ export const PageHeader = forwardRef<HTMLDivElement, PageHeaderProps>(
                 onClick={action.onClick}
                 className={cn(
                   'gap-2',
-                  action.variant === 'secondary' && 'bg-slate-100 text-slate-700 hover:bg-slate-200',
-                  action.variant === 'ghost' && 'bg-transparent text-slate-700 hover:bg-slate-100',
-                  (!action.variant || action.variant === 'primary') && 'bg-cyan-600 text-white hover:bg-cyan-700'
+                  action.variant === 'secondary' && 'bg-muted text-foreground hover:bg-muted',
+                  action.variant === 'ghost' && 'bg-transparent text-foreground hover:bg-muted',
+                  (!action.variant || action.variant === 'primary') && 'bg-primary text-primary-foreground hover:bg-primary/90'
                 )}
               >
                 {action.icon && <action.icon className="w-4 h-4" />}
@@ -171,9 +171,9 @@ export function SectionHeader({
   return (
     <div className={cn('flex items-center justify-between', className)}>
       <div>
-        <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
         {description && (
-          <p className="text-sm text-slate-500 mt-0.5">{description}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
         )}
       </div>
       {action && (
@@ -181,7 +181,7 @@ export function SectionHeader({
           variant="ghost"
           size="sm"
           onClick={action.onClick}
-          className="gap-1.5 text-slate-600"
+          className="gap-1.5 text-muted-foreground"
         >
           {action.icon && <action.icon className="w-4 h-4" />}
           {action.label}
@@ -199,8 +199,8 @@ export function StatHeader({
   value,
   change,
   icon: Icon,
-  iconColor = 'text-cyan-600',
-  iconBg = 'bg-cyan-50',
+  iconColor = 'text-primary',
+  iconBg = 'bg-primary/10',
 }: {
   title: string
   value: string | number
@@ -212,12 +212,12 @@ export function StatHeader({
   return (
     <div className="flex items-start justify-between">
       <div className="space-y-1">
-        <p className="text-sm text-slate-500">{title}</p>
-        <p className="text-2xl font-semibold text-slate-900">{value}</p>
+        <p className="text-sm text-muted-foreground">{title}</p>
+        <p className="text-2xl font-semibold text-foreground">{value}</p>
         {change && (
           <p className={cn(
             'text-xs font-medium',
-            change.positive ? 'text-emerald-600' : 'text-red-600'
+            change.positive ? 'text-[var(--success)]' : 'text-destructive'
           )}>
             {change.positive ? '+' : ''}{change.value}%
           </p>

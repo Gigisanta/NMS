@@ -31,7 +31,7 @@ export function SettingsView() {
   if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#00A8E8' }} />
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
       </div>
     )
   }
@@ -40,11 +40,11 @@ export function SettingsView() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-slate-100 rounded-lg">
-              <Settings className="w-6 h-6 text-slate-600" />
+            <div className="p-2 bg-muted rounded-lg">
+              <Settings className="w-6 h-6 text-muted-foreground" />
             </div>
             <div>
               <CardTitle className="text-xl">Configuración</CardTitle>
@@ -57,7 +57,7 @@ export function SettingsView() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="flex flex-wrap gap-1 h-auto p-1.5 bg-white rounded-xl border border-slate-100 shadow-sm">
+        <TabsList className="flex flex-wrap gap-1 h-auto p-1.5 bg-background rounded-xl border border-border shadow-sm">
           <TabsTrigger value="profile" className="flex items-center gap-2 px-3 py-2">
             <User className="w-4 h-4" />
             <span className="hidden sm:inline">Mi Perfil</span>

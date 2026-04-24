@@ -216,7 +216,7 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
         <ScrollArea className="max-h-[50vh] pr-4">
           <div className="space-y-3">
             {groups.map((group) => (
-              <div key={group.id} className="border rounded-lg p-3 bg-white">
+              <div key={group.id} className="border rounded-lg p-3 bg-background">
                 {editingId === group.id ? (
                   <GroupEditForm
                     group={editGroup!}
@@ -259,7 +259,7 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
             </Button>
           ) : null}
           {error ? (
-            <div className="text-sm text-red-500 bg-red-50 p-2 rounded mt-2 w-full">
+            <div className="text-sm text-[var(--destructive)] bg-[var(--destructive)]/10 p-2 rounded mt-2 w-full">
               {error}
             </div>
           ) : null}
@@ -278,7 +278,7 @@ export function GroupManager({ groups, onGroupsChange, trigger }: GroupManagerPr
             <AlertDialogCancel onClick={() => setConfirmDeleteId(null)}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-[var(--destructive)] hover:bg-[var(--destructive)]/90"
             >
               Eliminar
             </AlertDialogAction>
@@ -316,9 +316,9 @@ function GroupRow({
             {group.name}
           </div>
           {group.schedule ? (
-            <div className="text-xs text-slate-500">{group.schedule}</div>
+            <div className="text-xs text-muted-foreground">{group.schedule}</div>
           ) : null}
-          <div className="text-xs text-slate-400 flex items-center gap-1">
+          <div className="text-xs text-muted-foreground flex items-center gap-1">
             <Users className="w-3 h-3" />
             {group.clientCount || 0} clientes
           </div>
@@ -336,7 +336,7 @@ function GroupRow({
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+          className="h-8 w-8 p-0 text-[var(--destructive)] hover:text-[var(--destructive)]/80"
           onClick={onDelete}
           disabled={deletingId === group.id}
         >
@@ -367,7 +367,7 @@ function GroupEditForm({
   return (
     <div className="space-y-3">
       <div>
-        <Label className="text-xs text-slate-500">Nombre</Label>
+        <Label className="text-xs text-muted-foreground">Nombre</Label>
         <Input
           value={localGroup.name}
           onChange={(e) => setLocalGroup({ ...localGroup, name: e.target.value })}
@@ -375,7 +375,7 @@ function GroupEditForm({
         />
       </div>
       <div>
-        <Label className="text-xs text-slate-500">Horario</Label>
+        <Label className="text-xs text-muted-foreground">Horario</Label>
         <Input
           value={localGroup.schedule || ''}
           onChange={(e) => setLocalGroup({ ...localGroup, schedule: e.target.value })}
@@ -384,7 +384,7 @@ function GroupEditForm({
         />
       </div>
       <div>
-        <Label className="text-xs text-slate-500">Color</Label>
+        <Label className="text-xs text-muted-foreground">Color</Label>
         <div className="flex gap-1.5 mt-1 flex-wrap">
           {predefinedColors.map((color) => (
             <button
@@ -392,7 +392,7 @@ function GroupEditForm({
               type="button"
               className={cn(
                 'w-6 h-6 rounded-full border-2 transition-transform hover:scale-110',
-                localGroup.color === color ? 'border-slate-800 scale-110' : 'border-transparent'
+                localGroup.color === color ? 'border-border scale-110' : 'border-transparent'
               )}
               style={{ backgroundColor: color }}
               onClick={() => setLocalGroup({ ...localGroup, color })}
@@ -426,9 +426,9 @@ function GroupCreateForm({
   saving: boolean
 }) {
   return (
-    <div className="border rounded-lg p-3 bg-slate-50 space-y-3">
+    <div className="border rounded-lg p-3 bg-muted/50 space-y-3">
       <div>
-        <Label className="text-xs text-slate-500">Nombre del grupo</Label>
+        <Label className="text-xs text-muted-foreground">Nombre del grupo</Label>
         <Input
           value={value.name}
           onChange={(e) => onChange({ ...value, name: e.target.value })}
@@ -437,7 +437,7 @@ function GroupCreateForm({
         />
       </div>
       <div>
-        <Label className="text-xs text-slate-500">Horario</Label>
+        <Label className="text-xs text-muted-foreground">Horario</Label>
         <Input
           value={value.schedule}
           onChange={(e) => onChange({ ...value, schedule: e.target.value })}
@@ -446,7 +446,7 @@ function GroupCreateForm({
         />
       </div>
       <div>
-        <Label className="text-xs text-slate-500">Color</Label>
+        <Label className="text-xs text-muted-foreground">Color</Label>
         <div className="flex gap-1.5 mt-1 flex-wrap">
           {predefinedColors.map((color) => (
             <button
@@ -454,7 +454,7 @@ function GroupCreateForm({
               type="button"
               className={cn(
                 'w-6 h-6 rounded-full border-2 transition-transform hover:scale-110',
-                value.color === color ? 'border-slate-800 scale-110' : 'border-transparent'
+                value.color === color ? 'border-border scale-110' : 'border-transparent'
               )}
               style={{ backgroundColor: color }}
               onClick={() => onChange({ ...value, color })}

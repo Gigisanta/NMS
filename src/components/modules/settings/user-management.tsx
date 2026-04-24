@@ -246,20 +246,20 @@ export function UserManagement() {
 
   if (!isEmpleadora) {
     return (
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardContent className="py-8 text-center">
-          <p className="text-slate-500">No tienes permisos para ver esta sección</p>
+          <p className="text-muted-foreground">No tienes permisos para ver esta sección</p>
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className="border-slate-100 shadow-sm">
+    <Card className="border-border shadow-sm">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Users className="w-5 h-5 text-purple-600" />
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Users className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1">
             <CardTitle className="text-lg">Gestión de Usuarios</CardTitle>
@@ -356,7 +356,7 @@ export function UserManagement() {
         {/* Filters */}
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -379,7 +379,7 @@ export function UserManagement() {
         {/* Users List */}
         {loading ? (
           <div className="flex justify-center py-8">
-            <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : filteredUsers.length > 0 ? (
           <ScrollArea className="max-h-96">
@@ -389,15 +389,15 @@ export function UserManagement() {
                   key={user.id}
                   className={cn(
                     'flex items-center justify-between p-3 rounded-lg border',
-                    user.active ? 'bg-slate-50 border-slate-200' : 'bg-slate-100 border-slate-300 opacity-60'
+                    user.active ? 'bg-muted/50 border-border' : 'bg-muted border-border opacity-60'
                   )}
                 >
                   <div className="flex items-center gap-3">
                     <Avatar className="w-10 h-10">
                       <AvatarFallback className={cn(
                         user.role === 'EMPLEADORA' 
-                          ? 'bg-purple-100 text-purple-700' 
-                          : 'bg-slate-100 text-slate-700'
+                          ? 'bg-primary/10 text-primary'
+                          : 'bg-muted text-muted-foreground'
                       )}>
                         {getInitials(user.name)}
                       </AvatarFallback>
@@ -406,15 +406,15 @@ export function UserManagement() {
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{user.name || 'Sin nombre'}</span>
                         {user.role === 'EMPLEADORA' && (
-                          <Badge className="bg-purple-100 text-purple-700 text-xs">Admin</Badge>
+                          <Badge className="bg-primary/10 text-primary text-xs">Admin</Badge>
                         )}
                         {user.employeeRole && user.role === 'EMPLEADO' && (
-                          <Badge className="bg-slate-100 text-slate-600 text-xs">
+                          <Badge className="bg-muted text-muted-foreground text-xs">
                             {getEmployeeRoleLabel(user.employeeRole)}
                           </Badge>
                         )}
                       </div>
-                      <span className="text-sm text-slate-500">{user.email}</span>
+                      <span className="text-sm text-muted-foreground">{user.email}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
@@ -430,14 +430,14 @@ export function UserManagement() {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleToggleActive(user)}
-                      className={cn('h-8 w-8', user.active ? 'text-amber-600' : 'text-emerald-600')}
+                      className={cn('h-8 w-8', user.active ? 'text-[var(--warning)]' : 'text-primary')}
                     >
                       {user.active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                     </Button>
                     {user.id !== session?.user?.id && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </AlertDialogTrigger>
@@ -452,7 +452,7 @@ export function UserManagement() {
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleDelete(user.id)}
-                              className="bg-red-600 hover:bg-red-700"
+                              className="bg-destructive hover:bg-destructive/90"
                             >
                               Eliminar
                             </AlertDialogAction>
@@ -466,7 +466,7 @@ export function UserManagement() {
             </div>
           </ScrollArea>
         ) : (
-          <p className="text-center text-slate-500 py-8">No se encontraron usuarios</p>
+          <p className="text-center text-muted-foreground py-8">No se encontraron usuarios</p>
         )}
       </CardContent>
     </Card>

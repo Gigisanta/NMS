@@ -443,8 +443,8 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
               />
             </div>
 
-            <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-              <p className="text-xs text-amber-700">
+            <div className="p-3 bg-[var(--warning)]/10 rounded-lg border border-[var(--warning)]/20">
+              <p className="text-xs text-[var(--warning)]">
                 <Calendar className="w-3 h-3 inline mr-1" />
                 Se creará una suscripción pendiente para el mes actual
               </p>

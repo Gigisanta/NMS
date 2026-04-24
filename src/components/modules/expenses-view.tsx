@@ -83,11 +83,11 @@ export interface Expense {
 }
 
 const CATEGORY_LABELS: Record<ExpenseCategory, { label: string, color: string, icon: LucideIcon }> = {
-  FIJO: { label: 'Fijo', color: 'bg-blue-100 text-blue-700 border-blue-200', icon: Banknote },
-  VARIABLE: { label: 'Variable', color: 'bg-orange-100 text-orange-700 border-orange-200', icon: TrendingDown },
-  SUELDO: { label: 'Sueldo', color: 'bg-purple-100 text-purple-700 border-purple-200', icon: Users },
-  PROVEEDOR: { label: 'Proveedor', color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: Truck },
-  OTROS: { label: 'Otros', color: 'bg-slate-100 text-slate-700 border-slate-200', icon: Filter },
+  FIJO: { label: 'Fijo', color: 'bg-primary/10 text-primary border-primary/20', icon: Banknote },
+  VARIABLE: { label: 'Variable', color: 'bg-[var(--warning)]/10 text-[var(--warning)] border-[var(--warning)]/20', icon: TrendingDown },
+  SUELDO: { label: 'Sueldo', color: 'bg-secondary/10 text-secondary border-secondary/20', icon: Users },
+  PROVEEDOR: { label: 'Proveedor', color: 'bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20', icon: Truck },
+  OTROS: { label: 'Otros', color: 'bg-muted text-muted-foreground border-border', icon: Filter },
 }
 
 export function ExpensesView() {
@@ -192,8 +192,8 @@ export function ExpensesView() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Administración de Gastos</h1>
-          <p className="text-slate-500">Gestiona los costos operativos, sueldos y proveedores.</p>
+          <h1 className="text-xl font-semibold text-foreground">Administración de Gastos</h1>
+          <p className="text-muted-foreground">Gestiona los costos operativos, sueldos y proveedores.</p>
         </div>
         <Button 
           onClick={() => {
@@ -215,12 +215,12 @@ export function ExpensesView() {
           { title: 'Proveedores', value: stats.proveedores, Icon: Truck, accent: '#10b981', trend: 'Insumos y servicios' },
           { title: 'Fijos', value: stats.fijos, Icon: Filter, accent: 'var(--secondary)', trend: 'Alquiler e impuestos' },
         ].map((stat) => (
-          <div key={stat.title} className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
+          <div key={stat.title} className="bg-background p-3 sm:p-4 rounded-xl border border-border shadow-sm card-lift">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider truncate">{stat.title}</p>
-                <p className="text-lg font-semibold text-slate-900 mt-1 tabular-nums truncate">{formatCurrency(stat.value)}</p>
-                <p className="text-xs text-slate-400 mt-1">{stat.trend}</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">{stat.title}</p>
+                <p className="text-lg font-semibold text-foreground mt-1 tabular-nums truncate">{formatCurrency(stat.value)}</p>
+                <p className="text-xs text-muted-foreground mt-1">{stat.trend}</p>
               </div>
               <div className="p-2.5 rounded-lg shrink-0 mt-0.5" style={{ background: `${stat.accent}18` }}>
                 <stat.Icon className="w-4 h-4" style={{ color: stat.accent }} />
@@ -231,16 +231,16 @@ export function ExpensesView() {
       </div>
 
       {/* Expense History with Receipts Table */}
-      <Card className="border-slate-100 shadow-sm bg-white overflow-hidden">
+      <Card className="border-border shadow-sm bg-background overflow-hidden">
         <CardHeader className="pb-0">
-          <CardTitle className="text-lg font-semibold text-slate-800">Historial de Gastos</CardTitle>
+          <CardTitle className="text-lg font-semibold text-foreground">Historial de Gastos</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
             <div className="p-4">
               <div className="space-y-3">
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-lg">
+                  <div key={i} className="flex items-center gap-4 p-4 bg-muted/50/50 rounded-lg">
                     <Skeleton className="h-4 w-24" />
                     <Skeleton className="h-4 flex-1" />
                     <Skeleton className="h-8 w-20" />
@@ -268,17 +268,17 @@ export function ExpensesView() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-100">
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Descripción</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Categoría</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Monto</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Comprobante</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Acciones</th>
+                  <tr className="bg-muted/50/50 border-b border-border">
+                    <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Fecha</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Descripción</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categoría</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Monto</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Comprobante</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Estado</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50">
+                <tbody className="divide-y divide-border">
                   {expenses.map((expense) => {
                     const cat = CATEGORY_LABELS[expense.category]
                     const Icon = cat.icon
@@ -288,12 +288,12 @@ export function ExpensesView() {
                     return (
                       <tr key={expense.id} className="hover:bg-[rgba(0,168,232,0.04)] transition-colors duration-150">
                         <td className="px-4 py-3">
-                          <p className="text-sm font-medium text-slate-900">
+                          <p className="text-sm font-medium text-foreground">
                             {format(new Date(expense.date), 'dd/MM/yyyy')}
                           </p>
                         </td>
                         <td className="px-4 py-3">
-                          <p className="text-sm font-medium text-slate-900">{expense.description}</p>
+                          <p className="text-sm font-medium text-foreground">{expense.description}</p>
                         </td>
                         <td className="px-4 py-3">
                           <Badge className={`${cat.color} border shadow-none font-medium text-[11px] h-6`}>
@@ -302,32 +302,32 @@ export function ExpensesView() {
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <span className="text-sm font-semibold text-slate-900 tabular-nums">
+                          <span className="text-sm font-semibold text-foreground tabular-nums">
                             {formatCurrency(expense.amount)}
                           </span>
                         </td>
                         <td className="px-4 py-3">
                           {hasReceipt ? (
-                            <span className="flex items-center gap-1.5 text-sm text-slate-600">
+                            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                               <ReceiptIcon className="w-3.5 h-3.5" />
                               <span className="truncate max-w-[120px]">{expense.receipt?.fileName}</span>
                             </span>
                           ) : (
-                            <span className="text-xs text-slate-400">Sin comprobante</span>
+                            <span className="text-xs text-muted-foreground">Sin comprobante</span>
                           )}
                         </td>
                         <td className="px-4 py-3">
                           {hasReceipt ? (
                             <span className={cn(
                               'text-xs px-1.5 py-0.5 rounded',
-                              expense.receiptStatus === 'VERIFIED' && 'bg-emerald-500/10 text-emerald-600',
-                              expense.receiptStatus === 'PENDING' && 'bg-amber-500/10 text-amber-600',
-                              expense.receiptStatus === 'REJECTED' && 'bg-red-500/10 text-red-600',
+                              expense.receiptStatus === 'VERIFIED' && 'bg-[var(--success)]/10 text-[var(--success)]',
+                              expense.receiptStatus === 'PENDING' && 'bg-[var(--warning)]/10 text-[var(--warning)]',
+                              expense.receiptStatus === 'REJECTED' && 'bg-[var(--destructive)]/10 text-[var(--destructive)]',
                             )}>
                               {expense.receiptStatus === 'VERIFIED' ? 'Verificado' : expense.receiptStatus === 'PENDING' ? 'Pendiente' : 'Rechazado'}
                             </span>
                           ) : (
-                            <span className="text-xs text-slate-400">—</span>
+                            <span className="text-xs text-muted-foreground">—</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-right">
@@ -345,7 +345,7 @@ export function ExpensesView() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+                                  className="h-8 w-8 p-0 text-[var(--success)] hover:text-[var(--success)]/80 hover:bg-[var(--success)]/10"
                                   onClick={() => updateReceiptStatus(expense.id, expense.receiptStatus || '', 'VERIFIED')}
                                 >
                                   <Check className="w-3.5 h-3.5" />
@@ -353,7 +353,7 @@ export function ExpensesView() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-500/10"
+                                  className="h-8 w-8 p-0 text-[var(--destructive)] hover:text-[var(--destructive)]/80 hover:bg-[var(--destructive)]/10"
                                   onClick={() => updateReceiptStatus(expense.id, expense.receiptStatus || '', 'REJECTED')}
                                 >
                                   <X className="w-3.5 h-3.5" />
@@ -373,22 +373,22 @@ export function ExpensesView() {
       </Card>
 
       {/* Filters & Search */}
-      <Card className="border-slate-100 shadow-sm bg-white overflow-hidden">
+      <Card className="border-border shadow-sm bg-background overflow-hidden">
         <CardContent className="p-4">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar por descripción, proveedor o empleado..."
-                className="h-11 border-slate-200 focus-visible:ring-secondary"
+                className="h-11 border-border focus-visible:ring-secondary"
               />
             </div>
             <div className="flex flex-wrap gap-2">
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-[160px] h-11">
-                  <Filter className="w-4 h-4 mr-2 text-slate-400" />
+                  <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="Categoría" />
                 </SelectTrigger>
                 <SelectContent>
@@ -403,7 +403,7 @@ export function ExpensesView() {
 
               <Select value={monthFilter} onValueChange={setMonthFilter}>
                 <SelectTrigger className="w-[140px] h-11">
-                  <Calendar className="w-4 h-4 mr-2 text-slate-400" />
+                  <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="Mes" />
                 </SelectTrigger>
                 <SelectContent>
@@ -431,16 +431,16 @@ export function ExpensesView() {
       </Card>
 
       {/* Expenses Table/List */}
-      <Card className="border-slate-100 shadow-sm bg-white overflow-hidden">
+      <Card className="border-border shadow-sm bg-background overflow-hidden">
         <CardHeader className="pb-0">
-          <CardTitle className="text-lg font-semibold text-slate-800">Detalle de Egresos</CardTitle>
+          <CardTitle className="text-lg font-semibold text-foreground">Detalle de Egresos</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
             <div className="p-4">
               <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map(i => (
-                  <div key={i} className="flex items-center gap-3 sm:gap-6 p-3 sm:p-4 bg-slate-50/50 rounded-lg">
+                  <div key={i} className="flex items-center gap-3 sm:gap-6 p-3 sm:p-4 bg-muted/50/50 rounded-lg">
                     <Skeleton className="h-10 w-20" />
                     <Skeleton className="h-4 flex-1" />
                     <Skeleton className="hidden sm:block h-8 w-24" />
@@ -467,16 +467,16 @@ export function ExpensesView() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-100">
-                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha</th>
-                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Descripción</th>
-                    <th className="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Categoría</th>
-                    <th className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Destino</th>
-                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Monto</th>
-                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider"></th>
+                  <tr className="bg-muted/50/50 border-b border-border">
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Fecha</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Descripción</th>
+                    <th className="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Categoría</th>
+                    <th className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Destino</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">Monto</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50">
+                <tbody className="divide-y divide-border">
                   {filteredExpenses.map((expense) => {
                     const cat = CATEGORY_LABELS[expense.category]
                     const Icon = cat.icon
@@ -486,16 +486,16 @@ export function ExpensesView() {
                         className="hover:bg-[rgba(0,168,232,0.04)] transition-colors duration-150 group"
                       >
                         <td className="px-3 sm:px-6 py-3 sm:py-4">
-                          <p className="text-sm font-medium text-slate-900">
+                          <p className="text-sm font-medium text-foreground">
                             {new Date(expense.date).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })}
                           </p>
-                          <p className="text-[10px] text-slate-400">
+                          <p className="text-[10px] text-muted-foreground">
                             {new Date(expense.date).toLocaleDateString('es-AR', { year: 'numeric' })}
                           </p>
                         </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4">
-                          <p className="text-sm font-medium text-slate-900">{expense.description}</p>
-                          {expense.notes && <p className="text-xs text-slate-500 truncate max-w-[200px]">{expense.notes}</p>}
+                          <p className="text-sm font-medium text-foreground">{expense.description}</p>
+                          {expense.notes && <p className="text-xs text-muted-foreground truncate max-w-[200px]">{expense.notes}</p>}
                           {/* Mobile: show category badge inline */}
                           <div className="sm:hidden mt-1">
                             <Badge className={`${cat.color} border shadow-none font-medium text-[10px] h-5`}>
@@ -510,29 +510,29 @@ export function ExpensesView() {
                             {cat.label}
                           </Badge>
                         </td>
-                        <td className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 text-sm text-slate-600">
+                        <td className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 text-sm text-muted-foreground">
                           {expense.category === 'SUELDO' ? (
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-purple-50 flex items-center justify-center text-[10px] font-bold text-purple-600 border border-purple-100">
+                              <div className="w-6 h-6 rounded-full bg-secondary/10 flex items-center justify-center text-[10px] font-bold text-secondary border border-secondary/20">
                                 {expense.user?.name?.[0] || 'E'}
                               </div>
-                              <span className="font-medium text-slate-700">{expense.user?.name || 'Empleado'}</span>
+                              <span className="font-medium text-muted-foreground">{expense.user?.name || 'Empleado'}</span>
                             </div>
                           ) : expense.supplier ? (
-                            <span className="font-medium text-slate-700">{expense.supplier}</span>
+                            <span className="font-medium text-muted-foreground">{expense.supplier}</span>
                           ) : (
-                            <span className="text-slate-400 inline-block px-2 py-0.5 rounded-md bg-slate-50 text-[10px]">General</span>
+                            <span className="text-muted-foreground inline-block px-2 py-0.5 rounded-md bg-muted/50 text-[10px]">General</span>
                           )}
                         </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
-                          <span className="text-sm font-semibold text-slate-900">
+                          <span className="text-sm font-semibold text-foreground">
                             {formatCurrency(expense.amount)}
                           </span>
                         </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary transition-colors">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors">
                                 <MoreVertical className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -553,7 +553,7 @@ export function ExpensesView() {
                                   setExpenseToDelete(expense)
                                   setIsDeleteOpen(true)
                                 }}
-                                className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                                className="text-[var(--destructive)] focus:text-[var(--destructive)] focus:bg-[var(--destructive)]/10 cursor-pointer"
                               >
                                 <Trash2 className="w-4 h-4 mr-2" />
                                 Eliminar
@@ -586,7 +586,7 @@ export function ExpensesView() {
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <DialogContent className="sm:max-w-[425px] rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-red-600 flex items-center gap-2">
+            <DialogTitle className="text-[var(--destructive)] flex items-center gap-2">
               <AlertCircle className="w-5 h-5" />
               Confirmar eliminación
             </DialogTitle>
@@ -599,7 +599,7 @@ export function ExpensesView() {
             <Button variant="outline" onClick={() => setIsDeleteOpen(false)} className="rounded-xl">
               Cancelar
             </Button>
-            <Button variant="destructive" onClick={handleDelete} className="rounded-xl bg-red-600 hover:bg-red-700">
+            <Button variant="destructive" onClick={handleDelete} className="rounded-xl bg-[var(--destructive)] hover:bg-[var(--destructive)]/90">
               Eliminar Gasto
             </Button>
           </DialogFooter>

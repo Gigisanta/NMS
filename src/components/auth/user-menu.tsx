@@ -39,9 +39,9 @@ export function UserMenu({ onNavigate }: UserMenuProps) {
     : user.email[0].toUpperCase()
 
   const roleLabel = user.role === 'EMPLEADORA' ? 'Admin' : 'Empleado'
-  const roleColor = user.role === 'EMPLEADORA' ? '' : 'bg-slate-500'
+  const roleColor = user.role === 'EMPLEADORA' ? '' : 'bg-muted'
   const roleStyle = user.role === 'EMPLEADORA'
-    ? { background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }
+    ? { background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)' }
     : {}
 
   const handleNavigate = (view: string) => {
@@ -56,27 +56,27 @@ export function UserMenu({ onNavigate }: UserMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-10 gap-2 px-2 hover:bg-slate-100">
-          <Avatar className="h-8 w-8 ring-2 ring-white shadow-md">
+        <Button variant="ghost" className="relative h-10 gap-2 px-2 hover:bg-muted">
+          <Avatar className="h-8 w-8 ring-2 ring-border shadow-md">
             <AvatarFallback className={`${roleColor} text-white text-xs font-medium`} style={roleStyle}>
               {initials}
             </AvatarFallback>
           </Avatar>
           <div className="hidden md:flex flex-col items-start">
-            <span className="text-sm font-medium text-slate-700">{user.name || user.email}</span>
-            <span className="text-xs text-slate-500">{roleLabel}</span>
+            <span className="text-sm font-medium text-foreground">{user.name || user.email}</span>
+            <span className="text-xs text-muted-foreground">{roleLabel}</span>
           </div>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium text-slate-900">{user.name}</p>
-            <p className="text-xs text-slate-500">{user.email}</p>
+            <p className="text-sm font-medium text-foreground">{user.name}</p>
+            <p className="text-xs text-muted-foreground">{user.email}</p>
             <Badge
               variant="outline"
               className="w-fit mt-1 text-xs"
-              style={user.role === 'EMPLEADORA' ? { borderColor: '#00A8E8', color: '#005691' } : { borderColor: '#94a3b8', color: '#475569' }}
+              style={user.role === 'EMPLEADORA' ? { borderColor: 'var(--secondary)', color: 'var(--primary)' } : { borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
             >
               {roleLabel}
             </Badge>
@@ -99,7 +99,7 @@ export function UserMenu({ onNavigate }: UserMenuProps) {
 
         <DropdownMenuItem
           onClick={() => signOut({ callbackUrl: '/login' })}
-          className="cursor-pointer text-red-600 focus:text-red-600"
+          className="cursor-pointer text-destructive focus:text-destructive"
         >
           <LogOut className="mr-2 h-4 w-4" />
           Cerrar sesión

@@ -28,8 +28,8 @@ export default function GlobalError({
           bottom: '20px',
           right: '20px',
           padding: '12px 20px',
-          background: '#ef4444',
-          color: 'white',
+          background: 'var(--destructive)',
+          color: 'var(--destructive-foreground)',
           borderRadius: '8px',
           cursor: 'pointer',
         }}>

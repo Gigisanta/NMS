@@ -141,7 +141,7 @@ export function SidebarContent({ currentView, onViewChange, onClose }: SidebarCo
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden absolute right-2 h-10 w-10 hover:bg-slate-100"
+          className="lg:hidden absolute right-2 h-10 w-10 hover:bg-muted"
           style={{ color: 'var(--foreground-muted)' }}
           onClick={onClose}
         >

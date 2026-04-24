@@ -26,7 +26,7 @@ export function ThemeToggle() {
         'hover:scale-105 active:scale-95',
         isDark ? 'hover:bg-[rgba(240,248,255,0.1)]' : 'hover:bg-[rgba(0,168,232,0.12)]'
       )}
-      style={{ color: isDark ? '#8BA4BC' : '#4A5568' }}
+      style={{ color: isDark ? 'var(--foreground-muted)' : 'var(--foreground-muted)' }}
       aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
       title={isDark ? 'Modo claro' : 'Modo oscuro'}
     >
@@ -36,14 +36,14 @@ export function ThemeToggle() {
             'absolute inset-0 w-5 h-5 transition-all duration-300 ease-in-out',
             !isDark ? 'opacity-100 rotate-0' : 'opacity-0 rotate-180 scale-50'
           )}
-          style={{ color: '#005691' }}
+          style={{ color: 'var(--primary)' }}
         />
         <Moon
           className={cn(
             'absolute inset-0 w-5 h-5 transition-all duration-300 ease-in-out',
             isDark ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-180 scale-50'
           )}
-          style={{ color: '#00A8E8' }}
+          style={{ color: 'var(--secondary)' }}
         />
       </div>
     </button>

@@ -235,13 +235,13 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-slate-700 font-semibold">Descripción *</FormLabel>
+                  <FormLabel className="text-muted-foreground font-semibold">Descripción *</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       placeholder="Ej: Pago de alquiler marzo"
                       required
-                      className="h-11 border-slate-200 focus-visible:ring-primary"
+                      className="h-11 border-border focus-visible:ring-primary"
                     />
                   </FormControl>
                   <FormMessage />
@@ -255,7 +255,7 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 font-semibold">Monto ($) *</FormLabel>
+                    <FormLabel className="text-muted-foreground font-semibold">Monto ($) *</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -263,7 +263,7 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
                         step="0.01"
                         placeholder="0.00"
                         required
-                        className="h-11 border-slate-200 focus-visible:ring-primary"
+                        className="h-11 border-border focus-visible:ring-primary"
                       />
                     </FormControl>
                     <FormMessage />
@@ -276,13 +276,13 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 font-semibold">Categoría *</FormLabel>
+                    <FormLabel className="text-muted-foreground font-semibold">Categoría *</FormLabel>
                     <FormControl>
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
                       >
-                        <SelectTrigger className="h-11 border-slate-200">
+                        <SelectTrigger className="h-11 border-border">
                           <SelectValue placeholder="Categoría" />
                         </SelectTrigger>
                         <SelectContent>
@@ -306,14 +306,14 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
                 name="date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 font-semibold">Fecha</FormLabel>
+                    <FormLabel className="text-muted-foreground font-semibold">Fecha</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                         <Input
                           {...field}
                           type="date"
-                          className="h-11 pl-10 border-slate-200 focus-visible:ring-primary"
+                          className="h-11 pl-10 border-border focus-visible:ring-primary"
                         />
                       </div>
                     </FormControl>
@@ -328,13 +328,13 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
                   name="month"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-700 font-semibold">Periodo (Mes)</FormLabel>
+                      <FormLabel className="text-muted-foreground font-semibold">Periodo (Mes)</FormLabel>
                       <FormControl>
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
                         >
-                          <SelectTrigger className="h-11 border-slate-200">
+                          <SelectTrigger className="h-11 border-border">
                             <SelectValue placeholder="Mes" />
                           </SelectTrigger>
                           <SelectContent>
@@ -382,14 +382,14 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
                     name="userId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-700 font-semibold">Empleado existente *</FormLabel>
+                        <FormLabel className="text-muted-foreground font-semibold">Empleado existente *</FormLabel>
                         <FormControl>
                           <Select
                             value={field.value}
                             onValueChange={field.onChange}
                             required={employeeMode === 'select'}
                           >
-                            <SelectTrigger className="h-11 border-slate-200 mt-1">
+                            <SelectTrigger className="h-11 border-border mt-1">
                               {loadingEmployees ? (
                                 <div className="flex items-center gap-2">
                                   <Loader2 className="w-4 h-4 animate-spin text-primary" />
@@ -416,17 +416,17 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
                     name="supplier"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-700 font-semibold">Nombre del empleado *</FormLabel>
+                        <FormLabel className="text-muted-foreground font-semibold">Nombre del empleado *</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             placeholder="Ej: María González"
                             required={employeeMode === 'custom'}
-                            className="h-11 border-slate-200 focus-visible:ring-primary mt-1"
+                            className="h-11 border-border focus-visible:ring-primary mt-1"
                           />
                         </FormControl>
                         <FormMessage />
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           Ingresa el nombre del empleado que no está en la lista
                         </p>
                       </FormItem>
@@ -442,12 +442,12 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
                 name="supplier"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 font-semibold">Proveedor</FormLabel>
+                    <FormLabel className="text-muted-foreground font-semibold">Proveedor</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         placeholder="Ej: Distribuidora de Cloro"
-                        className="h-11 border-slate-200 focus-visible:ring-primary"
+                        className="h-11 border-border focus-visible:ring-primary"
                       />
                     </FormControl>
                     <FormMessage />
@@ -461,12 +461,12 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-slate-700 font-semibold">Notas (Opcional)</FormLabel>
+                  <FormLabel className="text-muted-foreground font-semibold">Notas (Opcional)</FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
                       placeholder="Detalles adicionales del gasto..."
-                      className="resize-none border-slate-200 focus-visible:ring-primary"
+                      className="resize-none border-border focus-visible:ring-primary"
                       rows={3}
                     />
                   </FormControl>
@@ -476,7 +476,7 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
             />
 
             <div className="border-t pt-4 mt-4">
-              <FormLabel className="text-slate-700 font-semibold mb-2 block">Comprobante</FormLabel>
+              <FormLabel className="text-muted-foreground font-semibold mb-2 block">Comprobante</FormLabel>
               <ReceiptUploader
                 onUpload={handleReceiptUpload}
                 onRemove={currentReceiptId ? handleReceiptRemove : undefined}
@@ -492,7 +492,7 @@ export function ExpenseForm({ open, onClose, onSuccess, expense }: ExpenseFormPr
                 type="button"
                 variant="ghost"
                 onClick={onClose}
-                className="h-11 rounded-xl text-slate-500 hover:text-slate-700"
+                className="h-11 rounded-xl text-muted-foreground hover:text-muted-foreground"
               >
                 Cancelar
               </Button>

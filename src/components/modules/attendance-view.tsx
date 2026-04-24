@@ -88,8 +88,8 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
 
   return (
     <tr
-      className={`border-b border-slate-100 transition-colors duration-150 ${
-        isLimitReached ? 'bg-red-50/30' : 'hover:bg-[rgba(0,168,232,0.04)]'
+      className={`border-b border-border transition-colors duration-150 ${
+        isLimitReached ? 'bg-destructive/10' : 'hover:bg-[rgba(0,168,232,0.04)]'
       }`}
     >
       <td className="py-2 px-3">
@@ -100,15 +100,15 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <span className="font-medium text-slate-900 text-sm truncate block max-w-[140px]">
+            <span className="font-medium text-foreground text-sm truncate block max-w-[140px]">
               {formatFullName(client.nombre, client.apellido)}
             </span>
             {/* Mobile subtitle: group + classes */}
             <div className="sm:hidden flex items-center gap-1.5 mt-0.5">
               {client.grupo && (
-                <span className="text-[10px] text-slate-500 truncate">{client.grupo.name}</span>
+                <span className="text-[10px] text-muted-foreground truncate">{client.grupo.name}</span>
               )}
-              <span className={`text-[10px] font-medium ${isLimitReached ? 'text-red-500' : 'text-slate-400'}`}>
+              <span className={`text-[10px] font-medium ${isLimitReached ? 'text-destructive' : 'text-muted-foreground'}`}>
                 · {classesUsed}/{classesTotal}
               </span>
             </div>
@@ -120,13 +120,13 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
       </td>
       <td className="hidden sm:table-cell py-2 px-3">
         <div className="flex items-center gap-2">
-          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
             <div
-              className={`h-full progress-bar-animated ${isLimitReached ? 'bg-red-400' : ''}`}
-              style={!isLimitReached ? { background: '#00A8E8' } : {}}
+              className={`h-full progress-bar-animated ${isLimitReached ? 'bg-destructive' : ''}`}
+              style={!isLimitReached ? { background: 'var(--secondary)' } : {}}
             />
           </div>
-          <span className={`text-xs font-medium ${isLimitReached ? 'text-red-600' : 'text-slate-600'}`}>
+          <span className={`text-xs font-medium ${isLimitReached ? 'text-destructive' : 'text-muted-foreground'}`}>
             {classesUsed}/{classesTotal}
           </span>
         </div>
@@ -138,7 +138,7 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
       </td>
       <td className="py-2 px-3 text-center">
         {todayCount > 0 && (
-          <span className="inline-flex items-center justify-center w-6 h-6 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
+          <span className="inline-flex items-center justify-center w-6 h-6 bg-[var(--success)]/20 text-[var(--success)] text-xs font-medium rounded-full">
             {todayCount}
           </span>
         )}
@@ -148,7 +148,7 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
           <Button
             size="sm"
             variant={isLimitReached ? "ghost" : "default"}
-            className={`h-9 sm:h-8 gap-1 transition-all ${isLimitReached ? 'text-slate-400 cursor-not-allowed' : 'text-white'}`}
+            className={`h-9 sm:h-8 gap-1 transition-all ${isLimitReached ? 'text-muted-foreground cursor-not-allowed' : 'text-white'}`}
             style={!isLimitReached ? { background: 'var(--primary)' } : {}}
             onClick={() => onMarkAttendance(client)}
             disabled={isLimitReached || isMarking}
@@ -165,7 +165,7 @@ const AttendanceTableRow = memo(function AttendanceTableRow({
             <Button
               size="sm"
               variant="outline"
-              className="h-9 sm:h-8 gap-1 text-slate-500 hover:text-red-600 hover:bg-red-50 border-slate-200"
+              className="h-9 sm:h-8 gap-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 border-border"
               onClick={() => onRemoveAttendance(todayAttendanceId)}
               disabled={isRemoving || isMarking}
             >
@@ -192,19 +192,19 @@ const AttendanceListItem = memo(function AttendanceListItem({
 }) {
   return (
     <motion.div 
-      className="flex items-center justify-between p-2 bg-slate-50"
+      className="flex items-center justify-between p-2 bg-muted/50"
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.03 }}
     >
       <div className="flex items-center gap-2">
-        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        <CheckCircle2 className="w-4 h-4 text-[var(--success)]" />
         <span className="text-sm font-medium">
           {formatFullName(attendance.client.nombre, attendance.client.apellido)}
         </span>
         <GroupBadge group={attendance.client.grupo} size="sm" />
       </div>
-      <span className="text-xs text-slate-500">
+      <span className="text-xs text-muted-foreground">
         {formatTime(attendance.date)}
       </span>
     </motion.div>
@@ -416,24 +416,24 @@ export function AttendanceView() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-2">
-            <div className="h-6 w-32 bg-slate-100 rounded animate-pulse" />
-            <div className="h-4 w-52 bg-slate-100 rounded animate-pulse" />
+            <div className="h-6 w-32 bg-muted rounded animate-pulse" />
+            <div className="h-4 w-52 bg-muted rounded animate-pulse" />
           </div>
-          <div className="h-10 w-56 bg-slate-100 rounded-lg animate-pulse" />
+          <div className="h-10 w-56 bg-muted rounded-lg animate-pulse" />
         </div>
-        <div className="h-10 w-full bg-slate-100 rounded-lg animate-pulse" />
-        <div className="rounded-xl border border-slate-100 overflow-hidden bg-white shadow-sm">
-          <div className="p-3 border-b bg-slate-50 grid grid-cols-4 gap-3">
-            {[1, 2, 3, 4].map(i => <div key={i} className="h-4 bg-slate-200 rounded animate-pulse" />)}
+        <div className="h-10 w-full bg-muted rounded-lg animate-pulse" />
+        <div className="rounded-xl border border-border overflow-hidden bg-background shadow-sm">
+          <div className="p-3 border-b bg-muted/50 grid grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-4 bg-muted rounded animate-pulse" />)}
           </div>
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3 p-3 border-b border-slate-50">
-              <div className="w-8 h-8 rounded-full bg-slate-100 animate-pulse shrink-0" />
+            <div key={i} className="flex items-center gap-3 p-3 border-b border-border">
+              <div className="w-8 h-8 rounded-full bg-muted animate-pulse shrink-0" />
               <div className="flex-1 space-y-1.5">
-                <div className="h-3.5 w-36 bg-slate-100 rounded animate-pulse" />
-                <div className="h-3 w-20 bg-slate-100 rounded animate-pulse sm:hidden" />
+                <div className="h-3.5 w-36 bg-muted rounded animate-pulse" />
+                <div className="h-3 w-20 bg-muted rounded animate-pulse sm:hidden" />
               </div>
-              <div className="ml-auto w-16 h-8 bg-slate-100 rounded animate-pulse" />
+              <div className="ml-auto w-16 h-8 bg-muted rounded animate-pulse" />
             </div>
           ))}
         </div>
@@ -446,12 +446,12 @@ export function AttendanceView() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Asistencias</h1>
-          <p className="text-slate-500">
+          <h1 className="text-xl font-semibold text-foreground">Asistencias</h1>
+          <p className="text-muted-foreground">
             {formatDate(new Date())} - {todayAttendance.length} asistencias registradas
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-slate-600 bg-white px-4 py-2 rounded-lg border border-slate-100 shadow-sm">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-background px-4 py-2 rounded-lg border border-border shadow-sm">
           <Calendar className="w-4 h-4 text-secondary" />
           <span className="capitalize">{new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
         </div>
@@ -477,17 +477,17 @@ export function AttendanceView() {
             : 'Agregá clientes para empezar a registrar asistencia'}
         />
       ) : (
-        <Card className="border-slate-100 shadow-sm overflow-hidden">
+        <Card className="border-border shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50 border-b border-slate-200">
+              <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  <th className="text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Alumno</th>
-                  <th className="hidden sm:table-cell text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Grupo</th>
-                  <th className="hidden sm:table-cell text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Clases</th>
-                  <th className="hidden md:table-cell text-left py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Estado</th>
-                  <th className="text-center py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Hoy</th>
-                  <th className="text-center py-3 px-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Acción</th>
+                  <th className="text-left py-3 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Alumno</th>
+                  <th className="hidden sm:table-cell text-left py-3 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Grupo</th>
+                  <th className="hidden sm:table-cell text-left py-3 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Clases</th>
+                  <th className="hidden md:table-cell text-left py-3 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Estado</th>
+                  <th className="text-center py-3 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Hoy</th>
+                  <th className="text-center py-3 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Acción</th>
                 </tr>
               </thead>
               <tbody>
@@ -515,7 +515,7 @@ export function AttendanceView() {
 
       {/* Today's Attendance List */}
       {recentAttendance.length > 0 && (
-        <Card className="border-slate-100 shadow-sm">
+        <Card className="border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg">Asistencias de Hoy</CardTitle>
             <CardDescription>Últimas registradas</CardDescription>

@@ -52,7 +52,7 @@ const LiveTimer = memo(function LiveTimer({ startTime }: { startTime: Date }) {
   const seconds = elapsed % 60
 
   return (
-    <div className="font-mono text-3xl text-slate-900">
+    <div className="font-mono text-3xl text-foreground">
       {String(hours).padStart(2, '0')}:
       {String(minutes).padStart(2, '0')}:
       {String(seconds).padStart(2, '0')}
@@ -81,13 +81,13 @@ const TimeEntryItem = memo(function TimeEntryItem({
 
   return (
     <motion.div 
-      className="flex items-center justify-between p-2 bg-slate-50 rounded-lg"
+      className="flex items-center justify-between p-2 bg-muted/50 rounded-lg"
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05 }}
     >
       <div className="flex items-center gap-2">
-        <Clock className="w-4 h-4 text-emerald-600" />
+        <Clock className="w-4 h-4 text-[var(--success)]" />
         <span className="text-sm font-medium">
           {formatTime(clockIn)}
           {clockOut && ` - ${formatTime(clockOut)}`}
@@ -199,7 +199,7 @@ export function TimeClockWidget() {
 
   if (loading) {
     return (
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardContent className="p-6 flex items-center justify-center">
           <Loader2 className="w-6 h-6 animate-spin text-secondary" />
         </CardContent>
@@ -208,7 +208,7 @@ export function TimeClockWidget() {
   }
 
   return (
-    <Card className="border-slate-100 shadow-sm">
+    <Card className="border-border shadow-sm">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <Timer className="w-4 h-4 text-secondary" />
@@ -218,16 +218,16 @@ export function TimeClockWidget() {
       <CardContent className="space-y-4">
         {/* Status indicator */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-600">Estado</span>
+          <span className="text-sm text-muted-foreground">Estado</span>
           {status?.isWorking ? (
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-sm font-medium text-green-600">Trabajando</span>
+              <div className="w-2 h-2 bg-[var(--success)] rounded-full animate-pulse" />
+              <span className="text-sm font-medium text-[var(--success)]">Trabajando</span>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-slate-400 rounded-full" />
-              <span className="text-sm font-medium text-slate-500">Fuera de horario</span>
+              <div className="w-2 h-2 bg-muted rounded-full" />
+              <span className="text-sm font-medium text-muted-foreground">Fuera de horario</span>
             </div>
           )}
         </div>
@@ -239,18 +239,18 @@ export function TimeClockWidget() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
           >
-            <p className="text-xs text-slate-500 mb-2">Tiempo trabajado</p>
+            <p className="text-xs text-muted-foreground mb-2">Tiempo trabajado</p>
             <LiveTimer startTime={new Date(status.currentEntry.clockIn)} />
-            <p className="text-xs text-slate-400 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               Iniciado a las {formatTime(status.currentEntry.clockIn)}
             </p>
           </motion.div>
         ) : (
           <div className="text-center py-4">
-            <div className="p-3 bg-slate-100 rounded-full inline-block mb-2">
-              <Briefcase className="w-8 h-8 text-slate-400" />
+            <div className="p-3 bg-muted rounded-full inline-block mb-2">
+              <Briefcase className="w-8 h-8 text-muted-foreground" />
             </div>
-            <p className="text-slate-500">Listo para fichar</p>
+            <p className="text-muted-foreground">Listo para fichar</p>
           </div>
         )}
 
@@ -284,20 +284,20 @@ export function TimeClockWidget() {
         {/* Today's Summary */}
         <div className="grid grid-cols-2 gap-4 pt-4 border-t">
           <div className="text-center">
-            <p className="text-xs text-slate-500">Hoy</p>
-            <p className="text-lg font-semibold text-slate-900">{todayHoursDisplay}</p>
-            <p className="text-xs text-slate-400">{status?.todayEntries.length || 0} fichajes</p>
+            <p className="text-xs text-muted-foreground">Hoy</p>
+            <p className="text-lg font-semibold text-foreground">{todayHoursDisplay}</p>
+            <p className="text-xs text-muted-foreground">{status?.todayEntries.length || 0} fichajes</p>
           </div>
           <div className="text-center">
-            <p className="text-xs text-slate-500">Este mes</p>
-            <p className="text-lg font-semibold text-slate-900">{monthHoursDisplay}</p>
+            <p className="text-xs text-muted-foreground">Este mes</p>
+            <p className="text-lg font-semibold text-foreground">{monthHoursDisplay}</p>
           </div>
         </div>
 
         {/* Recent entries */}
         {status?.todayEntries && status.todayEntries.length > 0 && (
           <div className="pt-4 border-t">
-            <p className="text-xs text-slate-500 mb-2">Fichajes de hoy</p>
+            <p className="text-xs text-muted-foreground mb-2">Fichajes de hoy</p>
             <ScrollArea className="h-24">
               <div className="space-y-1">
                 {status.todayEntries.slice(0, 5).map((entry, index) => (

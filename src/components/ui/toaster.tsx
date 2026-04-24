@@ -4,21 +4,22 @@ import { Toaster as SonnerToaster } from "sonner"
 
 export function Toaster() {
   return (
-    <SonnerToaster 
+    <SonnerToaster
       position="top-right"
       toastOptions={{
         style: {
-          background: 'white',
-          border: '1px solid #e2e8f0',
+          background: 'var(--background)',
+          border: '1px solid var(--border)',
           padding: '12px 16px',
           borderRadius: '8px',
           fontSize: '14px',
+          color: 'var(--foreground)',
         },
         classNames: {
-          error: 'border-red-200 bg-red-50',
-          success: 'border-emerald-200 bg-emerald-50',
-          warning: 'border-amber-200 bg-amber-50',
-          info: 'border-cyan-200 bg-cyan-50',
+          error: 'border-destructive/30 bg-destructive/10',
+          success: 'border-[var(--success)]/30 bg-[var(--success)]/10',
+          warning: 'border-[var(--warning)]/30 bg-[var(--warning)]/10',
+          info: 'border-primary/30 bg-primary/10',
         },
       }}
     />

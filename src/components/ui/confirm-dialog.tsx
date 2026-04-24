@@ -28,27 +28,27 @@ interface ConfirmDialogProps {
 const variantConfig = {
   danger: {
     icon: Trash2,
-    iconColor: 'text-red-600',
-    iconBg: 'bg-red-50',
-    buttonClass: 'bg-red-600 hover:bg-red-700 text-white',
+    iconColor: 'text-destructive',
+    iconBg: 'bg-destructive/10',
+    buttonClass: 'bg-destructive hover:bg-destructive/90 text-destructive-foreground',
   },
   warning: {
     icon: AlertTriangle,
-    iconColor: 'text-amber-600',
-    iconBg: 'bg-amber-50',
-    buttonClass: 'bg-amber-600 hover:bg-amber-700 text-white',
+    iconColor: 'text-[var(--warning)]',
+    iconBg: 'bg-[var(--warning)]/10',
+    buttonClass: 'bg-[var(--warning)] hover:bg-[var(--warning)]/90 text-white',
   },
   info: {
     icon: Info,
-    iconColor: 'text-blue-600',
-    iconBg: 'bg-blue-50',
-    buttonClass: 'bg-blue-600 hover:bg-blue-700 text-white',
+    iconColor: 'text-primary',
+    iconBg: 'bg-primary/10',
+    buttonClass: 'bg-primary hover:bg-primary/90 text-primary-foreground',
   },
   success: {
     icon: CheckCircle,
-    iconColor: 'text-emerald-600',
-    iconBg: 'bg-emerald-50',
-    buttonClass: 'bg-emerald-600 hover:bg-emerald-700 text-white',
+    iconColor: 'text-[var(--success)]',
+    iconBg: 'bg-[var(--success)]/10',
+    buttonClass: 'bg-[var(--success)] hover:bg-[var(--success)]/90 text-white',
   },
 }
 

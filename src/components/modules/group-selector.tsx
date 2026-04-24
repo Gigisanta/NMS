@@ -111,7 +111,7 @@ export function GroupSelector({
         <button
           disabled={disabled}
           className={cn(
-            'focus:outline-none focus:ring-2 focus:ring-cyan-500/50 rounded-full transition-all',
+            'focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full transition-all',
             disabled && 'opacity-50 cursor-not-allowed'
           )}
         >
@@ -125,11 +125,11 @@ export function GroupSelector({
       <PopoverContent className="w-72 p-0" align="start">
         <div className="p-3 border-b">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-700">Seleccionar Grupo</span>
+            <span className="text-sm font-medium text-muted-foreground">Seleccionar Grupo</span>
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-xs text-cyan-600 hover:text-cyan-700"
+              className="h-7 text-xs text-primary hover:text-primary/80"
               onClick={() => setShowCreate(!showCreate)}
             >
               <Plus className="w-3 h-3 mr-1" />
@@ -139,9 +139,9 @@ export function GroupSelector({
         </div>
 
         {showCreate ? (
-          <div className="p-3 border-b bg-slate-50 space-y-3">
+          <div className="p-3 border-b bg-muted/50 space-y-3">
             <div>
-              <Label className="text-xs text-slate-500">Nombre del grupo</Label>
+              <Label className="text-xs text-muted-foreground">Nombre del grupo</Label>
               <Input
                 ref={inputRef}
                 value={newGroupName}
@@ -155,7 +155,7 @@ export function GroupSelector({
               />
             </div>
             <div>
-              <Label className="text-xs text-slate-500">Color</Label>
+              <Label className="text-xs text-muted-foreground">Color</Label>
               <div className="flex gap-1.5 mt-1 flex-wrap">
                 {predefinedColors.map((color) => (
                   <button
@@ -163,7 +163,7 @@ export function GroupSelector({
                     type="button"
                     className={cn(
                       'w-6 h-6 rounded-full border-2 transition-transform hover:scale-110',
-                      newGroupColor === color ? 'border-slate-800 scale-110' : 'border-transparent'
+                      newGroupColor === color ? 'border-border scale-110' : 'border-transparent'
                     )}
                     style={{ backgroundColor: color }}
                     onClick={() => setNewGroupColor(color)}
@@ -202,16 +202,16 @@ export function GroupSelector({
             <button
               className={cn(
                 'w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors',
-                'hover:bg-slate-100',
-                !selectedGroup && 'bg-slate-100 text-slate-700'
+                'hover:bg-muted',
+                !selectedGroup && 'bg-muted text-muted-foreground'
               )}
               onClick={() => {
                 onChange(null)
                 setOpen(false)
               }}
             >
-              <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center">
-                <X className="w-3 h-3 text-slate-500" />
+              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                <X className="w-3 h-3 text-muted-foreground" />
               </div>
               <span>Sin grupo</span>
               {!selectedGroup && <Check className="w-4 h-4 ml-auto" />}
@@ -223,8 +223,8 @@ export function GroupSelector({
                 key={group.id}
                 className={cn(
                   'w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors',
-                  'hover:bg-slate-100',
-                  selectedGroup?.id === group.id && 'bg-cyan-50'
+                  'hover:bg-muted',
+                  selectedGroup?.id === group.id && 'bg-primary/10'
                 )}
                 onClick={() => {
                   onChange(group.id)
@@ -245,25 +245,25 @@ export function GroupSelector({
                     {group.name}
                   </div>
                   {group.schedule && (
-                    <div className="text-xs text-slate-500">{group.schedule}</div>
+                    <div className="text-xs text-muted-foreground">{group.schedule}</div>
                   )}
                 </div>
                 {group.clientCount !== undefined && (
-                  <span className="text-xs text-slate-400 flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <Users className="w-3 h-3" />
                     {group.clientCount}
                   </span>
                 )}
                 {selectedGroup?.id === group.id && (
-                  <Check className="w-4 h-4 text-cyan-600" />
+                  <Check className="w-4 h-4 text-primary" />
                 )}
               </button>
             ))}
 
             {groups.length === 0 && !showCreate && (
-              <div className="px-3 py-6 text-center text-sm text-slate-500">
-                <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-slate-100 flex items-center justify-center">
-                  <Plus className="w-4 h-4 text-slate-400" />
+              <div className="px-3 py-6 text-center text-sm text-muted-foreground">
+                <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-muted flex items-center justify-center">
+                  <Plus className="w-4 h-4 text-muted-foreground" />
                 </div>
                 <p>No hay grupos creados</p>
                 <p className="text-xs">Haz clic en "Nuevo" para crear uno</p>

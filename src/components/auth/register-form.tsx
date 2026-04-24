@@ -75,12 +75,12 @@ export function RegisterForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto border-slate-100 shadow-sm">
+    <Card className="w-full max-w-md mx-auto border-border shadow-sm">
       <CardHeader className="text-center pb-2">
-        <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(135deg, #005691 0%, #00A8E8 100%)' }}>
+        <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4 bg-gradient-to-br from-primary to-secondary">
           <UserPlus className="w-8 h-8 text-white" />
         </div>
-        <CardTitle className="text-xl font-semibold text-slate-900">
+        <CardTitle className="text-xl font-semibold text-foreground">
           Crear Cuenta
         </CardTitle>
         <CardDescription>
@@ -137,7 +137,7 @@ export function RegisterForm() {
               className="h-11"
               minLength={6}
             />
-            <p className="text-xs text-slate-500">Mínimo 6 caracteres</p>
+            <p className="text-xs text-muted-foreground">Mínimo 6 caracteres</p>
           </div>
           
           <div className="space-y-2">
@@ -156,8 +156,7 @@ export function RegisterForm() {
           
           <Button
             type="submit"
-            className="w-full h-11 gap-2 text-white"
-            style={{ background: '#005691' }}
+            className="w-full h-11 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
             disabled={loading}
           >
             {loading ? (
@@ -174,11 +173,10 @@ export function RegisterForm() {
           </Button>
           
           <div className="text-center text-sm pt-2">
-            <span className="text-slate-500">¿Ya tienes cuenta? </span>
-            <Link 
-              href="/login" 
-              className="font-medium hover:underline"
-              style={{ color: '#005691' }}
+            <span className="text-muted-foreground">¿Ya tienes cuenta? </span>
+            <Link
+              href="/login"
+              className="font-medium text-primary hover:text-primary/80 hover:underline"
             >
               Iniciar sesión
             </Link>

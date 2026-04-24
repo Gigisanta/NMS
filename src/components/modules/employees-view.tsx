@@ -92,9 +92,9 @@ const initialFormData: EmployeeFormData = {
 
 // Default role config for known roles
 const roleConfig: Record<string, { label: string; color: string; icon: typeof Briefcase }> = {
-  ADMINISTRATIVO: { label: 'Administrativo', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: Briefcase },
-  PROFESOR: { label: 'Profesor', color: 'bg-purple-100 text-purple-800 border-purple-200', icon: Users },
-  LIMPIEZA: { label: 'Limpieza', color: 'bg-green-100 text-green-800 border-green-200', icon: UserCheck },
+  ADMINISTRATIVO: { label: 'Administrativo', color: 'bg-primary/10 text-primary border-primary/20', icon: Briefcase },
+  PROFESOR: { label: 'Profesor', color: 'bg-secondary/10 text-secondary border-secondary/20', icon: Users },
+  LIMPIEZA: { label: 'Limpieza', color: 'bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20', icon: UserCheck },
 }
 
 // Employee Card Component
@@ -109,7 +109,7 @@ const EmployeeCard = memo(function EmployeeCard({
   onDelete: (employee: Employee) => void
   onToggleActive: (employee: Employee) => void
 }) {
-  const roleInfo = employee.employeeRole ? (roleConfig[employee.employeeRole] || { label: employee.employeeRole, color: 'bg-slate-100 text-slate-800 border-slate-200', icon: Briefcase }) : null
+  const roleInfo = employee.employeeRole ? (roleConfig[employee.employeeRole] || { label: employee.employeeRole, color: 'bg-muted text-foreground border-border', icon: Briefcase }) : null
   const RoleIcon = roleInfo?.icon || Users
   
   const initials = useMemo(() => {
@@ -130,7 +130,7 @@ const EmployeeCard = memo(function EmployeeCard({
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className={`border-slate-100 shadow-sm card-lift ${
+      <Card className={`border-border shadow-sm card-lift ${
         !employee.active ? 'opacity-60' : ''
       }`}>
         <CardContent className="p-4">
@@ -143,10 +143,10 @@ const EmployeeCard = memo(function EmployeeCard({
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium text-slate-900">
+                <p className="font-medium text-foreground">
                   {employee.name || 'Sin nombre'}
                 </p>
-                <p className="text-xs text-slate-500 flex items-center gap-1">
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Mail className="w-3 h-3" />
                   {employee.email}
                 </p>
@@ -179,7 +179,7 @@ const EmployeeCard = memo(function EmployeeCard({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={() => onDelete(employee)}
-                  className="text-red-600 focus:text-red-600"
+                  className="text-[var(--destructive)] focus:text-[var(--destructive)]"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Eliminar
@@ -211,22 +211,22 @@ const EmployeeCard = memo(function EmployeeCard({
             {/* Info Grid */}
             <div className="grid grid-cols-2 gap-2 text-xs">
               {employee.hourlyRate && (
-                <div className="flex items-center gap-1 text-slate-600">
+                <div className="flex items-center gap-1 text-muted-foreground">
                   <DollarSign className="w-3 h-3" />
                   {formatCurrency(employee.hourlyRate)}/hora
                 </div>
               )}
               {employee.phone && (
-                <div className="flex items-center gap-1 text-slate-600">
+                <div className="flex items-center gap-1 text-muted-foreground">
                   <Phone className="w-3 h-3" />
                   {employee.phone}
                 </div>
               )}
-              <div className="flex items-center gap-1 text-slate-600">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <Clock className="w-3 h-3" />
                 {employee._count?.timeEntries || 0} fichajes
               </div>
-              <div className="flex items-center gap-1 text-slate-600">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <Calendar className="w-3 h-3" />
                 {new Date(employee.createdAt).toLocaleDateString('es-AR')}
               </div>
@@ -379,11 +379,10 @@ const EmployeeFormDialog = memo(function EmployeeFormDialog({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={loading}
-              className="text-white bg-gradient-to-r from-primary to-secondary"
-              style={{ background: '#005691' }}
+              className="text-primary-foreground bg-primary hover:bg-primary/90"
             >
               {loading ? (
                 <>
@@ -419,7 +418,7 @@ const DeleteDialog = memo(function DeleteDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-red-600">Eliminar Empleado</DialogTitle>
+          <DialogTitle className="text-[var(--destructive)]">Eliminar Empleado</DialogTitle>
           <DialogDescription>
             ¿Estás seguro de que deseas eliminar a <strong>{employee?.name}</strong>?
             Esta acción desactivará el empleado y no podrá iniciar sesión.
@@ -655,8 +654,8 @@ export function EmployeesView() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Empleados</h1>
-          <p className="text-slate-500">
+          <h1 className="text-xl font-semibold text-foreground">Empleados</h1>
+          <p className="text-muted-foreground">
             Gestiona el equipo de trabajo y sus horarios
           </p>
         </div>
@@ -680,11 +679,11 @@ export function EmployeesView() {
           { title: 'Administrativos', value: stats.administrativos, Icon: Briefcase, accent: 'var(--secondary)' },
           { title: 'Limpieza', value: stats.limpieza, Icon: UserCheck, accent: '#10b981' },
         ].map((stat) => (
-          <div key={stat.title} className="bg-white p-3 sm:p-4 rounded-xl border border-slate-100 shadow-sm card-lift">
+          <div key={stat.title} className="bg-background p-3 sm:p-4 rounded-xl border border-border shadow-sm card-lift">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">{stat.title}</p>
-                <p className="text-2xl font-semibold text-slate-900 mt-1 tabular-nums">{stat.value}</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{stat.title}</p>
+                <p className="text-2xl font-semibold text-foreground mt-1 tabular-nums">{stat.value}</p>
               </div>
               <div className="p-2.5 rounded-lg shrink-0 mt-0.5" style={{ background: `${stat.accent}18` }}>
                 <stat.Icon className="w-4 h-4" style={{ color: stat.accent }} />
@@ -695,11 +694,11 @@ export function EmployeesView() {
       </div>
 
       {/* Filters */}
-      <Card className="border-slate-100 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -728,7 +727,7 @@ export function EmployeesView() {
               <Button
                 variant={showActiveOnly ? 'default' : 'outline'}
                 onClick={() => setShowActiveOnly(!showActiveOnly)}
-                style={showActiveOnly ? { background: '#005691', color: 'white' } : {}}
+                className={showActiveOnly ? 'bg-primary text-primary-foreground' : ''}
               >
                 {showActiveOnly ? 'Activos' : 'Todos'}
               </Button>
@@ -753,7 +752,7 @@ export function EmployeesView() {
             },
             icon: UserPlus
           }}
-          className="bg-white rounded-xl border border-slate-100 shadow-sm py-14"
+          className="bg-background rounded-xl border border-border shadow-sm py-14"
         />
       ) : (
         <motion.div 
