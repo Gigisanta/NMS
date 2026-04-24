@@ -23,3 +23,7 @@
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
+
+## 2026-03-04 - Bulk Initialization with Relational Filters
+**Learning:** Initializing missing records for a one-to-many relationship (e.g., monthly subscriptions for all clients) can be an $O(N)$ bottleneck if implemented by fetching all parents and checking existence sequentially.
+**Action:** Use Prisma's `none` relation filter to fetch only the "missing" parent records in one query, then use `createMany` for a single-trip bulk insert. This reduces database operations from $O(N)$ to $O(1)$.
