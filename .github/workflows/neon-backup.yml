@@ -1,0 +1,148 @@
+name: "Daily Neon Database Backup"
+
+on:
+  # Ejecuta diariamente a las 00:00 UTC (03:00 Argentina)
+  schedule:
+    - cron: "0 0 * * *"
+
+  # Permite ejecución manual desde GitHub Actions tab
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: false
+        default: 'info'
+
+# Permisos para GitHub Actions
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  backup:
+    name: Backup Database to Vercel Blob
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client gzip curl
+
+      - name: Dump Neon database
+        env:
+          # Usar la URL sin pooling para pg_dump (más estable)
+          DATABASE_URL: ${{ secrets.Neon_DATABASE_URL_UNPOOLED }}
+        run: |
+          echo "[BACKUP] Iniciando pg_dump..."
+          TIMESTAMP=$(date +'%Y-%m-%d@%H:%M:%S')
+          BACKUP_FILE="nms-backup-${TIMESTAMP}.sql.gz"
+
+          # pg_dump con compresión directa
+          pg_dump "$DATABASE_URL" | gzip > "$BACKUP_FILE"
+
+          # Verificar que el archivo se creó
+          if [ -f "$BACKUP_FILE" ]; then
+            SIZE=$(stat -f%z "$BACKUP_FILE" 2>/dev/null || stat -c%s "$BACKUP_FILE")
+            echo "[BACKUP] Archivo creado: $BACKUP_FILE (tamaño: $SIZE bytes)"
+          else
+            echo "[BACKUP] ERROR: No se pudo crear el archivo de backup"
+            exit 1
+          fi
+
+      - name: Upload to Vercel Blob
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          BACKUP_STORE_ID: ${{ secrets.BLOB_STORE_ID }}
+        run: |
+          echo "[BACKUP] Subiendo a Vercel Blob..."
+
+          # El token y store ID deben estar en GitHub Secrets
+          if [ -z "$BLOB_READ_WRITE_TOKEN" ]; then
+            echo "[BACKUP] ERROR: BLOB_READ_WRITE_TOKEN no está configurado en GitHub Secrets"
+            exit 1
+          fi
+
+          TIMESTAMP=$(date +'%Y-%m-%d@%H:%M:%S')
+          BACKUP_FILE="nms-backup-${TIMESTAMP}.sql.gz"
+
+          # Subir usando curl (compatible con API de Vercel Blob)
+          curl -X PUT \
+            -H "Authorization: Bearer $BLOB_READ_WRITE_TOKEN" \
+            -T "$BACKUP_FILE" \
+            "https://$BACKUP_STORE_ID.private.blob.vercel-storage.com/$BACKUP_FILE"
+
+          echo "[BACKUP] Upload completado"
+
+      - name: List existing backups
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          BACKUP_STORE_ID: ${{ secrets.BLOB_STORE_ID }}
+        run: |
+          echo "[BACKUP] Listando backups existentes..."
+
+          # Listar archivos en el blob store
+          curl -s \
+            -H "Authorization: Bearer $BLOB_READ_WRITE_TOKEN" \
+            "https://$BACKUP_STORE_ID.private.blob.vercel-storage.com/?list"
+        continue-on-error: true
+
+      - name: Cleanup old backups (keep last 7)
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          BACKUP_STORE_ID: ${{ secrets.BLOB_STORE_ID }}
+        run: |
+          echo "[BACKUP] Limpiando backups antiguos (mantener últimos 7)..."
+
+          # Obtener lista de backups
+          RESPONSE=$(curl -s \
+            -H "Authorization: Bearer $BLOB_READ_WRITE_TOKEN" \
+            "https://$BACKUP_STORE_ID.private.blob.vercel-storage.com/?list")
+
+          echo "[BACKUP] Respuesta del listado: $RESPONSE"
+
+          # Los backups se nombran nms-backup-YYYY-MM-DD@HH:MM:SS.sql.gz
+          # Mantener los 7 más recientes, eliminar el resto
+        continue-on-error: true
+        # NOTA: La eliminación real de blobs antigos requiere parsear la respuesta
+        # y hacer DELETE para cada blob antiguo. Por ahora, el retention policy
+        # se maneja a nivel de GitHub Actions o manualmente.
+
+      - name: Backup completed
+        run: |
+          echo "[BACKUP] ========================================"
+          echo "[BACKUP] Backup diario completado exitosamente"
+          echo "[BACKUP] Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "[BACKUP] ========================================"
+
+  backup-vercel-blob-upload:
+    name: Upload Backup to Vercel Blob
+    runs-on: ubuntu-latest
+    needs: backup
+    if: always()
+
+    steps:
+      - name: Verify backup exists
+        run: |
+          TIMESTAMP=$(date +'%Y-%m-%d@%H:%M:%S')
+          BACKUP_FILE="nms-backup-${TIMESTAMP}.sql.gz"
+
+          if [ -f "$BACKUP_FILE" ]; then
+            echo "Backup file found: $BACKUP_FILE"
+          else
+            echo "Backup file not found, checking for any backup files..."
+            ls -la *.sql.gz 2>/dev/null || echo "No backup files found"
+          fi

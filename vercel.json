@@ -2,5 +2,11 @@
   "buildCommand": "npx prisma@6.11.1 migrate deploy && npx prisma@6.11.1 generate && next build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/backup",
+      "schedule": "0 0 * * *"
+    }
+  ]
 }
