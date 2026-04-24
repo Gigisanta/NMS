@@ -6,6 +6,11 @@ import { invalidateGroupsCache } from '@/lib/api-utils'
 // GET /api/client-groups - Get client group assignments (by clientId or groupId)
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ success: false, error: 'No autenticado' }, { status: 401 })
+    }
+
     const searchParams = request.nextUrl.searchParams
     const clientId = searchParams.get('clientId')
     const groupId = searchParams.get('groupId')
@@ -61,11 +66,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if client exists
-    const client = await db.client.findUnique({
-      where: { id: clientId },
-      select: { id: true },
-    })
+    // Parallel validation of client and group existence
+    const [client, group] = await Promise.all([
+      db.client.findUnique({
+        where: { id: clientId },
+        select: { id: true },
+      }),
+      db.group.findUnique({
+        where: { id: groupId },
+        select: { id: true },
+      })
+    ])
 
     if (!client) {
       return NextResponse.json(
@@ -73,12 +84,6 @@ export async function POST(request: NextRequest) {
         { status: 404 }
       )
     }
-
-    // Check if group exists
-    const group = await db.group.findUnique({
-      where: { id: groupId },
-      select: { id: true },
-    })
 
     if (!group) {
       return NextResponse.json(

@@ -21,24 +21,25 @@ export async function GET(request: NextRequest) {
     if (clientId) where.clientId = clientId
     if (status) where.status = status
 
-    const invoices = await db.invoice.findMany({
-      where,
-      include: {
-        client: {
-          select: {
-            id: true,
-            nombre: true,
-            apellido: true,
-            telefono: true,
+    const [invoices, total] = await Promise.all([
+      db.invoice.findMany({
+        where,
+        include: {
+          client: {
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true,
+              telefono: true,
+            },
           },
         },
-      },
-      orderBy: { uploadedAt: 'desc' },
-      take: limit,
-      skip: offset,
-    })
-
-    const total = await db.invoice.count({ where })
+        orderBy: { uploadedAt: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+      db.invoice.count({ where })
+    ])
 
     return NextResponse.json({
       success: true,

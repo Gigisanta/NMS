@@ -56,8 +56,16 @@ export async function GET(request: NextRequest) {
     const clientId = searchParams.get('clientId')
     const month = searchParams.get('month') ? parseInt(searchParams.get('month')!) : getCurrentMonth()
     const year = searchParams.get('year') ? parseInt(searchParams.get('year')!) : getCurrentYear()
+    const limit = parseInt(searchParams.get('limit') || '100')
+    const offset = parseInt(searchParams.get('offset') || '0')
 
-    await ensureSubscriptionsExist(month, year)
+    // Only auto-create subscriptions for the current month (performance optimization)
+    const now = new Date()
+    const isCurrentMonth = month === now.getMonth() + 1 && year === now.getFullYear()
+
+    if (isCurrentMonth) {
+      await ensureSubscriptionsExist(month, year)
+    }
 
     const whereClause: {
       clientId?: string
@@ -89,6 +97,8 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
+      take: limit,
+      skip: offset,
     })
 
     console.log('[Subscriptions GET] count:', subscriptions.length, 'month:', month, 'year:', year)

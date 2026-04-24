@@ -26,6 +26,8 @@ export async function GET(request: NextRequest) {
     const month = searchParams.get('month')
     const year = searchParams.get('year')
     const supplier = searchParams.get('supplier')
+    const limit = parseInt(searchParams.get('limit') || '50')
+    const offset = parseInt(searchParams.get('offset') || '0')
 
     const where: any = {}
 
@@ -42,20 +44,32 @@ export async function GET(request: NextRequest) {
       where.supplier = { contains: supplier, mode: 'insensitive' }
     }
 
-    const expenses = await db.expense.findMany({
-      where,
-      orderBy: { date: 'desc' },
-      include: {
-        user: {
-          select: { name: true }
+    // Parallel data fetch and count for performance
+    const [expenses, total] = await Promise.all([
+      db.expense.findMany({
+        where,
+        orderBy: { date: 'desc' },
+        include: {
+          user: {
+            select: { name: true }
+          },
+          receipt: true,
         },
-        receipt: true,
-      }
-    })
+        take: Math.min(limit, 100),
+        skip: offset,
+      }),
+      db.expense.count({ where })
+    ])
 
     return NextResponse.json({
       success: true,
       data: expenses,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + expenses.length < total,
+      },
     })
   } catch (error) {
     console.error('Error fetching expenses:', error)

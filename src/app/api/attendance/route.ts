@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { invalidateCachePattern, invalidateClientCache } from '@/lib/api-utils'
 
@@ -6,6 +7,11 @@ import { invalidateCachePattern, invalidateClientCache } from '@/lib/api-utils'
 // NOTE: In-memory cache removed - it doesn't work in serverless (Vercel) environments
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
+    }
+
     const searchParams = request.nextUrl.searchParams
     const today = searchParams.get('today') === 'true'
     const clientId = searchParams.get('clientId')
@@ -224,6 +230,11 @@ export async function POST(request: NextRequest) {
 // DELETE /api/attendance - Remove attendance
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
+    }
+
     const searchParams = request.nextUrl.searchParams
     const attendanceId = searchParams.get('id')
 

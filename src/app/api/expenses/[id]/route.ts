@@ -78,34 +78,24 @@ export async function PUT(
       notes 
     } = body
 
-    await db.$executeRawUnsafe(
-      `UPDATE "expenses" SET 
-        "description" = $1, 
-        "amount" = $2, 
-        "category" = $3, 
-        "date" = $4, 
-        "month" = $5, 
-        "year" = $6, 
-        "userId" = $7, 
-        "supplier" = $8, 
-        "notes" = $9,
-        "updatedAt" = NOW()
-       WHERE id = $10`,
-      description,
-      amount ? parseFloat(amount.toString()) : 0,
-      category,
-      date ? new Date(date) : new Date(),
-      month ? parseInt(month.toString()) : (new Date().getMonth() + 1),
-      year ? parseInt(year.toString()) : new Date().getFullYear(),
-      userId || null,
-      supplier || null,
-      notes || null,
-      id
-    )
+    const expense = await db.expense.update({
+      where: { id },
+      data: {
+        description,
+        amount: amount ? parseFloat(amount.toString()) : 0,
+        category,
+        date: date ? new Date(date) : new Date(),
+        month: month ? parseInt(month.toString()) : (new Date().getMonth() + 1),
+        year: year ? parseInt(year.toString()) : new Date().getFullYear(),
+        userId: userId || null,
+        supplier: supplier || null,
+        notes: notes || null,
+      },
+    })
 
     return NextResponse.json({
       success: true,
-      data: { message: 'Gasto actualizado correctamente (Raw Update)' }
+      data: { message: 'Gasto actualizado correctamente' }
     })
 
   } catch (error) {
