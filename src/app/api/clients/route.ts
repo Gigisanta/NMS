@@ -4,6 +4,7 @@ import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
 import { invalidateCache, invalidateCachePattern, invalidateClientCache } from '@/lib/api-utils'
 import { createClientSchema } from '@/schemas/client'
 import { ratelimit } from '@/lib/rate-limit'
+import { auth } from '@/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,15 @@ export const dynamic = 'force-dynamic'
 // NOTE: In-memory cache removed - it doesn't work in serverless (Vercel) environments
 export async function GET(request: NextRequest) {
   try {
+    // Auth check
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 })
+    }
+
+    const isAdmin = session?.user?.role === 'EMPLEADORA'
+    const userColor = session?.user?.groupColor
+
     const searchParams = request.nextUrl.searchParams
     const search = String(searchParams.get('search') || '')
     const grupoId = String(searchParams.get('grupoId') || '')
@@ -38,6 +48,14 @@ export async function GET(request: NextRequest) {
 
     if (grupoId && grupoId !== '' && grupoId !== 'null' && grupoId !== 'undefined') {
       where.grupoId = grupoId
+    }
+
+    // Filter by group color for non-admin users
+    // Admin sees all clients, employees only see clients in their group's color
+    if (!isAdmin && userColor) {
+      where.grupo = {
+        color: userColor
+      }
     }
 
     console.log(`[API CLIENTS] Query where:`, JSON.stringify(where));
