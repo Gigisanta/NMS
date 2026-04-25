@@ -2,42 +2,58 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { auth } from '@/auth'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
+import { invalidateCachePattern, cachedFetch, CacheKeys } from '@/lib/api-utils'
 
-async function ensureSubscriptionsExist(month: number, year: number) {
-  const clients = await db.client.findMany({ select: { id: true } })
-  const existingSubs = await db.subscription.findMany({
-    where: { month, year },
-    select: { clientId: true },
+/**
+ * Ensures that subscriptions exist for all clients for a given month/year.
+ * BOLT OPTIMIZATION:
+ * 1. Uses Prisma's 'none' relation filter to find clients missing subscriptions in ONE query.
+ * 2. Parallelizes settings fetching with Promise.all.
+ * 3. Uses db.subscription.createMany for bulk insertion (O(1) roundtrip).
+ * 4. Supports optional clientId for targeted checks.
+ */
+async function ensureSubscriptionsExist(month: number, year: number, clientId?: string | null) {
+  // Find clients that DON'T have a subscription for this month/year
+  // This is much faster than fetching all clients and all subscriptions and filtering in JS
+  const missingClients = await db.client.findMany({
+    where: {
+      ...(clientId ? { id: clientId } : {}),
+      subscriptions: {
+        none: {
+          month,
+          year,
+        }
+      }
+    },
+    select: { id: true }
   })
-  const existingClientIds = new Set(existingSubs.map(s => s.clientId))
-  const missingClients = clients.filter(c => !existingClientIds.has(c.id))
 
   if (missingClients.length > 0) {
-    const defaultClassesSetting = await db.settings.findUnique({
-      where: { key: 'payment.defaultClasses' },
-    })
-    const defaultPriceSetting = await db.settings.findUnique({
-      where: { key: 'payment.defaultPrice' },
-    })
+    // Fetch settings in parallel
+    const [defaultClassesSetting, defaultPriceSetting] = await Promise.all([
+      db.settings.findUnique({ where: { key: 'payment.defaultClasses' } }),
+      db.settings.findUnique({ where: { key: 'payment.defaultPrice' } }),
+    ])
+
     const defaultClasses = defaultClassesSetting ? parseInt(defaultClassesSetting.value) : 4
     const defaultPrice = defaultPriceSetting ? parseInt(defaultPriceSetting.value) : 5000
 
-    await db.$transaction(
-      missingClients.map(client =>
-        db.subscription.create({
-          data: {
-            clientId: client.id,
-            month,
-            year,
-            status: 'PENDIENTE',
-            billingPeriod: 'FULL',
-            classesTotal: defaultClasses,
-            classesUsed: 0,
-            amount: defaultPrice,
-          },
-        })
-      )
-    )
+    // BOLT OPTIMIZATION: Use createMany for bulk insertion instead of multiple creates in a transaction
+    await db.subscription.createMany({
+      data: missingClients.map(client => ({
+        clientId: client.id,
+        month,
+        year,
+        status: 'PENDIENTE',
+        billingPeriod: 'FULL',
+        classesTotal: defaultClasses,
+        classesUsed: 0,
+        amount: defaultPrice,
+      }))
+    })
+
+    // Invalidate dashboard stats since new PENDIENTE subscriptions were created
+    invalidateCachePattern('dashboard')
   }
 }
 
@@ -59,47 +75,59 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '100')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // Only auto-create subscriptions for the current month (performance optimization)
-    const now = new Date()
-    const isCurrentMonth = month === now.getMonth() + 1 && year === now.getFullYear()
+    // BOLT OPTIMIZATION: Implement server-side caching
+    const cacheKey = CacheKeys.subscriptions({
+      clientId,
+      month,
+      year,
+      limit,
+      offset,
+    })
 
-    if (isCurrentMonth) {
-      await ensureSubscriptionsExist(month, year)
-    }
+    const subscriptions = await cachedFetch(cacheKey, async () => {
+      // Only auto-create subscriptions for the current month (performance optimization)
+      // Moving this INSIDE cachedFetch prevents redundant DB checks on cache hits
+      const now = new Date()
+      const isCurrentMonth = month === now.getMonth() + 1 && year === now.getFullYear()
 
-    const whereClause: {
-      clientId?: string
-      month?: number
-      year?: number
-    } = {}
+      if (isCurrentMonth) {
+        await ensureSubscriptionsExist(month, year, clientId)
+      }
 
-    if (clientId) whereClause.clientId = clientId
-    if (month) whereClause.month = month
-    if (year) whereClause.year = year
+      const whereClause: {
+        clientId?: string
+        month?: number
+        year?: number
+      } = {}
 
-    const subscriptions = await db.subscription.findMany({
-      where: whereClause,
-      include: {
-        client: {
-          select: {
-            id: true,
-            nombre: true,
-            apellido: true,
-            telefono: true,
-            grupo: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
+      if (clientId) whereClause.clientId = clientId
+      if (month) whereClause.month = month
+      if (year) whereClause.year = year
+
+      return db.subscription.findMany({
+        where: whereClause,
+        include: {
+          client: {
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true,
+              telefono: true,
+              grupo: {
+                select: {
+                  id: true,
+                  name: true,
+                  color: true,
+                },
               },
             },
           },
         },
-      },
-      orderBy: [{ year: 'desc' }, { month: 'desc' }],
-      take: limit,
-      skip: offset,
-    })
+        orderBy: [{ year: 'desc' }, { month: 'desc' }],
+        take: limit,
+        skip: offset,
+      })
+    }, 30000) // 30 seconds TTL for subscriptions
 
     console.log('[Subscriptions GET] count:', subscriptions.length, 'month:', month, 'year:', year)
 

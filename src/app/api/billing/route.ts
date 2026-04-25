@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { z } from 'zod'
+import { invalidateClientCache } from '@/lib/api-utils'
 
 const billingSchema = z.object({
   subscriptionIds: z.array(z.string()).min(1, 'Selecciona al menos una suscripción'),
@@ -60,6 +61,9 @@ export async function POST(request: NextRequest) {
         }),
       },
     })
+
+    // Invalidate relevant caches (dashboard and subscriptions are under ClientCache)
+    invalidateClientCache()
 
     return NextResponse.json({
       success: true,
