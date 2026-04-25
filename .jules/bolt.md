@@ -23,3 +23,7 @@
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
+
+## 2026-03-04 - Optimizing On-Demand Resource Synchronization
+**Learning:** API routes that ensure child records exist (e.g., Subscriptions for the current month) can easily become a bottleneck if they fetch all parents and all existing children to perform a JS-side diff. Prisma's `none` relation filter allows identifying missing records in a single efficient query.
+**Action:** Use `db.parent.findMany({ where: { children: { none: { ... criteria ... } } } })` to find missing related records, then use `createMany` for bulk insertion. Wrap the entire sync and fetch logic in `cachedFetch` to avoid redundant DB hits on every request.
