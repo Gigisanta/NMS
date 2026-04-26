@@ -19,6 +19,10 @@ vi.mock('@/lib/api-utils', () => ({
   invalidateClientCache: vi.fn(),
 }))
 
+vi.mock('@/auth', () => ({
+  auth: vi.fn().mockResolvedValue({ user: { id: 'admin-1', role: 'EMPLEADORA' } }),
+}))
+
 import { db } from '@/lib/db'
 import { GET as getDashboard } from '@/app/api/dashboard/route'
 
