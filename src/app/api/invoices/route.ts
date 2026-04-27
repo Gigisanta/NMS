@@ -102,6 +102,14 @@ export async function POST(request: NextRequest) {
     }
     const file = formData.get('file') as File | null
     let clientId = formData.get('clientId') as string
+
+    console.log('[INVOICE POST] Received file:', {
+      name: file?.name,
+      size: file?.size,
+      type: file?.type,
+      clientId,
+      type_field: formData.get('type'),
+    })
     const invoiceNumber = formData.get('invoiceNumber') as string | null
     const amount = formData.get('amount') as string | null
     const issueDate = formData.get('issueDate') as string | null
@@ -184,6 +192,16 @@ export async function POST(request: NextRequest) {
         uploadedBy = session.user.id
       }
     }
+
+    console.log('[INVOICE POST] Creating invoice with:', {
+      clientId,
+      fileName,
+      fileSize,
+      mimeType,
+      hasFileData: !!fileData,
+      type,
+      isReceiptType,
+    })
 
     const invoice = await db.invoice.create({
       data: {
