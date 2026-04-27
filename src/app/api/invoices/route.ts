@@ -192,7 +192,8 @@ export async function POST(request: NextRequest) {
         filePath,
         fileSize,
         mimeType,
-        fileData: fileData ? Uint8Array.from(fileData) : undefined,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fileData: fileData as any,
         invoiceNumber: invoiceNumber || null,
         amount: amount ? parseFloat(amount) : null,
         issueDate: issueDate ? new Date(issueDate) : null,
