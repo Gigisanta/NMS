@@ -224,15 +224,18 @@ export async function POST(request: NextRequest) {
         source: 'MANUAL',
         uploadedBy,
       },
-      include: {
-        client: {
-          select: {
-            id: true,
-            nombre: true,
-            apellido: true,
+      // Only include client if it's a real client (not the placeholder for RECEIPT)
+      ...(clientId !== '00000000-0000-0000-0000-000000000000' && {
+        include: {
+          client: {
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true,
+            },
           },
         },
-      },
+      }),
     })
 
     try {
