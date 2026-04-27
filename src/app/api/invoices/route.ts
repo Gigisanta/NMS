@@ -237,7 +237,12 @@ export async function POST(request: NextRequest) {
       errorMessage = error.message
       errorCode = 'code' in error ? String((error as Record<string, unknown>).code) : 'UNKNOWN'
     } else if (error !== null && typeof error === 'object') {
-      errorMessage = JSON.stringify(error)
+      try {
+        errorMessage = JSON.stringify(error)
+      } catch {
+        // If JSON.stringify fails (e.g., circular reference), use a safe fallback
+        errorMessage = String(Object.keys(error || {}).join(', '))
+      }
     } else {
       errorMessage = String(error)
     }
