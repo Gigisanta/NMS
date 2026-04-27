@@ -63,7 +63,16 @@ export async function GET(request: NextRequest) {
 // POST /api/invoices - Upload new invoice (manual)
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
+    let session
+    try {
+      session = await auth()
+    } catch (authError) {
+      console.error('Auth error:', authError)
+      return NextResponse.json(
+        { success: false, error: 'Error de autenticación', code: 'AUTH_ERROR' },
+        { status: 401 }
+      )
+    }
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'No autorizado' },
@@ -81,7 +90,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const formData = await request.formData()
+    let formData: FormData
+    try {
+      formData = await request.formData()
+    } catch (formDataError) {
+      console.error('FormData parsing error:', formDataError)
+      return NextResponse.json(
+        { success: false, error: 'Error al procesar el formulario', code: 'FORMDATA_ERROR' },
+        { status: 400 }
+      )
+    }
     const file = formData.get('file') as File | null
     let clientId = formData.get('clientId') as string
     const invoiceNumber = formData.get('invoiceNumber') as string | null
@@ -198,7 +216,12 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    invalidateClientCache()
+    try {
+      invalidateClientCache()
+    } catch (cacheError) {
+      console.error('Cache invalidation error:', cacheError)
+      // Continue anyway - the invoice was created successfully
+    }
 
     return NextResponse.json({
       success: true,
@@ -207,10 +230,17 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error uploading invoice:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const errorCode = error instanceof Error && 'code' in error
-      ? String((error as Record<string, unknown>).code)
-      : 'UNKNOWN'
+    let errorMessage = 'Unknown error'
+    let errorCode = 'UNKNOWN'
+    if (error instanceof Error) {
+      errorMessage = error.message
+      errorCode = 'code' in error ? String((error as Record<string, unknown>).code) : 'UNKNOWN'
+    } else if (error !== null && typeof error === 'object') {
+      errorMessage = JSON.stringify(error)
+    } else {
+      errorMessage = String(error)
+    }
+    console.error('Detailed error - message:', errorMessage, 'code:', errorCode)
     return NextResponse.json(
       { success: false, error: `Error al subir factura: ${errorMessage}`, code: errorCode },
       { status: 500 }
