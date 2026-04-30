@@ -23,3 +23,7 @@
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
+
+## 2026-03-05 - Batching Settings Operations
+**Learning:** Initializing or resetting settings one-by-one with findUnique/create or upsert creates an O(N) bottleneck. Prisma's createMany (with skipDuplicates for init) and targeted deleteMany + createMany (for reset) reduce this to O(1) operations.
+**Action:** Use batch operations for bulk configuration management. When resetting, always use a targeted 'where' clause in deleteMany to avoid wiping non-default custom settings.
