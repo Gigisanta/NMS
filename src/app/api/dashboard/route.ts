@@ -184,6 +184,9 @@ export async function GET(request: NextRequest) {
     const alDiaClients = subStats
       .filter(s => s.status === 'AL_DIA')
       .reduce((sum, curr) => sum + curr._count._all, 0)
+    const inactiveClients = subStats
+      .filter(s => s.status === 'INACTIVO')
+      .reduce((sum, curr) => sum + curr._count._all, 0)
     const pendingPayments = statusData['PENDIENTE']?.count || 0
     const overduePayments = statusData['DEUDOR']?.count || 0
     const monthRevenue = statusData['AL_DIA']?.revenue || 0
@@ -193,6 +196,7 @@ export async function GET(request: NextRequest) {
         totalClients,
         activeClients,
         alDiaClients,
+        inactiveClients,
         pendingPayments,
         overduePayments,
         todayAttendances,

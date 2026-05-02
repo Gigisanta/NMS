@@ -26,6 +26,8 @@ interface Group {
 interface DashboardStats {
   totalClients: number
   activeClients: number
+  alDiaClients: number
+  inactiveClients: number
   pendingPayments: number
   overduePayments: number
   todayAttendances: number

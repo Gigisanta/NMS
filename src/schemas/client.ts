@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 // Payment Status Enum
-export const paymentStatusSchema = z.enum(['AL_DIA', 'PENDIENTE', 'DEUDOR'])
+export const paymentStatusSchema = z.enum(['AL_DIA', 'PENDIENTE', 'DEUDOR', 'INACTIVO'])
 export type PaymentStatusType = z.infer<typeof paymentStatusSchema>
 
 // Group Schemas

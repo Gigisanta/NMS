@@ -227,11 +227,17 @@ export const paymentStatusConfig = {
     color: 'bg-destructive/20 text-destructive border-destructive/30',
     dotColor: 'bg-destructive',
   },
+  /** Cliente inactivo temporal */
+  INACTIVO: {
+    label: 'Inactivo',
+    color: 'bg-slate-500/20 text-slate-500 border-slate-500/30',
+    dotColor: 'bg-slate-500',
+  },
 } as const
 
 /**
  * Obtiene la configuración visual para un estado de pago.
- * @param {string} status - Estado del pago (AL_DIA, PENDIENTE, DEUDOR)
+ * @param {string} status - Estado del pago (AL_DIA, PENDIENTE, DEUDOR, INACTIVO)
  * @returns Configuración visual del estado
  */
 export function getPaymentStatusConfig(status: string) {

@@ -6,7 +6,7 @@ import { Prisma } from '@prisma/client'
 import { auth } from '@/auth'
 
 const updateSubscriptionSchema = z.object({
-  status: z.enum(['AL_DIA', 'PENDIENTE', 'DEUDOR', 'SUSPENDIDO', 'CANCELADO']).optional(),
+  status: z.enum(['AL_DIA', 'PENDIENTE', 'DEUDOR', 'INACTIVO', 'SUSPENDIDO', 'CANCELADO']).optional(),
   classesTotal: z.number().int().min(0).optional(),
   classesUsed: z.number().int().min(0).optional(),
   amount: z.number().min(0).nullable().optional(),

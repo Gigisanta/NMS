@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { motion } from 'framer-motion'
-import { CreditCard, CheckCircle2, AlertTriangle, Clock, Filter, Loader2, AlertCircle, Send } from 'lucide-react'
+import { CreditCard, CheckCircle2, AlertTriangle, Clock, Filter, Loader2, AlertCircle, Send, UserX } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatFullName, getPaymentStatusConfig, formatMonthYear, getCurrentMonth, getCurrentYear } from '@/lib/utils'
@@ -151,10 +151,11 @@ export function PaymentsView() {
   }), [subscriptions, statusFilter, selectedGrupo])
 
   const stats = useMemo(() => ({
-    total: subscriptions.length,
+    total: subscriptions.filter(s => s.status !== 'INACTIVO').length,
     alDia: subscriptions.filter(s => s.status === 'AL_DIA').length,
     pendiente: subscriptions.filter(s => s.status === 'PENDIENTE').length,
     deudor: subscriptions.filter(s => s.status === 'DEUDOR').length,
+    inactivo: subscriptions.filter(s => s.status === 'INACTIVO').length,
   }), [subscriptions])
 
   const months = Array.from({ length: 12 }, (_, i) => i + 1)
@@ -176,12 +177,13 @@ export function PaymentsView() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 stagger-in">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-5 stagger-in">
         {[
           { label: 'Total', value: stats.total, icon: CreditCard, accent: 'var(--muted-foreground)' },
           { label: 'Al Día', value: stats.alDia, icon: CheckCircle2, accent: 'var(--success)' },
           { label: 'Pendientes', value: stats.pendiente, icon: Clock, accent: 'var(--warning)' },
           { label: 'Deudores', value: stats.deudor, icon: AlertTriangle, accent: 'var(--destructive)' },
+          { label: 'Inactivos', value: stats.inactivo, icon: UserX, accent: 'var(--slate-500)' },
         ].map((stat) => (
           <div
             key={stat.label}
@@ -221,6 +223,7 @@ export function PaymentsView() {
             { value: 'AL_DIA', label: 'Al Día', accent: 'var(--success)' },
             { value: 'PENDIENTE', label: 'Pendiente', accent: 'var(--warning)' },
             { value: 'DEUDOR', label: 'Deudor', accent: 'var(--destructive)' },
+            { value: 'INACTIVO', label: 'Inactivo', accent: 'var(--slate-500)' },
           ].map((filter) => {
             const isActive = statusFilter === filter.value
             return (

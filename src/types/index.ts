@@ -1,7 +1,7 @@
 // Domain Types for Natatory Management System
 
 // Payment Status Enum
-export type PaymentStatus = 'AL_DIA' | 'PENDIENTE' | 'DEUDOR'
+export type PaymentStatus = 'AL_DIA' | 'PENDIENTE' | 'DEUDOR' | 'INACTIVO'
 
 // Group Types
 export interface Group {
@@ -110,6 +110,8 @@ export interface AttendanceWithClient extends Attendance {
 export interface DashboardStats {
   totalClients: number
   activeClients: number
+  alDiaClients: number
+  inactiveClients: number
   pendingPayments: number
   overduePayments: number
   todayAttendances: number

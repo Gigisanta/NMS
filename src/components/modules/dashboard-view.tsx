@@ -14,7 +14,8 @@ import {
   AlertTriangle,
   Calendar,
   DollarSign,
-  ArrowRight
+  ArrowRight,
+  UserX
 } from 'lucide-react'
 import { formatCurrency, formatFullName, getPaymentStatusConfig, formatMonthYear } from '@/lib/utils'
 import { useAppStore } from '@/store'
@@ -26,6 +27,7 @@ interface DashboardStats {
   totalClients: number
   activeClients: number
   alDiaClients: number
+  inactiveClients: number
   pendingPayments: number
   overduePayments: number
   todayAttendances: number
@@ -251,7 +253,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-2 sm:gap-3 grid-cols-2 md:grid-cols-5 stagger-in">
+      <div className="grid gap-2 sm:gap-3 grid-cols-2 md:grid-cols-6 stagger-in">
         <StatCard
           title="Clientes"
           value={stats?.totalClients ?? 0}
@@ -279,6 +281,13 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           Icon={AlertTriangle}
           trend="+10 días"
           accent={'var(--destructive)'}
+        />
+        <StatCard
+          title="Inactivos"
+          value={stats?.inactiveClients ?? 0}
+          Icon={UserX}
+          trend="Temporal"
+          accent={'var(--slate-500)'}
         />
         <StatCard
           title="Hoy"
