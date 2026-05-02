@@ -47,18 +47,28 @@ const DEFAULT_SETTINGS: Record<string, { value: string; category: string; descri
 
 // Initialize default settings if they don't exist
 async function initializeDefaults() {
-  for (const [key, config] of Object.entries(DEFAULT_SETTINGS)) {
-    const existing = await db.settings.findUnique({ where: { key } })
-    if (!existing) {
-      await db.settings.create({
-        data: {
-          key,
-          value: config.value,
-          category: config.category,
-          description: config.description,
-        },
-      })
-    }
+  const keys = Object.keys(DEFAULT_SETTINGS)
+
+  // Fetch all existing settings for these keys in one go
+  const existingSettings = await db.settings.findMany({
+    where: { key: { in: keys } },
+    select: { key: true }
+  })
+
+  const existingKeys = new Set(existingSettings.map(s => s.key))
+  const missingKeys = keys.filter(key => !existingKeys.has(key))
+
+  if (missingKeys.length > 0) {
+    // Bulk create missing settings
+    await db.settings.createMany({
+      data: missingKeys.map(key => ({
+        key,
+        value: DEFAULT_SETTINGS[key].value,
+        category: DEFAULT_SETTINGS[key].category,
+        description: DEFAULT_SETTINGS[key].description,
+      })),
+      skipDuplicates: true
+    })
   }
 }
 
@@ -128,12 +138,21 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update settings in transaction
+    const keysToUpdate = Object.keys(settings)
+
+    // Fetch existing settings to know which ones to update vs create
+    const existingSettings = await db.settings.findMany({
+      where: { key: { in: keysToUpdate } },
+      select: { key: true }
+    })
+
+    const existingKeys = new Set(existingSettings.map(s => s.key))
+
     const updates: Prisma.PrismaPromise<unknown>[] = []
+    const toCreate: { key: string; value: string; category: string }[] = []
+
     for (const [key, value] of Object.entries(settings)) {
-      // Validate key exists in defaults or is a valid setting
-      const existingSetting = await db.settings.findUnique({ where: { key } })
-      
-      if (existingSetting) {
+      if (existingKeys.has(key)) {
         updates.push(
           db.settings.update({
             where: { key },
@@ -141,20 +160,19 @@ export async function PUT(request: NextRequest) {
           })
         )
       } else {
-        // Create new setting
-        updates.push(
-          db.settings.create({
-            data: {
-              key,
-              value: String(value),
-              category: 'general',
-            },
-          })
-        )
+        toCreate.push({
+          key,
+          value: String(value),
+          category: 'general',
+        })
       }
     }
 
-    await db.$transaction(updates)
+    // Combine createMany and individual updates in one transaction
+    await db.$transaction([
+      ...(toCreate.length > 0 ? [db.settings.createMany({ data: toCreate, skipDuplicates: true })] : []),
+      ...updates
+    ])
 
     // Log activity
     await db.activityLog.create({
@@ -194,19 +212,24 @@ export async function POST(request: NextRequest) {
     const { action } = body
 
     if (action === 'reset') {
-      // Reset all settings to defaults
-      for (const [key, config] of Object.entries(DEFAULT_SETTINGS)) {
-        await db.settings.upsert({
-          where: { key },
-          update: { value: config.value },
-          create: {
+      // Reset all settings to defaults in a transaction
+      const keys = Object.keys(DEFAULT_SETTINGS)
+
+      await db.$transaction([
+        // Delete only the settings that are in our default list
+        db.settings.deleteMany({
+          where: { key: { in: keys } }
+        }),
+        // Re-create them with default values
+        db.settings.createMany({
+          data: keys.map(key => ({
             key,
-            value: config.value,
-            category: config.category,
-            description: config.description,
-          },
+            value: DEFAULT_SETTINGS[key].value,
+            category: DEFAULT_SETTINGS[key].category,
+            description: DEFAULT_SETTINGS[key].description,
+          }))
         })
-      }
+      ])
 
       return NextResponse.json({
         success: true,
