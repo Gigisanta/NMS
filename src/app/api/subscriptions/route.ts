@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     const clientId = searchParams.get('clientId')
     const month = searchParams.get('month') ? parseInt(searchParams.get('month')!) : getCurrentMonth()
     const year = searchParams.get('year') ? parseInt(searchParams.get('year')!) : getCurrentYear()
-    const limit = parseInt(searchParams.get('limit') || '100')
+    const limit = parseInt(searchParams.get('limit') || '500')
     const offset = parseInt(searchParams.get('offset') || '0')
 
     // Only auto-create subscriptions for the current month (performance optimization)
