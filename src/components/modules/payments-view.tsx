@@ -413,6 +413,17 @@ export function PaymentsView() {
                               >
                                 <AlertTriangle className="w-3 h-3" />
                               </Button>
+
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className={`h-9 sm:h-8 w-9 sm:w-8 p-0 ${sub.status === 'INACTIVO' ? 'text-slate-500 bg-slate-500/10' : 'text-muted-foreground'}`}
+                                onClick={() => handleStatusChange(sub.id, sub.status === 'INACTIVO' ? 'PENDIENTE' : 'INACTIVO')}
+                                disabled={updating === sub.id}
+                                title={sub.status === 'INACTIVO' ? 'Reactivar cliente' : 'Marcar como Inactivo'}
+                              >
+                                <UserX className="w-3 h-3" />
+                              </Button>
                             </div>
                           </TableCell>
                         </motion.tr>
