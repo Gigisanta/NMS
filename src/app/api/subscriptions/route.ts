@@ -3,41 +3,48 @@ import { db } from '@/lib/db'
 import { auth } from '@/auth'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
 
+/**
+ * BOLT OPTIMIZATION: Refactored to eliminate N+1 query patterns and O(N) in-memory filtering.
+ * 1. Uses a single query with 'none' relation filter to find clients missing subscriptions.
+ * 2. Fetches settings in parallel using Promise.all.
+ * 3. Uses createMany for bulk insertion, reducing O(N) database roundtrips to O(1).
+ */
 async function ensureSubscriptionsExist(month: number, year: number) {
-  const clients = await db.client.findMany({ select: { id: true } })
-  const existingSubs = await db.subscription.findMany({
-    where: { month, year },
-    select: { clientId: true },
+  // Find clients who don't have a subscription for this month/year yet
+  // This replaces fetching all clients + all subscriptions and filtering in JS
+  const missingClients = await db.client.findMany({
+    where: {
+      subscriptions: {
+        none: { month, year }
+      }
+    },
+    select: { id: true }
   })
-  const existingClientIds = new Set(existingSubs.map(s => s.clientId))
-  const missingClients = clients.filter(c => !existingClientIds.has(c.id))
 
   if (missingClients.length > 0) {
-    const defaultClassesSetting = await db.settings.findUnique({
-      where: { key: 'payment.defaultClasses' },
-    })
-    const defaultPriceSetting = await db.settings.findUnique({
-      where: { key: 'payment.defaultPrice' },
-    })
+    // Fetch default settings in parallel
+    const [defaultClassesSetting, defaultPriceSetting] = await Promise.all([
+      db.settings.findUnique({ where: { key: 'payment.defaultClasses' } }),
+      db.settings.findUnique({ where: { key: 'payment.defaultPrice' } }),
+    ])
+
     const defaultClasses = defaultClassesSetting ? parseInt(defaultClassesSetting.value) : 4
     const defaultPrice = defaultPriceSetting ? parseInt(defaultPriceSetting.value) : 5000
 
-    await db.$transaction(
-      missingClients.map(client =>
-        db.subscription.create({
-          data: {
-            clientId: client.id,
-            month,
-            year,
-            status: 'PENDIENTE',
-            billingPeriod: 'FULL',
-            classesTotal: defaultClasses,
-            classesUsed: 0,
-            amount: defaultPrice,
-          },
-        })
-      )
-    )
+    // BOLT OPTIMIZATION: Bulk insert using createMany (O(1) database roundtrip)
+    await db.subscription.createMany({
+      data: missingClients.map(client => ({
+        clientId: client.id,
+        month,
+        year,
+        status: 'PENDIENTE',
+        billingPeriod: 'FULL',
+        classesTotal: defaultClasses,
+        classesUsed: 0,
+        amount: defaultPrice,
+      })),
+      skipDuplicates: true, // Safety measure
+    })
   }
 }
 
