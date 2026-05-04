@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -18,12 +19,11 @@ import { motion } from 'framer-motion'
 import { CreditCard, CheckCircle2, AlertTriangle, Clock, Filter, Loader2, AlertCircle, Send, UserX } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatFullName, getPaymentStatusConfig, formatMonthYear, getCurrentMonth, getCurrentYear } from '@/lib/utils'
+import { formatFullName, getPaymentStatusConfig, formatMonthYear, getCurrentMonth, getCurrentYear, GROUP_COLORS, formatCurrency } from '@/lib/utils'
 import { GroupBadge } from './group-badge'
 import { GroupTabs } from './group-tabs'
 import { useAppStore } from '@/store'
 import { ReceiptUploadDialog } from './payments/receipt-upload-dialog'
-import { formatCurrency } from '@/lib/utils'
 import { queryClient } from '@/lib/queryClient'
 import { toast } from 'sonner'
 
@@ -64,6 +64,7 @@ export function PaymentsView() {
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth())
   const [selectedYear, setSelectedYear] = useState(getCurrentYear())
   const [selectedGrupo, setSelectedGrupo] = useState<string | null>(null)
+  const [groupSortBy, setGroupSortBy] = useState<'name' | 'color'>('color')
   const [updating, setUpdating] = useState<string | null>(null)
   
   // Receipt upload state
@@ -72,6 +73,17 @@ export function PaymentsView() {
 
 
   const storeGroups = useAppStore((state) => state.groups)
+
+  const sortedGroups = useMemo(() => {
+    if (!storeGroups) return []
+    const sorted = [...storeGroups]
+    if (groupSortBy === 'color') {
+      sorted.sort((a, b) => GROUP_COLORS.indexOf(a.color as typeof GROUP_COLORS[number]) - GROUP_COLORS.indexOf(b.color as typeof GROUP_COLORS[number]))
+    } else {
+      sorted.sort((a, b) => a.name.localeCompare(b.name, 'es'))
+    }
+    return sorted
+  }, [storeGroups, groupSortBy])
 
   const fetchSubscriptions = useCallback(async () => {
     setLoading(true)
@@ -206,13 +218,27 @@ export function PaymentsView() {
       </div>
 
       {/* Group Tabs */}
-      {storeGroups && storeGroups.length > 0 && (
-        <GroupTabs
-          groups={storeGroups}
-          selectedId={selectedGrupo}
-          onChange={setSelectedGrupo}
-          isAdmin={isAdmin}
-        />
+      {sortedGroups.length > 0 && (
+        <>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm font-medium text-muted-foreground">Grupos</span>
+            <Select value={groupSortBy} onValueChange={(v) => setGroupSortBy(v as 'name' | 'color')}>
+              <SelectTrigger className="ml-auto h-7 w-[90px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="color">Por color</SelectItem>
+                <SelectItem value="name">Por nombre</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <GroupTabs
+            groups={sortedGroups}
+            selectedId={selectedGrupo}
+            onChange={setSelectedGrupo}
+            isAdmin={isAdmin}
+          />
+        </>
       )}
 
       {/* Filters */}
