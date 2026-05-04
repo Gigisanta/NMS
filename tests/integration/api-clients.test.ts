@@ -13,13 +13,25 @@ vi.mock('@/lib/db', () => ({
 
 vi.mock('@/lib/api-utils', () => ({
   cachedFetch: vi.fn((_k, fetcher) => fetcher()),
-  CacheKeys: { dashboard: () => 'dashboard:stats', groups: () => 'groups:all', clients: (p) => `clients:${JSON.stringify(p)}`, client: (id) => `client:${id}`, attendanceToday: () => 'attendance:today' },
+  CacheKeys: {
+    dashboard: () => 'dashboard:stats',
+    groups: () => 'groups:all',
+    clients: (p) => 'clients:' + JSON.stringify(p),
+    client: (id) => 'client:' + id,
+    attendanceToday: () => 'attendance:today',
+    subscriptions: () => 'subscriptions'
+  },
   invalidateCache: vi.fn(),
-  invalidateCachePattern: vi.fn(),
+  invalidateGroupsCache: vi.fn(),
   invalidateClientCache: vi.fn(),
+  invalidateCachePattern: vi.fn(),
 }))
 
 vi.mock('@/lib/rate-limit', () => ({ ratelimit: { limit: vi.fn().mockResolvedValue({ success: true }) } }))
+
+vi.mock('@/auth', () => ({
+  auth: vi.fn(() => Promise.resolve({ user: { id: 'admin-1', role: 'EMPLEADORA' } })),
+}))
 
 import { db } from '@/lib/db'
 import { GET as getClients, POST as createClient } from '@/app/api/clients/route'
