@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
+vi.mock('@/auth', () => ({
+  auth: vi.fn(),
+}))
+
 vi.mock('@/lib/db', () => ({
   db: {
     client: { count: vi.fn(), findMany: vi.fn(), groupBy: vi.fn() },
@@ -19,6 +23,7 @@ vi.mock('@/lib/api-utils', () => ({
   invalidateClientCache: vi.fn(),
 }))
 
+import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { GET as getDashboard } from '@/app/api/dashboard/route'
 
@@ -27,7 +32,10 @@ function createRequest(url: string, options: RequestInit = {}): NextRequest {
 }
 
 describe('API /dashboard', () => {
-  beforeEach(() => { vi.clearAllMocks() })
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(auth).mockResolvedValue({ user: { id: 'admin-1', role: 'EMPLEADORA' } } as any)
+  })
 
   describe('GET /api/dashboard', () => {
     it('should return complete dashboard statistics', async () => {
