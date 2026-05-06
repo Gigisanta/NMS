@@ -47,19 +47,18 @@ const DEFAULT_SETTINGS: Record<string, { value: string; category: string; descri
 
 // Initialize default settings if they don't exist
 async function initializeDefaults() {
-  for (const [key, config] of Object.entries(DEFAULT_SETTINGS)) {
-    const existing = await db.settings.findUnique({ where: { key } })
-    if (!existing) {
-      await db.settings.create({
-        data: {
-          key,
-          value: config.value,
-          category: config.category,
-          description: config.description,
-        },
-      })
-    }
-  }
+  const settingsData = Object.entries(DEFAULT_SETTINGS).map(([key, config]) => ({
+    key,
+    value: config.value,
+    category: config.category,
+    description: config.description,
+  }))
+
+  // BOLT OPTIMIZATION: Use createMany with skipDuplicates to initialize in a single query
+  await db.settings.createMany({
+    data: settingsData,
+    skipDuplicates: true,
+  })
 }
 
 // GET /api/settings - Get all settings or by category
@@ -127,13 +126,19 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Update settings in transaction
+    // BOLT OPTIMIZATION: Batch process updates to avoid N+1 queries
+    const keysToUpdate = Object.keys(settings)
+    const existingSettings = await db.settings.findMany({
+      where: { key: { in: keysToUpdate } },
+      select: { key: true },
+    })
+    const existingKeys = new Set(existingSettings.map((s) => s.key))
+
     const updates: Prisma.PrismaPromise<unknown>[] = []
+    const newSettings: { key: string; value: string; category: string }[] = []
+
     for (const [key, value] of Object.entries(settings)) {
-      // Validate key exists in defaults or is a valid setting
-      const existingSetting = await db.settings.findUnique({ where: { key } })
-      
-      if (existingSetting) {
+      if (existingKeys.has(key)) {
         updates.push(
           db.settings.update({
             where: { key },
@@ -141,20 +146,21 @@ export async function PUT(request: NextRequest) {
           })
         )
       } else {
-        // Create new setting
-        updates.push(
-          db.settings.create({
-            data: {
-              key,
-              value: String(value),
-              category: 'general',
-            },
-          })
-        )
+        newSettings.push({
+          key,
+          value: String(value),
+          category: 'general',
+        })
       }
     }
 
-    await db.$transaction(updates)
+    // Use transaction for all operations
+    await db.$transaction([
+      ...updates,
+      ...(newSettings.length > 0
+        ? [db.settings.createMany({ data: newSettings })]
+        : []),
+    ])
 
     // Log activity
     await db.activityLog.create({
@@ -194,19 +200,24 @@ export async function POST(request: NextRequest) {
     const { action } = body
 
     if (action === 'reset') {
-      // Reset all settings to defaults
-      for (const [key, config] of Object.entries(DEFAULT_SETTINGS)) {
-        await db.settings.upsert({
-          where: { key },
-          update: { value: config.value },
-          create: {
-            key,
-            value: config.value,
-            category: config.category,
-            description: config.description,
-          },
-        })
-      }
+      // BOLT OPTIMIZATION: Use transaction with deleteMany and createMany for bulk reset
+      const defaultKeys = Object.keys(DEFAULT_SETTINGS)
+      const settingsData = Object.entries(DEFAULT_SETTINGS).map(([key, config]) => ({
+        key,
+        value: config.value,
+        category: config.category,
+        description: config.description,
+      }))
+
+      await db.$transaction([
+        // Only delete settings that we are about to re-insert as defaults
+        db.settings.deleteMany({
+          where: { key: { in: defaultKeys } },
+        }),
+        db.settings.createMany({
+          data: settingsData,
+        }),
+      ])
 
       return NextResponse.json({
         success: true,

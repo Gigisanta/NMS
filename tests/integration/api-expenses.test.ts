@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server'
 
 vi.mock('@/lib/db', () => ({
   db: {
-    expense: { findMany: vi.fn(), create: vi.fn(), delete: vi.fn() },
+    expense: { findMany: vi.fn(), create: vi.fn(), delete: vi.fn(), count: vi.fn(), update: vi.fn() },
     $executeRawUnsafe: vi.fn(),
     $transaction: vi.fn(),
   },
@@ -126,13 +126,13 @@ describe('API /expenses/[id]', () => {
   beforeEach(() => { vi.clearAllMocks() })
 
   describe('PUT /api/expenses/[id]', () => {
-    it('should update an expense using raw SQL', async () => {
-      vi.mocked(db.$executeRawUnsafe).mockResolvedValue(1 as any)
+    it('should update an expense', async () => {
+      vi.mocked(db.expense.update).mockResolvedValue({ id: 'exp-1' } as any)
       const response = await updateExpense(createRequest('/api/expenses/exp-1', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: 'Updated description', amount: 6000, category: 'FIJO' }) }), makeCtx('exp-1'))
       const data = await response.json()
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
-      expect(db.$executeRawUnsafe).toHaveBeenCalled()
+      expect(db.expense.update).toHaveBeenCalled()
     })
 
     it('should update expense with date', async () => {

@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
+vi.mock('@/auth', () => ({
+  auth: vi.fn(),
+}))
+
 vi.mock('@/lib/db', () => ({
   db: {
     group: { findMany: vi.fn(), findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
@@ -15,8 +19,10 @@ vi.mock('@/lib/api-utils', () => ({
   invalidateCache: vi.fn(),
   invalidateCachePattern: vi.fn(),
   invalidateClientCache: vi.fn(),
+  invalidateGroupsCache: vi.fn(),
 }))
 
+import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { GET as getGroups, POST as createGroup } from '@/app/api/groups/route'
 import { GET as getGroupById, PUT as updateGroup, DELETE as deleteGroup } from '@/app/api/groups/[id]/route'
@@ -29,7 +35,10 @@ function createRequest(url: string, options: RequestInit = {}): NextRequest {
 function makeCtx(id: string) { return { params: Promise.resolve({ id }) } }
 
 describe('API /groups', () => {
-  beforeEach(() => { vi.clearAllMocks() })
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(auth).mockResolvedValue({ user: { id: 'admin-1', role: 'EMPLEADORA' } } as any)
+  })
 
   describe('GET /api/groups', () => {
     it('should return all groups with client counts', async () => {
@@ -83,7 +92,10 @@ describe('API /groups', () => {
 })
 
 describe('API /groups/[id]', () => {
-  beforeEach(() => { vi.clearAllMocks() })
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(auth).mockResolvedValue({ user: { id: 'admin-1', role: 'EMPLEADORA' } } as any)
+  })
 
   describe('GET /api/groups/[id]', () => {
     it('should return a single group by id', async () => {
@@ -109,7 +121,7 @@ describe('API /groups/[id]', () => {
   describe('PUT /api/groups/[id]', () => {
     it('should update a group with valid data', async () => {
       vi.mocked(db.group.findFirst).mockResolvedValue(null)
-      vi.mocked(db.group.update).mockResolvedValue({ id: 'g1', name: 'Grupo Updated', color: '#06b6d4', description: 'Updated description', schedule: null, active: true } as any)
+      vi.mocked(db.group.update).mockResolvedValue({ id: 'g1', name: 'Grupo Updated', color: '#06b6d4', description: 'Updated description', schedule: null, active: true, _count: { clients: 0 } } as any)
       const response = await updateGroup(createRequest('/api/groups/g1', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Grupo Updated', description: 'Updated description' }) }), makeCtx('g1'))
       const data = await response.json()
       expect(response.status).toBe(200)
