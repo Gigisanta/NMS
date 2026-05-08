@@ -20,6 +20,10 @@
 **Learning:** Implementing a per-route `cachedFetch` strategy with a centralized `CacheKeys` generator simplifies cache management. However, cache invalidation must be granular yet comprehensive; using a pattern-based invalidator like `invalidateCachePattern('client')` is essential for routes that affect both list and detail views (e.g., updating a client profile).
 **Action:** When adding caching to related routes, ensure a consistent key prefix and use pattern invalidation in all mutating handlers (POST, PUT, PATCH, DELETE).
 
+## 2026-04-14 - Prisma 'none' Filter for Missing Records
+**Learning:** Identifying missing records in a one-to-many relationship (e.g., clients without subscriptions for the current month) can be done in a single O(1) database query using Prisma's `none` relation filter. This is significantly faster than fetching all parents and all children to compare them in application memory, especially as the database grows.
+**Action:** Use `db.parent.findMany({ where: { children: { none: { ...conditions } } } })` to find parents missing specific children in one roundtrip.
+
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
