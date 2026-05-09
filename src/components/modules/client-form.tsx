@@ -329,7 +329,9 @@ export function ClientForm({ client, groups = [], onSuccess, onCancel }: ClientF
                     <div className="flex items-center gap-2">
                       <span className="text-lg font-medium text-muted-foreground">$</span>
                       <Input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9.]*"
                         placeholder="0.00"
                         className="text-lg font-semibold h-12"
                         {...field}
