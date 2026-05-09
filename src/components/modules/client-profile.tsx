@@ -796,8 +796,6 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">$</span>
                     <Input
-                      type="text"
-                      inputMode="numeric"
                       className="w-28 sm:w-32 text-right"
                       value={formData.amount ?? ''}
                       onChange={(e) => updateFormData('amount', e.target.value === '' ? null : (parseArsAmount(e.target.value)))}
