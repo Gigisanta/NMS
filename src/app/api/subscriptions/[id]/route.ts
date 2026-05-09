@@ -32,7 +32,9 @@ export async function PUT(
 
     const updateData: Record<string, unknown> = {}
 
-    console.log('[Subscription PUT] id:', id, 'data:', validated)
+    console.log('[Subscription PUT] id:', id)
+    console.log('[Subscription PUT] raw body amount:', body.amount, 'type:', typeof body.amount)
+    console.log('[Subscription PUT] validated amount:', validated.amount, 'type:', typeof validated.amount)
 
     if (validated.status !== undefined) {
       console.log('[Subscription PUT] Updating status to:', validated.status)
@@ -40,7 +42,11 @@ export async function PUT(
     }
     if (validated.classesTotal !== undefined) updateData.classesTotal = validated.classesTotal
     if (validated.classesUsed !== undefined) updateData.classesUsed = validated.classesUsed
-    if (validated.amount !== undefined) updateData.amount = validated.amount === null ? null : new Prisma.Decimal(validated.amount)
+    if (validated.amount !== undefined) {
+      const decimalAmount = validated.amount === null ? null : new Prisma.Decimal(validated.amount)
+      console.log('[Subscription PUT] decimal amount:', decimalAmount?.toString() ?? 'null')
+      updateData.amount = decimalAmount
+    }
     if (validated.paymentMethod !== undefined) updateData.paymentMethod = validated.paymentMethod
     if (validated.isBilled !== undefined) updateData.isBilled = validated.isBilled
     if (validated.billingPeriod !== undefined) updateData.billingPeriod = validated.billingPeriod

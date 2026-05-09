@@ -377,14 +377,16 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
         if (!subscription) return
 
         try {
+          const payload = {
+            classesTotal: Number(formData.classesTotal),
+            billingPeriod: formData.billingPeriod,
+            amount: formData.amount == null ? null : Number(formData.amount),
+          }
+          console.log('[Client Profile] Saving subscription:', subscription.id, 'payload:', payload)
           const subResponse = await fetch(`/api/subscriptions/${subscription.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              classesTotal: Number(formData.classesTotal),
-              billingPeriod: formData.billingPeriod,
-              amount: formData.amount == null ? null : Number(formData.amount),
-            }),
+            body: JSON.stringify(payload),
           })
           const subResult = await subResponse.json()
           if (subResult.success) {

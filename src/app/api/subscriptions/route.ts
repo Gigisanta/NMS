@@ -16,27 +16,35 @@ async function ensureSubscriptionsExist(month: number, year: number) {
     const defaultClassesSetting = await db.settings.findUnique({
       where: { key: 'payment.defaultClasses' },
     })
-    const defaultPriceSetting = await db.settings.findUnique({
-      where: { key: 'payment.defaultPrice' },
-    })
     const defaultClasses = defaultClassesSetting ? parseInt(defaultClassesSetting.value) : 4
-    const defaultPrice = defaultPriceSetting ? parseInt(defaultPriceSetting.value) : 5000
+
+    // Get previous month subscriptions to carry over amount and billingPeriod
+    const prevMonth = month === 1 ? 12 : month - 1
+    const prevYear = month === 1 ? year - 1 : year
+
+    const prevSubscriptions = await db.subscription.findMany({
+      where: { month: prevMonth, year: prevYear },
+      select: { clientId: true, amount: true, billingPeriod: true },
+    })
+    const prevSubMap = new Map(prevSubscriptions.map(s => [s.clientId, s]))
 
     await db.$transaction(
-      missingClients.map(client =>
-        db.subscription.create({
+      missingClients.map(client => {
+        const prevSub = prevSubMap.get(client.id)
+        return db.subscription.create({
           data: {
             clientId: client.id,
             month,
             year,
             status: 'PENDIENTE',
-            billingPeriod: 'FULL',
+            billingPeriod: prevSub?.billingPeriod || 'FULL',
             classesTotal: defaultClasses,
             classesUsed: 0,
-            amount: defaultPrice,
+            // Carry over amount from previous month if it exists
+            amount: prevSub?.amount ?? null,
           },
         })
-      )
+      })
     )
   }
 }
