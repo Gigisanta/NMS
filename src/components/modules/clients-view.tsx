@@ -207,7 +207,7 @@ export function ClientsView({ onViewChange, openNewClient, onNewClientHandled }:
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
-  const [groupSortBy, setGroupSortBy] = useState<'name' | 'color'>('name')
+  const [groupSortBy, setGroupSortBy] = useState<'name' | 'color'>('color')
 
   const setStoreGroups = useAppStore((state) => state.setGroups)
   const invalidateDashboard = useAppStore((state) => state.invalidateDashboard)
