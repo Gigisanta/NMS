@@ -115,14 +115,19 @@ export function GroupSelector({
             disabled && 'opacity-50 cursor-not-allowed'
           )}
         >
-          <GroupBadge 
-            group={selectedGroup} 
-            size={size} 
+          <GroupBadge
+            group={selectedGroup}
+            size={size}
             interactive={!disabled}
           />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 p-0" align="start">
+      <PopoverContent
+        className="w-72 p-0 z-[9999] max-h-[320px]"
+        align="start"
+        sideOffset={4}
+        collisionPadding={16}
+      >
         <div className="p-3 border-b">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">Seleccionar Grupo</span>
@@ -196,7 +201,7 @@ export function GroupSelector({
           </div>
         ) : null}
 
-        <ScrollArea className="max-h-64">
+        <ScrollArea className="max-h-[240px]">
           <div className="p-1">
             {/* Option to clear selection */}
             <button
