@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
+import { useQuery } from '@tanstack/react-query'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,10 +17,10 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { motion } from 'framer-motion'
-import { CreditCard, CheckCircle2, AlertTriangle, Clock, Filter, Loader2, AlertCircle, Send, UserX } from 'lucide-react'
+import { CreditCard, CheckCircle2, AlertTriangle, Clock, Loader2, AlertCircle, Send, UserX } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatFullName, getPaymentStatusConfig, formatMonthYear, getCurrentMonth, getCurrentYear, GROUP_COLORS, formatCurrency, cn } from '@/lib/utils'
+import { formatFullName, getPaymentStatusConfig, formatMonthYear, getCurrentMonth, getCurrentYear, GROUP_COLORS, cn } from '@/lib/utils'
 import { GroupBadge } from './group-badge'
 import { GroupTabs } from './group-tabs'
 import { GroupManager } from './group-manager'
@@ -75,18 +76,23 @@ export function PaymentsView() {
   const [pendingSub, setPendingSub] = useState<Subscription | null>(null)
 
 
-  const storeGroups = useAppStore((state) => state.groups)
+  const setStoreGroups = useAppStore((state) => state.setGroups)
 
-  const sortedGroups = useMemo(() => {
-    if (!storeGroups) return []
-    const sorted = [...storeGroups]
-    if (groupSortBy === 'color') {
-      sorted.sort((a, b) => GROUP_COLORS.indexOf(a.color as typeof GROUP_COLORS[number]) - GROUP_COLORS.indexOf(b.color as typeof GROUP_COLORS[number]))
-    } else {
-      sorted.sort((a, b) => a.name.localeCompare(b.name, 'es'))
-    }
-    return sorted
-  }, [storeGroups, groupSortBy])
+  // Use React Query for groups - automatically invalidated by group-manager
+  const { data: groupsData } = useQuery({
+    queryKey: ['groups'],
+    queryFn: async () => {
+      const res = await fetch('/api/groups')
+      const result = await res.json()
+      if (result.success) {
+        setStoreGroups?.(result.data)
+        return result.data as Group[]
+      }
+      return []
+    },
+    staleTime: 60 * 1000,
+  })
+  const groups = groupsData || []
 
   const fetchSubscriptions = useCallback(async () => {
     setLoading(true)
@@ -172,6 +178,16 @@ export function PaymentsView() {
     deudor: subscriptions.filter(s => s.status === 'DEUDOR').length,
     inactivo: subscriptions.filter(s => s.status === 'INACTIVO').length,
   }), [subscriptions])
+
+  const sortedGroups = useMemo(() => {
+    const sorted = [...groups]
+    if (groupSortBy === 'color') {
+      sorted.sort((a, b) => GROUP_COLORS.indexOf(a.color as typeof GROUP_COLORS[number]) - GROUP_COLORS.indexOf(b.color as typeof GROUP_COLORS[number]))
+    } else {
+      sorted.sort((a, b) => a.name.localeCompare(b.name, 'es'))
+    }
+    return sorted
+  }, [groups, groupSortBy])
 
   const months = Array.from({ length: 12 }, (_, i) => i + 1)
   const years = [selectedYear - 1, selectedYear, selectedYear + 1]
@@ -275,7 +291,7 @@ export function PaymentsView() {
             </div>
           </div>
           <GroupManager
-            groups={storeGroups || []}
+            groups={groups}
             onGroupsChange={() => queryClient.invalidateQueries({ queryKey: ['groups'] })}
             trigger={
               <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50">
@@ -300,62 +316,35 @@ export function PaymentsView() {
             </div>
           )}
 
-          {/* Filters */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex gap-1.5 flex-wrap">
-              {[
-                { value: '', label: 'Todos' },
-                { value: 'AL_DIA', label: 'Al Día', accent: 'var(--success)' },
-                { value: 'PENDIENTE', label: 'Pendiente', accent: 'var(--warning)' },
-                { value: 'DEUDOR', label: 'Deudor', accent: 'var(--destructive)' },
-                { value: 'INACTIVO', label: 'Inactivo', accent: 'var(--slate-500)' },
-              ].map((filter) => {
-                const isActive = statusFilter === filter.value
-                return (
-                  <button
-                    key={filter.value}
-                    onClick={() => setStatusFilter(filter.value)}
-                    className="h-8 px-3 text-xs font-medium rounded-lg border transition-all"
-                    style={{
-                      background: isActive ? (filter.accent ?? 'var(--primary)') : 'var(--background)',
-                      color: isActive ? 'white' : 'var(--foreground)',
-                      borderColor: isActive ? (filter.accent ?? 'var(--primary)') : 'var(--border)',
-                    }}
-                  >
-                    {filter.label}
-                  </button>
-                )
-              })}
-            </div>
-            <div className="flex items-center gap-2 ml-auto">
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                className="h-8 px-2 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
-              >
-                {months.map(m => (
-                  <option key={m} value={m}>
-                    {formatMonthYear(m, selectedYear).split(' ')[0]}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                className="h-8 px-2 rounded-lg border border-input bg-background text-xs text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-              >
-                {years.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
+          {/* Month/Year selectors */}
+          <div className="flex items-center gap-2 justify-end">
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+              className="h-8 px-2 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
+            >
+              {months.map(m => (
+                <option key={m} value={m}>
+                  {formatMonthYear(m, selectedYear).split(' ')[0]}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              className="h-8 px-2 rounded-lg border border-input bg-background text-xs text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              {years.map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
           </div>
 
-      {/* Subscriptions Table */}
-      <Card className="border-border shadow-sm overflow-hidden">
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-4">
+          {/* Subscriptions Table */}
+          <Card className="border-border shadow-sm overflow-hidden">
+            <CardContent className="p-0">
+              {loading ? (
+                <div className="p-4">
               <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map(i => (
                   <div key={i} className="flex items-center gap-3 p-4 bg-muted/50/50 rounded-lg">
@@ -393,17 +382,14 @@ export function PaymentsView() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredSubscriptions.map((sub, index) => {
-                    const statusConfig = getPaymentStatusConfig(sub.status)
-                    const isLate = isLateInMonth && sub.status === 'PENDIENTE'
-                    return (
-                      <motion.tr
-                        key={sub.id}
-                        className="hover:bg-[rgba(0,168,232,0.04)] transition-colors duration-150"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.025, ease: [0.25, 0.46, 0.45, 0.94] }}
-                      >
+                    {filteredSubscriptions.map((sub, index) => {
+                      const statusConfig = getPaymentStatusConfig(sub.status)
+                      const isLate = isLateInMonth && sub.status === 'PENDIENTE'
+                      return (
+                        <TableRow
+                          key={sub.id}
+                          className="hover:bg-[rgba(0,168,232,0.04)] transition-colors duration-150"
+                        >
                         <TableCell>
                           <div className="flex items-center gap-3 relative">
                             {isLate && (
@@ -511,12 +497,12 @@ export function PaymentsView() {
                               </Button>
                             </div>
                           </TableCell>
-                        </motion.tr>
+                        </TableRow>
                       )
                     })}
                   </TableBody>
-              </Table>
-            </div>
+                </Table>
+              </div>
           )}
         </CardContent>
       </Card>
