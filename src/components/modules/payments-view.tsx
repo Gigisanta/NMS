@@ -19,19 +19,22 @@ import { motion } from 'framer-motion'
 import { CreditCard, CheckCircle2, AlertTriangle, Clock, Filter, Loader2, AlertCircle, Send, UserX } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatFullName, getPaymentStatusConfig, formatMonthYear, getCurrentMonth, getCurrentYear, GROUP_COLORS, formatCurrency } from '@/lib/utils'
+import { formatFullName, getPaymentStatusConfig, formatMonthYear, getCurrentMonth, getCurrentYear, GROUP_COLORS, formatCurrency, cn } from '@/lib/utils'
 import { GroupBadge } from './group-badge'
 import { GroupTabs } from './group-tabs'
+import { GroupManager } from './group-manager'
 import { useAppStore } from '@/store'
 import { ReceiptUploadDialog } from './payments/receipt-upload-dialog'
 import { queryClient } from '@/lib/queryClient'
 import { toast } from 'sonner'
+import { Settings, Users } from 'lucide-react'
 
 
 interface Group {
   id: string
   name: string
   color: string
+  clientCount?: number
 }
 
 interface Subscription {
@@ -217,80 +220,136 @@ export function PaymentsView() {
         ))}
       </div>
 
-      {/* Group Tabs */}
-      {sortedGroups.length > 0 && (
-        <>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-sm font-medium text-muted-foreground">Grupos</span>
-            <Select value={groupSortBy} onValueChange={(v) => setGroupSortBy(v as 'name' | 'color')}>
-              <SelectTrigger className="ml-auto h-7 w-[90px] text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="color">Por color</SelectItem>
-                <SelectItem value="name">Por nombre</SelectItem>
-              </SelectContent>
-            </Select>
+      <div className="flex gap-4 items-start">
+        {/* Desktop sidebar */}
+        <aside className="hidden md:flex flex-col gap-2 w-52 lg:w-56 shrink-0 sticky top-4">
+          <div className="bg-background rounded-xl border border-border shadow-sm p-3">
+            <div className="flex items-center gap-2 mb-3">
+              <Users className="w-4 h-4 text-muted-foreground" />
+              <span className="font-semibold text-sm text-muted-foreground">Grupos</span>
+              <Select value={groupSortBy} onValueChange={(v) => setGroupSortBy(v as 'name' | 'color')}>
+                <SelectTrigger className="ml-auto h-7 w-[90px] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Nombre</SelectItem>
+                  <SelectItem value="color">Color</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-0.5">
+              {isAdmin && (
+                <button
+                  onClick={() => setSelectedGrupo(null)}
+                  className={cn(
+                    'w-full text-left px-3 py-2 text-sm rounded-lg transition-all font-medium',
+                    selectedGrupo === null ? 'text-white' : 'text-muted-foreground hover:bg-muted/50'
+                  )}
+                  style={selectedGrupo === null ? { background: 'var(--primary)' } : {}}
+                >
+                  Todos
+                </button>
+              )}
+              {sortedGroups.map((group) => {
+                const count = subscriptions.filter(s => s.client.grupo?.id === group.id).length
+                return (
+                  <button
+                    key={group.id}
+                    onClick={() => setSelectedGrupo(group.id)}
+                    className={cn(
+                      'w-full text-left px-3 py-2 text-sm rounded-lg transition-all flex items-center gap-2 font-medium',
+                      selectedGrupo === group.id ? 'text-white' : 'text-muted-foreground hover:bg-muted/50'
+                    )}
+                  >
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: selectedGrupo === group.id ? 'rgba(255,255,255,0.7)' : (group.color || 'var(--secondary)') }}
+                    />
+                    <span className="truncate">{group.name}</span>
+                    <span className={cn('ml-auto text-xs shrink-0', selectedGrupo === group.id ? 'text-white/70' : 'text-muted-foreground')}>
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
-          <GroupTabs
-            groups={sortedGroups}
-            selectedId={selectedGrupo}
-            onChange={setSelectedGrupo}
-            isAdmin={isAdmin}
+          <GroupManager
+            groups={storeGroups || []}
+            onGroupsChange={() => queryClient.invalidateQueries({ queryKey: ['groups'] })}
+            trigger={
+              <Button variant="outline" size="sm" className="gap-2 w-full justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50">
+                <Settings className="w-4 h-4" />
+                Gestionar Grupos
+              </Button>
+            }
           />
-        </>
-      )}
+        </aside>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex gap-1.5 flex-wrap">
-          {[
-            { value: '', label: 'Todos' },
-            { value: 'AL_DIA', label: 'Al Día', accent: 'var(--success)' },
-            { value: 'PENDIENTE', label: 'Pendiente', accent: 'var(--warning)' },
-            { value: 'DEUDOR', label: 'Deudor', accent: 'var(--destructive)' },
-            { value: 'INACTIVO', label: 'Inactivo', accent: 'var(--slate-500)' },
-          ].map((filter) => {
-            const isActive = statusFilter === filter.value
-            return (
-              <button
-                key={filter.value}
-                onClick={() => setStatusFilter(filter.value)}
-                className="h-8 px-3 text-xs font-medium rounded-lg border transition-all"
-                style={{
-                  background: isActive ? (filter.accent ?? 'var(--primary)') : 'var(--background)',
-                  color: isActive ? 'white' : 'var(--foreground)',
-                  borderColor: isActive ? (filter.accent ?? 'var(--primary)') : 'var(--border)',
-                }}
+        {/* Main content */}
+        <div className="flex-1 min-w-0 space-y-6">
+          {/* Mobile group tabs */}
+          {sortedGroups.length > 0 && (
+            <div className="md:hidden">
+              <GroupTabs
+                groups={sortedGroups}
+                selectedId={selectedGrupo}
+                onChange={setSelectedGrupo}
+                isAdmin={isAdmin}
+              />
+            </div>
+          )}
+
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex gap-1.5 flex-wrap">
+              {[
+                { value: '', label: 'Todos' },
+                { value: 'AL_DIA', label: 'Al Día', accent: 'var(--success)' },
+                { value: 'PENDIENTE', label: 'Pendiente', accent: 'var(--warning)' },
+                { value: 'DEUDOR', label: 'Deudor', accent: 'var(--destructive)' },
+                { value: 'INACTIVO', label: 'Inactivo', accent: 'var(--slate-500)' },
+              ].map((filter) => {
+                const isActive = statusFilter === filter.value
+                return (
+                  <button
+                    key={filter.value}
+                    onClick={() => setStatusFilter(filter.value)}
+                    className="h-8 px-3 text-xs font-medium rounded-lg border transition-all"
+                    style={{
+                      background: isActive ? (filter.accent ?? 'var(--primary)') : 'var(--background)',
+                      color: isActive ? 'white' : 'var(--foreground)',
+                      borderColor: isActive ? (filter.accent ?? 'var(--primary)') : 'var(--border)',
+                    }}
+                  >
+                    {filter.label}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="flex items-center gap-2 ml-auto">
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                className="h-8 px-2 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
               >
-                {filter.label}
-              </button>
-            )
-          })}
-        </div>
-        <div className="flex items-center gap-2 ml-auto">
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-            className="h-8 px-2 rounded-lg border border-input bg-background text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
-          >
-            {months.map(m => (
-              <option key={m} value={m}>
-                {formatMonthYear(m, selectedYear).split(' ')[0]}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className="h-8 px-2 rounded-lg border border-input bg-background text-xs text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-          >
-            {years.map(y => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+                {months.map(m => (
+                  <option key={m} value={m}>
+                    {formatMonthYear(m, selectedYear).split(' ')[0]}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                className="h-8 px-2 rounded-lg border border-input bg-background text-xs text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                {years.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+          </div>
 
       {/* Subscriptions Table */}
       <Card className="border-border shadow-sm overflow-hidden">
@@ -478,8 +537,9 @@ export function PaymentsView() {
           clientName={formatFullName(pendingSub.client.nombre, pendingSub.client.apellido)}
           periodLabel={formatMonthYear(pendingSub.month, pendingSub.year)}
         />
-      )}
+        )}
+        </div>
+      </div>
     </div>
-
   )
 }
