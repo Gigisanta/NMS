@@ -123,7 +123,7 @@ export function GroupSelector({
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-72 p-0 z-[9999] max-h-[320px]"
+        className="w-72 p-0 z-[9999] bg-background border-shadow-md"
         align="start"
         sideOffset={4}
         collisionPadding={16}
@@ -201,7 +201,7 @@ export function GroupSelector({
           </div>
         ) : null}
 
-        <ScrollArea className="max-h-[240px]">
+        <ScrollArea className="max-h-[400px]">
           <div className="p-1">
             {/* Option to clear selection */}
             <button
