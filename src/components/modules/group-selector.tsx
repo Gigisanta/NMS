@@ -69,6 +69,14 @@ export function GroupSelector({
 
   const selectedGroup = groups.find(g => g.id === value) || null
 
+  const sortedGroups = useMemo(() => {
+    return [...groups].sort((a, b) => {
+      const colorA = a.color.toLowerCase()
+      const colorB = b.color.toLowerCase()
+      return colorA.localeCompare(colorB)
+    })
+  }, [groups])
+
   useEffect(() => {
     if (showCreate && inputRef.current) {
       inputRef.current.focus()
@@ -223,7 +231,7 @@ export function GroupSelector({
             </button>
 
             {/* Group options */}
-            {groups.map((group) => (
+            {sortedGroups.map((group) => (
               <button
                 key={group.id}
                 className={cn(
