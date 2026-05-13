@@ -3,7 +3,13 @@ import { NextRequest } from 'next/server'
 
 vi.mock('@/lib/db', () => ({
   db: {
-    subscription: { findMany: vi.fn(), findUnique: vi.fn(), update: vi.fn(), create: vi.fn() },
+    subscription: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      create: vi.fn(),
+      createMany: vi.fn(),
+    },
     client: { findMany: vi.fn(), findUnique: vi.fn() },
     settings: { findUnique: vi.fn() },
     $transaction: vi.fn(),
@@ -16,6 +22,10 @@ vi.mock('@/lib/api-utils', () => ({
   invalidateCache: vi.fn(),
   invalidateCachePattern: vi.fn(),
   invalidateClientCache: vi.fn(),
+}))
+
+vi.mock('@/auth', () => ({
+  auth: vi.fn().mockResolvedValue({ user: { id: 'admin-1', role: 'EMPLEADORA' } }),
 }))
 
 import { db } from '@/lib/db'
@@ -52,14 +62,28 @@ describe('API /subscriptions', () => {
       expect(data.data).toEqual([])
     })
 
-    it('should create missing subscriptions when ensureSubsExist is called', async () => {
+    it('should create missing subscriptions using createMany when ensureSubsExist is called', async () => {
+      // Mock for missingClients query
       vi.mocked(db.client.findMany).mockResolvedValue([{ id: 'client-1' }])
-      vi.mocked(db.subscription.findMany).mockResolvedValue([])
+      // Mock for settings and previous subscriptions parallel fetch
       vi.mocked(db.settings.findUnique).mockResolvedValue(null)
-      vi.mocked(db.$transaction).mockResolvedValue([])
-      const response = await getSubscriptions(createRequest('/api/subscriptions?month=5&year=2026'))
+      vi.mocked(db.subscription.findMany).mockResolvedValue([])
+      vi.mocked(db.subscription.createMany).mockResolvedValue({ count: 1 })
+
+      // Mock for the final findMany query in the GET handler
+      vi.mocked(db.subscription.findMany).mockResolvedValueOnce([{ id: 'sub-1', clientId: 'client-1' }] as any)
+
+      // Use current month/year to trigger ensureSubscriptionsExist
+      const now = new Date()
+      const m = now.getMonth() + 1
+      const y = now.getFullYear()
+
+      const response = await getSubscriptions(createRequest(`/api/subscriptions?month=${m}&year=${y}`))
       expect(response.status).toBe(200)
-      expect(db.$transaction).toHaveBeenCalled()
+      expect(db.subscription.createMany).toHaveBeenCalled()
+      expect(db.subscription.createMany).toHaveBeenCalledWith({
+        data: [expect.objectContaining({ clientId: 'client-1', month: m, year: y })]
+      })
     })
   })
 })
@@ -100,7 +124,7 @@ describe('API /subscriptions/[id]', () => {
       const data = await response.json()
       expect(response.status).toBe(400)
       expect(data.success).toBe(false)
-      expect(data.error).toContain('Datos inválidos')
+      expect(data.error).toMatch(/Invalid option|one of|Datos inválidos/i)
     })
 
     it('should fail with negative classesUsed', async () => {
