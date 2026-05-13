@@ -886,6 +886,25 @@ export function ClientProfile({ clientId, groups, onClose, onSaved }: ClientProf
                     </Badge>
                   </div>
                 </div>
+
+                {/* Guardar cambios */}
+                <div className="pt-4">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="w-full"
+                    style={{ background: 'var(--primary)' }}
+                    onClick={handleSave}
+                    disabled={saving}
+                  >
+                    {saving ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : (
+                      <Save className="w-4 h-4 mr-2" />
+                    )}
+                    {saving ? 'Guardando...' : 'Guardar cambios'}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
