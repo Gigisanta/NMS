@@ -334,6 +334,30 @@
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 86, 145, 0.35);
   }
+
+  /* Celeste scrollbar for GroupSelector dropdown */
+  .scrollbar-celeste {
+    scrollbar-width: thin;
+    scrollbar-color: #87CEEB transparent;
+  }
+
+  .scrollbar-celeste::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-celeste::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-celeste::-webkit-scrollbar-thumb {
+    background: #87CEEB;
+    border-radius: 4px;
+  }
+
+  .scrollbar-celeste::-webkit-scrollbar-thumb:hover {
+    background: #ADD8E6;
+  }
 }
 
 /* ============================================

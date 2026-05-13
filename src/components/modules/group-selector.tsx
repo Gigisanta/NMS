@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { queryClient } from '@/lib/queryClient'
 import { 
   Plus, 
@@ -209,7 +208,7 @@ export function GroupSelector({
           </div>
         ) : null}
 
-        <ScrollArea className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-celeste">
           <div className="p-1">
             {/* Option to clear selection */}
             <button
@@ -283,7 +282,7 @@ export function GroupSelector({
               </div>
             )}
           </div>
-        </ScrollArea>
+        </div>
       </PopoverContent>
     </Popover>
   )
