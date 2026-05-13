@@ -131,7 +131,7 @@ export function GroupSelector({
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-72 p-0 z-[9999] bg-background border-shadow-md max-h-[70vh] overflow-hidden flex flex-col"
+        className="w-72 p-0 z-[9999] bg-background border-shadow-md max-h-[70vh] overflow-clip flex flex-col"
         align="start"
         sideOffset={4}
         collisionPadding={16}
