@@ -130,10 +130,11 @@ export function GroupSelector({
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-72 p-0 z-[9999] bg-background border-shadow-md max-h-[70vh] overflow-visible flex flex-col"
+        className="w-72 p-0 z-[9999] bg-background border-shadow-md max-h-[70vh] overflow-hidden flex flex-col"
         align="start"
         sideOffset={4}
         collisionPadding={16}
+        onWheel={(e) => e.stopPropagation()}
       >
         <div className="p-3 border-b">
           <div className="flex items-center justify-between">
@@ -208,7 +209,10 @@ export function GroupSelector({
           </div>
         ) : null}
 
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-celeste">
+        <div 
+          className="flex-1 min-h-0 overflow-y-auto scrollbar-celeste"
+          onWheel={(e) => e.stopPropagation()}
+        >
           <div className="p-1">
             {/* Option to clear selection */}
             <button
