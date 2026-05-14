@@ -23,3 +23,7 @@
 ## 2026-03-04 - Batching Aggregations to Avoid N+1
 **Learning:** Prisma's `groupBy` doesn't support grouping by related fields (e.g., grouping Subscriptions by Client.grupoId). Using `map()` with individual `aggregate()` calls creates an N+1 query bottleneck that scales poorly with the number of groups.
 **Action:** Use a single `findMany` to batch-fetch all required records in a single query (parallelized with other requests) and perform the aggregation in-memory using `reduce()`. This reduces database roundtrips from N to 1.
+
+## 2026-05-14 - Optimizing Subscription Generation with Relation Filters
+**Learning:** Using Prisma's `none` relation filter allows identifying missing records in a one-to-many relationship in a single query, avoiding the need to fetch and compare two large datasets in memory. Combining this with `createMany` for bulk insertion provides a significant performance boost for "ensure-exists" patterns.
+**Action:** Prefer database-level filtering (`none`, `some`, `every`) over in-memory set operations when dealing with large datasets in Prisma.
