@@ -165,19 +165,31 @@ export function PaymentsView() {
   }
 
 
-  const filteredSubscriptions = useMemo(() => subscriptions.filter(s => {
-    const matchesStatus = !statusFilter || s.status === statusFilter
-    const matchesGroup = !selectedGrupo || s.client.grupo?.id === selectedGrupo
-    return matchesStatus && matchesGroup
-  }), [subscriptions, statusFilter, selectedGrupo])
+  // BOLT OPTIMIZATION: Combine filtering and stats calculation into a single O(N) pass
+  const { filteredSubscriptions, stats } = useMemo(() => {
+    const stats = { total: 0, alDia: 0, pendiente: 0, deudor: 0, inactivo: 0 }
+    const filtered: Subscription[] = []
 
-  const stats = useMemo(() => ({
-    total: subscriptions.filter(s => s.status !== 'INACTIVO').length,
-    alDia: subscriptions.filter(s => s.status === 'AL_DIA').length,
-    pendiente: subscriptions.filter(s => s.status === 'PENDIENTE').length,
-    deudor: subscriptions.filter(s => s.status === 'DEUDOR').length,
-    inactivo: subscriptions.filter(s => s.status === 'INACTIVO').length,
-  }), [subscriptions])
+    for (const s of subscriptions) {
+      // Calculate stats for all non-inactive subscriptions (except inactivo stat itself)
+      if (s.status !== 'INACTIVO') stats.total++
+
+      if (s.status === 'AL_DIA') stats.alDia++
+      else if (s.status === 'PENDIENTE') stats.pendiente++
+      else if (s.status === 'DEUDOR') stats.deudor++
+      else if (s.status === 'INACTIVO') stats.inactivo++
+
+      // Apply filters
+      const matchesStatus = !statusFilter || s.status === statusFilter
+      const matchesGroup = !selectedGrupo || s.client.grupo?.id === selectedGrupo
+
+      if (matchesStatus && matchesGroup) {
+        filtered.push(s)
+      }
+    }
+
+    return { filteredSubscriptions: filtered, stats }
+  }, [subscriptions, statusFilter, selectedGrupo])
 
   const sortedGroups = useMemo(() => {
     const sorted = [...groups]
