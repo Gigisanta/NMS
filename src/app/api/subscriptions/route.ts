@@ -3,49 +3,61 @@ import { db } from '@/lib/db'
 import { auth } from '@/auth'
 import { getCurrentMonth, getCurrentYear } from '@/lib/utils'
 
+/**
+ * BOLT OPTIMIZATION: Refactored to eliminate O(N) client/subscription comparison.
+ * Uses Prisma's 'none' relation filter to find missing records in one query.
+ */
 async function ensureSubscriptionsExist(month: number, year: number) {
-  const clients = await db.client.findMany({ select: { id: true } })
-  const existingSubs = await db.subscription.findMany({
-    where: { month, year },
-    select: { clientId: true },
+  // BOLT: Find only clients that don't have a subscription for this month/year
+  // This reduces data transfer and avoids in-memory O(N) filtering
+  const missingClients = await db.client.findMany({
+    where: {
+      subscriptions: {
+        none: { month, year }
+      }
+    },
+    select: { id: true }
   })
-  const existingClientIds = new Set(existingSubs.map(s => s.clientId))
-  const missingClients = clients.filter(c => !existingClientIds.has(c.id))
 
   if (missingClients.length > 0) {
-    const defaultClassesSetting = await db.settings.findUnique({
-      where: { key: 'payment.defaultClasses' },
-    })
-    const defaultClasses = defaultClassesSetting ? parseInt(defaultClassesSetting.value) : 4
-
-    // Get previous month subscriptions to carry over amount and billingPeriod
     const prevMonth = month === 1 ? 12 : month - 1
     const prevYear = month === 1 ? year - 1 : year
 
-    const prevSubscriptions = await db.subscription.findMany({
-      where: { month: prevMonth, year: prevYear },
-      select: { clientId: true, amount: true, billingPeriod: true },
-    })
+    // BOLT: Run settings and previous subscriptions query in parallel
+    const [defaultClassesSetting, prevSubscriptions] = await Promise.all([
+      db.settings.findUnique({
+        where: { key: 'payment.defaultClasses' },
+      }),
+      db.subscription.findMany({
+        where: { month: prevMonth, year: prevYear },
+        select: { clientId: true, amount: true, billingPeriod: true },
+      })
+    ])
+
+    const defaultClasses = defaultClassesSetting ? parseInt(defaultClassesSetting.value) : 4
     const prevSubMap = new Map(prevSubscriptions.map(s => [s.clientId, s]))
 
-    await db.$transaction(
-      missingClients.map(client => {
-        const prevSub = prevSubMap.get(client.id)
-        return db.subscription.create({
-          data: {
-            clientId: client.id,
-            month,
-            year,
-            status: 'PENDIENTE',
-            billingPeriod: prevSub?.billingPeriod || 'FULL',
-            classesTotal: defaultClasses,
-            classesUsed: 0,
-            // Carry over amount from previous month if it exists
-            amount: prevSub?.amount ?? null,
-          },
-        })
-      })
-    )
+    // BOLT: Use createMany for a single bulk insert instead of O(N) transaction
+    // This significantly reduces database roundtrips
+    const subscriptionData = missingClients.map(client => {
+      const prevSub = prevSubMap.get(client.id)
+      return {
+        clientId: client.id,
+        month,
+        year,
+        status: 'PENDIENTE',
+        billingPeriod: prevSub?.billingPeriod || 'FULL',
+        classesTotal: defaultClasses,
+        classesUsed: 0,
+        amount: prevSub?.amount ?? null,
+      }
+    })
+
+    await db.subscription.createMany({
+      data: subscriptionData
+    })
+
+    console.log(`[BOLT] Generated ${subscriptionData.length} missing subscriptions for ${month}/${year}`)
   }
 }
 
